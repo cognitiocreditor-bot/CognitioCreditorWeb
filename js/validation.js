@@ -23,7 +23,11 @@ export const Validation = {
   normalizeDNI(dni) {
     if (dni === null || dni === undefined) return "";
     let s = String(dni).trim();
-    // Si viene como número sin ceros a la izquierda pero de 7 dígitos, rellenar a 8
+    // Limpiar posibles decimales generados por Excel (ej. 71234567.0)
+    s = s.replace(/\.0+$/, "");
+    // Limpiar puntos, espacios y guiones
+    s = s.replace(/[\s\.\-]/g, "");
+    // Si viene como número sin ceros a la izquierda pero de 1 a 7 dígitos, rellenar a 8
     if (/^\d{1,7}$/.test(s)) {
       s = s.padStart(8, "0");
     }
@@ -50,8 +54,8 @@ export const Validation = {
     if (!name || typeof name !== "string") return false;
     const cleanName = name.trim();
     if (cleanName.length < 3 || cleanName.length > 150) return false;
-    // Permite caracteres del alfabeto español y signos ortográficos habituales en nombres
-    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'\-\.]+$/;
+    // Permite caracteres del alfabeto español y signos ortográficos habituales en nombres (incluyendo coma)
+    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'\-\.,]+$/;
     return nameRegex.test(cleanName);
   },
 

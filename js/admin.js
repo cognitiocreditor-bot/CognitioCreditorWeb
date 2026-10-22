@@ -507,11 +507,23 @@ export const Admin = {
     const errors = [];
 
     rows.forEach((row, idx) => {
-      // Buscar columnas tolerando mayúsculas/minúsculas
-      const dniKey = Object.keys(row).find(k => k.trim().toUpperCase() === 'DNI');
-      const nameKey = Object.keys(row).find(k => k.trim().toUpperCase().includes('NOMBRE'));
-      const certKey = Object.keys(row).find(k => k.trim().toUpperCase().includes('TIPO'));
-      const voucherKey = Object.keys(row).find(k => k.trim().toUpperCase().includes('VOUCHER') || k.trim().toUpperCase().includes('REFERENCIA'));
+      // Buscar columnas tolerando mayúsculas/minúsculas y variaciones comunes
+      const dniKey = Object.keys(row).find(k => {
+        const up = k.trim().toUpperCase();
+        return up === 'DNI' || up.includes('DNI') || up.includes('DOCUMENTO') || up.includes('CEDULA') || up.includes('IDENTIFICACION');
+      });
+      const nameKey = Object.keys(row).find(k => {
+        const up = k.trim().toUpperCase();
+        return up.includes('NOMBRE') || up.includes('APELLIDO') || up.includes('ALUMNO') || up.includes('ESTUDIANTE') || up.includes('PARTICIPANTE');
+      });
+      const certKey = Object.keys(row).find(k => {
+        const up = k.trim().toUpperCase();
+        return up.includes('TIPO') || up.includes('MODALIDAD') || up.includes('CERTIFICADO');
+      });
+      const voucherKey = Object.keys(row).find(k => {
+        const up = k.trim().toUpperCase();
+        return up.includes('VOUCHER') || up.includes('REFERENCIA') || up.includes('COMPROBANTE') || up.includes('OPERACION') || up.includes('RECIBO');
+      });
 
       const rawDni = dniKey ? String(row[dniKey]).trim() : '';
       const rawName = nameKey ? String(row[nameKey]).trim() : '';
