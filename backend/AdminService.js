@@ -116,11 +116,21 @@ const AdminService = {
       Color_Texto: "#1B365D"
     };
 
-    if (!certConfig.Link_Plantilla) {
+    let templateId = String(certConfig.Link_Plantilla || "").trim();
+    if (!templateId) {
       throw new Error("No se ha configurado la plantilla en Drive para este evento.");
     }
+    const driveMatch = templateId.match(/\/d\/([a-zA-Z0-9_-]+)/) || templateId.match(/id=([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      templateId = driveMatch[1];
+    }
 
-    const file = DriveApp.getFileById(certConfig.Link_Plantilla);
+    let file;
+    try {
+      file = DriveApp.getFileById(templateId);
+    } catch (driveErr) {
+      throw new Error("No se pudo acceder a la plantilla en Drive (ID: " + templateId + "). Revise permisos. Detalle: " + driveErr.message);
+    }
     const blob = file.getBlob();
     const base64Pdf = Utilities.base64Encode(blob.getBytes());
 

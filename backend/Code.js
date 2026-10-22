@@ -144,7 +144,20 @@ function jsonResponse(obj) {
  * para aprobar los permisos de llamadas externas (UrlFetchApp), Sheets y Drive.
  */
 function autorizarPermisos() {
-  UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo");
+  // 1. Invocar DriveApp para forzar solicitud de scope de Drive
+  const rootName = DriveApp.getRootFolder().getName();
+  Logger.log("Permiso DriveApp concedido. Carpeta raíz: " + rootName);
+
+  // 2. Invocar SpreadsheetApp para forzar solicitud de scope de Sheets
+  if (CONFIG.SPREADSHEET_ID && CONFIG.SPREADSHEET_ID !== "TU_SPREADSHEET_ID_AQUI") {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    Logger.log("Permiso SpreadsheetApp concedido. Libro: " + ss.getName());
+  }
+
+  // 3. Invocar UrlFetchApp para llamadas externas sin arrojar error 400
+  UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo", { muteHttpExceptions: true });
   Logger.log("Permisos de UrlFetchApp autorizados correctamente.");
+
+  Logger.log(">>> TODOS LOS PERMISOS (Drive, Sheets, UrlFetch) HAN SIDO AUTORIZADOS CON ÉXITO.");
 }
 

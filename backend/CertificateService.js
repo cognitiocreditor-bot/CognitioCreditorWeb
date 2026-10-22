@@ -137,12 +137,24 @@ const CertificateService = {
     };
 
     // Obtener archivo PDF desde Google Drive
-    const templateFileId = certConfig.Link_Plantilla;
+    let templateFileId = String(certConfig.Link_Plantilla || "").trim();
     if (!templateFileId) {
       throw new Error("No se ha configurado la plantilla PDF de este evento.");
     }
 
-    const file = DriveApp.getFileById(templateFileId);
+    // Extraer ID si el usuario ingresó un enlace completo de Google Drive
+    const driveMatch = templateFileId.match(/\/d\/([a-zA-Z0-9_-]+)/) || templateFileId.match(/id=([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      templateFileId = driveMatch[1];
+    }
+
+    let file;
+    try {
+      file = DriveApp.getFileById(templateFileId);
+    } catch (driveErr) {
+      throw new Error("No se pudo acceder al archivo de la plantilla en Google Drive (ID: " + templateFileId + "). Verifique que el archivo exista y que la cuenta de despliegue tenga permisos de lectura. Detalle: " + driveErr.message);
+    }
+
     const blob = file.getBlob();
     const base64Pdf = Utilities.base64Encode(blob.getBytes());
 
