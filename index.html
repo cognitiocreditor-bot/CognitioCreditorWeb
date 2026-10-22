@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Plataforma oficial del Círculo de Estudios Cognitio Creditor. Formación académica, eventos en derecho concursal y consulta de certificados.">
+  <title>COGNITIO CREDITOR — Círculo de Estudios</title>
+  
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+
+  <!-- pdf-lib y fontkit para generación vectorial cliente de certificados -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
+</head>
+<body>
+  <!-- Enlace accesible de salto -->
+  <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
+  <!-- Encabezado / Navegación -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand-wrapper">
+        <img src="assets/images/logo-placeholder.svg" alt="Logotipo de Cognitio Creditor" class="brand-logo" id="header-logo">
+        <div class="brand-text">
+          <span class="brand-title">COGNITIO CREDITOR</span>
+          <span class="brand-subtitle">Círculo de Estudios</span>
+        </div>
+      </a>
+
+      <!-- Navegación Escritorio -->
+      <nav class="nav-desktop" aria-label="Navegación principal">
+        <a href="#inicio" class="nav-link active">Inicio</a>
+        <a href="#institucional" class="nav-link">Nosotros</a>
+        <a href="#eventos" class="nav-link">Eventos</a>
+        <a href="#certificados" class="nav-link">Certificados</a>
+        <a href="emisor.html" class="nav-link" style="opacity: 0.85;" title="Acceso exclusivo directiva">Panel Directiva</a>
+        <a href="#contacto" class="btn btn-primary btn-sm" id="btn-header-contact">Contacto</a>
+      </nav>
+
+      <!-- Botón Menú Móvil -->
+      <button type="button" class="menu-toggle" id="menu-toggle-btn" aria-label="Abrir menú de navegación" aria-expanded="false">
+        ☰
+      </button>
+    </div>
+
+    <!-- Menú Móvil Desplegable -->
+    <nav class="nav-mobile" id="nav-mobile-menu" aria-label="Navegación móvil">
+      <a href="#inicio" class="nav-link mobile-link">Inicio</a>
+      <a href="#institucional" class="nav-link mobile-link">Nosotros</a>
+      <a href="#eventos" class="nav-link mobile-link">Eventos</a>
+      <a href="#certificados" class="nav-link mobile-link">Certificados</a>
+      <a href="emisor.html" class="nav-link mobile-link">Panel Directiva</a>
+      <a href="#contacto" class="nav-link mobile-link">Contacto</a>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <!-- Hero Principal -->
+    <section id="inicio" class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-text-content">
+          <span class="hero-tag">🎓 Excelencia Académica y Jurídica</span>
+          <h1 class="hero-title">Impulsando el debate y la investigación jurídica de vanguardia</h1>
+          <p class="hero-description" id="hero-slogan">
+            Espacio universitario dedicado al análisis doctrinal, la formación especializada y la difusión del Derecho Concursal, Patrimonial y Corporativo.
+          </p>
+          <div class="hero-actions">
+            <a href="#eventos" class="btn btn-primary">Explorar Próximos Eventos</a>
+            <a href="#certificados" class="btn btn-secondary">Consultar Certificados</a>
+          </div>
+        </div>
+
+        <div class="hero-card-wrapper">
+          <div class="hero-card">
+            <h3>Portal de Verificación</h3>
+            <p>¿Participaste en alguna de nuestras conferencias o talleres? Consulta la validez de tu certificación oficial y descarga tu constancia virtual.</p>
+            <a href="#certificados" class="btn btn-primary btn-block">Ir a Consulta de Certificados →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección Institucional -->
+    <section id="institucional" class="section section-alt">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Conócenos</span>
+          <h2 class="section-title">Círculo de Estudios Cognitio Creditor</h2>
+          <p class="section-subtitle">Comprometidos con la rigurosidad científica, la ética y el desarrollo profesional continuo de la comunidad académica.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+          <div style="background: var(--color-bg); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🏛️</div>
+            <h3 style="color: var(--color-primary); font-size: 1.25rem; margin-bottom: 0.5rem;">Misión</h3>
+            <p style="color: var(--color-text-muted); font-size: 0.95rem;">
+              Promover la formación continua, el pensamiento crítico y la investigación rigurosa en el ámbito del derecho concursal y crediticio a través de eventos académicos de primer nivel.
+            </p>
+          </div>
+
+          <div style="background: var(--color-bg); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔭</div>
+            <h3 style="color: var(--color-primary); font-size: 1.25rem; margin-bottom: 0.5rem;">Visión</h3>
+            <p style="color: var(--color-text-muted); font-size: 0.95rem;">
+              Constituirnos como el círculo de estudios de referencia nacional en reestructuración empresarial y derecho patrimonial, reconocido por su calidad y proyección académica.
+            </p>
+          </div>
+
+          <div style="background: var(--color-bg); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📚</div>
+            <h3 style="color: var(--color-primary); font-size: 1.25rem; margin-bottom: 0.5rem;">Actividades</h3>
+            <p style="color: var(--color-text-muted); font-size: 0.95rem;">
+              Organizamos congresos, seminarios, mesas de debate, talleres prácticos de casuística y publicaciones periódicas con ponentes nacionales e internacionales.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Eventos -->
+    <section id="eventos" class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Agenda Académica</span>
+          <h2 class="section-title">Próximos Eventos y Seminarios</h2>
+          <p class="section-subtitle">Inscríbete en nuestras actividades de formación y amplía tu perspectiva jurídica.</p>
+        </div>
+
+        <div id="events-container">
+          <!-- Renderizado dinámico desde js/events.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Consulta de Certificados -->
+    <section id="certificados" class="section section-alt">
+      <div class="container container-narrow">
+        <div class="section-header">
+          <span class="section-tag">Verificación Oficial</span>
+          <h2 class="section-title">Consulta de Certificados</h2>
+          <p class="section-subtitle">Ingresa tu documento de identidad y tu código de consulta para obtener tu certificado virtual oficial.</p>
+        </div>
+
+        <div class="cert-lookup-box">
+          <form id="cert-query-form" novalidate>
+            <div class="form-group">
+              <label for="query-dni" class="form-label">Número de DNI (8 dígitos) *</label>
+              <input type="text" id="query-dni" name="dni" class="form-control" placeholder="Ej. 71234567" maxlength="8" required pattern="\d{8}" inputmode="numeric">
+              <p class="form-help">Ingresa los 8 dígitos exactos de tu Documento Nacional de Identidad.</p>
+            </div>
+
+            <div class="form-group">
+              <label for="query-code" class="form-label">Código de Consulta (Opcional si es primera vez)</label>
+              <input type="text" id="query-code" name="code" class="form-control" placeholder="Ej. CC-8F4A2B" maxlength="16">
+              <p class="form-help">Proporcionado al confirmar tu registro. Refuerza la seguridad de tu información académica.</p>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="query-submit-btn">
+              🔍 Consultar Estado y Certificados
+            </button>
+          </form>
+
+          <div id="cert-query-results" aria-live="polite">
+            <!-- Renderizado dinámico desde js/certificates.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Contacto y Redes -->
+    <section id="contacto" class="section">
+      <div class="container" style="text-align: center; max-width: 700px;">
+        <span class="section-tag">Comunidad</span>
+        <h2 class="section-title">¿Tienes alguna duda o consulta?</h2>
+        <p class="section-subtitle" style="margin-bottom: 2rem;">
+          Comunícate directamente con la directiva del Círculo para coordinaciones de pago, certificados físicos o alianzas académicas.
+        </p>
+
+        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+          <a href="#" id="link-whatsapp-main" target="_blank" rel="noopener noreferrer" class="btn btn-success">
+            💬 Contactar por WhatsApp Oficial
+          </a>
+          <a href="#" id="link-facebook-main" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+            Facebook
+          </a>
+          <a href="#" id="link-instagram-main" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+            Instagram
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de Inscripción Propia -->
+  <div id="enrollment-modal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(10, 37, 64, 0.75); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 1rem;" role="dialog" aria-modal="true" aria-labelledby="modal-event-title">
+    <div style="background: var(--color-surface); width: 100%; max-width: 520px; border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-xl); position: relative; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+        <div>
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-accent); text-transform: uppercase;">Inscripción Oficial</span>
+          <h3 id="modal-event-title" style="color: var(--color-primary); font-size: 1.25rem; line-height: 1.2;">Evento Académico</h3>
+        </div>
+        <button type="button" onclick="window.CognitioPortal.closeEnrollmentModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-muted);">&times;</button>
+      </div>
+
+      <div id="enrollment-feedback" style="display: none;"></div>
+
+      <form id="enrollment-form">
+        <input type="hidden" id="modal-event-id" name="eventId">
+
+        <div id="enrollment-form-fields">
+          <div class="form-group">
+            <label for="enroll-dni" class="form-label">DNI (8 dígitos) *</label>
+            <input type="text" id="enroll-dni" name="dni" class="form-control" maxlength="8" required pattern="\d{8}" inputmode="numeric" placeholder="71234567">
+          </div>
+
+          <div class="form-group">
+            <label for="enroll-name" class="form-label">Nombres y Apellidos Completos *</label>
+            <input type="text" id="enroll-name" name="name" class="form-control" required placeholder="Tal como aparecerá en el certificado">
+          </div>
+
+          <div class="form-group">
+            <label for="enroll-cert-type" class="form-label">Tipo de Certificado Deseado *</label>
+            <select id="enroll-cert-type" name="certType" class="form-control">
+              <option value="Virtual">Virtual (PDF descargable)</option>
+              <option value="Fisico">Físico (Entrega presencial)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="enroll-voucher" class="form-label">Referencia / N° Operación Voucher (Opcional)</label>
+            <input type="text" id="enroll-voucher" name="voucher" class="form-control" placeholder="Ej. OP-123456">
+            <p class="form-help">Si ya realizaste el abono de recuperación, añade el número de comprobante.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary btn-block" style="color: var(--color-text-main); border-color: var(--color-border);" onclick="window.CognitioPortal.closeEnrollmentModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-block" id="enroll-submit-btn">Completar Inscripción</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Pie de Página -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="brand-wrapper" style="margin-bottom: 1rem;">
+          <img src="assets/images/logo-placeholder.svg" alt="Logo Cognitio Creditor" class="brand-logo">
+          <div class="brand-text">
+            <span class="brand-title" style="color: #FFF;">COGNITIO CREDITOR</span>
+            <span class="brand-subtitle">Círculo de Estudios</span>
+          </div>
+        </div>
+        <p style="font-size: 0.9rem; line-height: 1.6; max-width: 380px;">
+          Asociación académica de estudiantes y profesionales comprometidos con la excelencia jurídica y la reestructuración patrimonial.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="footer-title">Enlaces Directos</h4>
+        <ul class="footer-links">
+          <li><a href="#inicio" class="footer-link">Inicio</a></li>
+          <li><a href="#eventos" class="footer-link">Eventos Académicos</a></li>
+          <li><a href="#certificados" class="footer-link">Verificación de Certificados</a></li>
+          <li><a href="emisor.html" class="footer-link">Panel Administrativo</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="footer-title">Legal y Privacidad</h4>
+        <ul class="footer-links">
+          <li><a href="privacidad.html" class="footer-link">Política de Privacidad</a></li>
+          <li><a href="privacidad.html#arco" class="footer-link">Derechos ARCO</a></li>
+          <li><span style="font-size: 0.85rem; color: #94A3B8;">Zona horaria: America/Lima</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <p>&copy; <span id="footer-year"></span> Círculo de Estudios Cognitio Creditor. Todos los derechos reservados.</p>
+      <p style="font-size: 0.8rem; color: #64748B;">Desarrollado con arquitectura abierta y segura.</p>
+    </div>
+  </footer>
+
+  <!-- Script Principal de Orquestación Frontend -->
+  <script type="module">
+    import { CONFIG } from './js/config.js';
+    import { Events } from './js/events.js';
+    import { Enrollment } from './js/enrollment.js';
+    import { Certificates } from './js/certificates.js';
+
+    // Exponer API global para eventos inline de botones
+    window.CognitioPortal = {
+      openEnrollmentModal: (id, title) => Enrollment.openModal(id, title),
+      closeEnrollmentModal: () => Enrollment.closeModal(),
+      downloadCertificate: (id, idx) => Certificates.processDownload(id, idx),
+      reloadEvents: () => Events.loadEvents()
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Configuración de Marca y Año
+      document.getElementById('footer-year').textContent = new Date().getFullYear();
+      if (CONFIG.SLOGAN) {
+        const sloganEl = document.getElementById('hero-slogan');
+        if (sloganEl) sloganEl.textContent = CONFIG.SLOGAN;
+      }
+
+      // 2. Enlaces dinámicos de redes
+      const waBtn = document.getElementById('link-whatsapp-main');
+      if (waBtn) {
+        if (CONFIG.isWhatsAppConfigured()) {
+          waBtn.href = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(CONFIG.WHATSAPP_DEFAULT_MESSAGE)}`;
+        } else {
+          waBtn.href = 'javascript:alert("Número de WhatsApp oficial pendiente de configurar en js/config.js");';
+        }
+      }
+
+      const fbBtn = document.getElementById('link-facebook-main');
+      if (fbBtn && CONFIG.FACEBOOK_URL && !CONFIG.FACEBOOK_URL.includes('TU_URL')) {
+        fbBtn.href = CONFIG.FACEBOOK_URL;
+      } else if (fbBtn) {
+        fbBtn.style.opacity = '0.5';
+        fbBtn.href = 'javascript:alert("Enlace a Facebook pendiente de configurar en js/config.js");';
+      }
+
+      const igBtn = document.getElementById('link-instagram-main');
+      if (igBtn && CONFIG.INSTAGRAM_URL && !CONFIG.INSTAGRAM_URL.includes('TU_URL')) {
+        igBtn.href = CONFIG.INSTAGRAM_URL;
+      } else if (igBtn) {
+        igBtn.style.opacity = '0.5';
+        igBtn.href = 'javascript:alert("Enlace a Instagram pendiente de configurar en js/config.js");';
+      }
+
+      // 3. Menú móvil interactivo
+      const toggleBtn = document.getElementById('menu-toggle-btn');
+      const mobileNav = document.getElementById('nav-mobile-menu');
+      if (toggleBtn && mobileNav) {
+        toggleBtn.addEventListener('click', () => {
+          const isOpen = mobileNav.classList.toggle('open');
+          toggleBtn.setAttribute('aria-expanded', isOpen);
+        });
+
+        // Cerrar menú móvil al pulsar un enlace
+        mobileNav.querySelectorAll('.mobile-link').forEach(link => {
+          link.addEventListener('click', () => {
+            mobileNav.classList.remove('open');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+          });
+        });
+      }
+
+      // 4. Inicializar módulos
+      Events.init('#events-container');
+      Enrollment.init();
+      Certificates.init();
+    });
+  </script>
+</body>
+</html>

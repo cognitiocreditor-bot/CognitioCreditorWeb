@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrativo y Emisión — Círculo de Estudios Cognitio Creditor</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+
+  <!-- Google Identity Services (OAuth2) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- SheetJS para importación de listas Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <!-- pdf-lib y fontkit para previsualización y lotes masivos -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
+
+  <style>
+    .admin-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    .admin-tab-btn {
+      background: none;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .admin-tab-btn:hover {
+      color: var(--color-primary);
+    }
+    .admin-tab-btn.active {
+      color: var(--color-accent);
+      border-bottom-color: var(--color-accent);
+    }
+    .admin-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 2rem;
+    }
+    .admin-table th, .admin-table td {
+      border-bottom: 1px solid var(--color-border);
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <!-- Encabezado Administrativo -->
+  <header class="site-header" style="background-color: var(--color-primary-dark);">
+    <div class="container header-inner">
+      <div class="brand-wrapper">
+        <img src="assets/images/logo-placeholder.svg" alt="Logotipo Cognitio Creditor" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-title">COGNITIO CREDITOR</span>
+          <span class="brand-subtitle" style="color: #38BDF8;">Panel de Gestión de la Directiva</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="index.html" class="nav-link">← Ver Portal Público</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      
+      <!-- SECCIÓN 1: Control de Acceso (Google Sign-In) -->
+      <section id="auth-gate-section" style="max-width: 500px; margin: 3rem auto; text-align: center;">
+        <div class="admin-card">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+          <h1 style="color: var(--color-primary); font-size: 1.5rem; margin-bottom: 0.5rem;">Acceso Directiva</h1>
+          <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Inicie sesión con su cuenta institucional de Google autorizada para administrar eventos, confirmar pagos y emitir certificados.
+          </p>
+
+          <div id="auth-warning-box" class="alert alert-warning" style="display: none; text-align: left; font-size: 0.85rem;"></div>
+
+          <div id="google-signin-btn-container" style="display: flex; justify-content: center; margin-top: 1rem;"></div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 2: Espacio de Trabajo Administrativo (Post-Auth) -->
+      <section id="admin-workspace-section" style="display: none;">
+        
+        <!-- Barra de Estado del Usuario -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 0.85rem 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+          <div>
+            <span style="font-size: 0.85rem; color: #0369A1;">Sesión autorizada como:</span>
+            <strong id="admin-user-display" style="color: var(--color-primary); margin-left: 0.5rem;"></strong>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.logout()">Cerrar Sesión</button>
+        </div>
+
+        <!-- Pestañas de Navegación del Panel -->
+        <nav class="admin-nav" aria-label="Secciones del panel">
+          <button class="admin-tab-btn active" data-target="tab-events">1. Eventos</button>
+          <button class="admin-tab-btn" data-target="tab-enrollments">2. Inscripciones y Pagos</button>
+          <button class="admin-tab-btn" data-target="tab-excel">3. Importación Excel</button>
+          <button class="admin-tab-btn" data-target="tab-batch">4. Lote Certificados Físicos</button>
+        </nav>
+
+        <!-- PESTAÑA 1: Eventos -->
+        <div id="tab-events" class="admin-tab-content">
+          <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <h2 style="color: var(--color-primary); font-size: 1.35rem;">Catálogo General de Eventos</h2>
+              <button class="btn btn-primary btn-sm" onclick="window.CognitioAdmin.loadEvents()">↻ Actualizar Lista</button>
+            </div>
+            <div id="admin-events-list">
+              <!-- Renderizado dinámico -->
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 2: Inscripciones y Pagos -->
+        <div id="tab-enrollments" class="admin-tab-content" style="display: none;">
+          <div class="admin-card">
+            <h2 style="color: var(--color-primary); font-size: 1.35rem; margin-bottom: 1rem;">Conciliación de Pagos e Inscripciones</h2>
+            
+            <div style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 250px;">
+                <label for="filter-event-select" class="form-label">Filtrar por Evento:</label>
+                <select id="filter-event-select" class="form-control"></select>
+              </div>
+              <button class="btn btn-primary" onclick="window.CognitioAdmin.loadEnrollments()">Ver Inscripciones</button>
+            </div>
+
+            <div id="admin-enrollments-list">
+              <p style="color: var(--color-text-muted);">Seleccione un evento y presione 'Ver Inscripciones'.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 3: Importación Excel (SheetJS) -->
+        <div id="tab-excel" class="admin-tab-content" style="display: none;">
+          <div class="admin-card">
+            <h2 style="color: var(--color-primary); font-size: 1.35rem; margin-bottom: 0.5rem;">Importación Masiva de Participantes desde Excel</h2>
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+              Cargue un archivo <code>.xlsx</code> o <code>.xls</code>. Las columnas requeridas son: <strong>DNI</strong>, <strong>Nombre_Completo</strong>, y opcionalmente <strong>Tipo_Certificado</strong> y <strong>Referencia_Comprobante</strong>.
+            </p>
+
+            <div class="form-group">
+              <label for="import-event-select" class="form-label">Evento de Destino *</label>
+              <select id="import-event-select" class="form-control"></select>
+            </div>
+
+            <div class="form-group">
+              <label for="excel-file-input" class="form-label">Seleccionar archivo Excel *</label>
+              <input type="file" id="excel-file-input" class="form-control" accept=".xlsx, .xls">
+            </div>
+
+            <div id="excel-preview-container"></div>
+
+            <div style="margin-top: 1.5rem;">
+              <button type="button" class="btn btn-success" id="btn-save-excel-import" disabled onclick="window.CognitioAdmin.executeExcelImport()">
+                Confirmar e Importar Registros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 4: Lote Certificados Físicos -->
+        <div id="tab-batch" class="admin-tab-content" style="display: none;">
+          <div class="admin-card">
+            <h2 style="color: var(--color-primary); font-size: 1.35rem; margin-bottom: 0.5rem;">Generación Masiva de Certificados Físicos</h2>
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+              Esta herramienta procesa todos los participantes que seleccionaron <strong>Certificado Físico</strong>, tienen pago <strong>Pagado</strong> y el evento ha finalizado. Generará un único archivo PDF consolidado de alta resolución con las páginas de cada participante listas para imprenta.
+            </p>
+
+            <div class="form-group">
+              <label for="batch-event-select" class="form-label">Evento a Procesar *</label>
+              <select id="batch-event-select" class="form-control"></select>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="btn-start-batch" onclick="window.CognitioAdmin.executeBatchPhysicalEmission()">
+              📄 Iniciar Generación Consolidada de Certificados
+            </button>
+
+            <div id="batch-emission-feedback" style="display: none; margin-top: 1.5rem;"></div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom">
+      <p>&copy; Círculo de Estudios Cognitio Creditor — Panel Administrativo Oficial</p>
+      <p><a href="index.html" class="footer-link">Ir al Portal Público</a></p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { Admin } from './js/admin.js';
+
+    window.CognitioAdmin = {
+      logout: () => Admin.logout(),
+      loadEvents: () => Admin.loadEvents(),
+      togglePublish: (id, st) => Admin.togglePublish(id, st),
+      loadEnrollments: () => Admin.loadEnrollments(),
+      confirmPayment: (id) => Admin.confirmPayment(id),
+      executeExcelImport: () => Admin.executeExcelImport(),
+      executeBatchPhysicalEmission: () => Admin.executeBatchPhysicalEmission()
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      Admin.init();
+
+      const excelInput = document.getElementById('excel-file-input');
+      if (excelInput) {
+        excelInput.addEventListener('change', (e) => Admin.handleExcelFileSelect(e));
+      }
+    });
+  </script>
+</body>
+</html>
