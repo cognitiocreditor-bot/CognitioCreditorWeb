@@ -739,7 +739,11 @@ export const Admin = {
 
   async saveCertConfig() {
     const eventId = document.getElementById('cert-cfg-event-id').value;
-    const templateId = document.getElementById('cert-cfg-template-id').value.trim();
+    const rawTemplate = document.getElementById('cert-cfg-template-id').value.trim();
+    const driveMatch = rawTemplate.match(/\/d\/([a-zA-Z0-9_-]+)/) || rawTemplate.match(/id=([a-zA-Z0-9_-]+)/);
+    const templateId = driveMatch ? driveMatch[1] : rawTemplate;
+    document.getElementById('cert-cfg-template-id').value = templateId;
+
     const posY = Number(document.getElementById('cert-cfg-pos-y').value);
     const fontSize = Number(document.getElementById('cert-cfg-font-size').value);
     const color = document.getElementById('cert-cfg-color').value.trim();
@@ -748,7 +752,7 @@ export const Admin = {
     const page = Number(document.getElementById('cert-cfg-page').value) || 1;
 
     if (!templateId) {
-      alert('Ingrese el ID de la plantilla PDF en Google Drive.');
+      alert('Ingrese el ID o enlace de la plantilla PDF en Google Drive.');
       return;
     }
 

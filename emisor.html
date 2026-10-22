@@ -381,22 +381,22 @@
         <input type="hidden" id="cert-cfg-id">
 
         <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 1rem;">
-          Configure la plantilla PDF de Google Drive y la posición vertical donde se inyectará el nombre del participante.
+          Configure el archivo PDF de la plantilla en Google Drive y los parámetros de inyección del nombre.
         </p>
 
         <div class="form-group">
-          <label for="cert-cfg-template-id" class="form-label">ID de Plantilla en Google Drive *</label>
-          <input type="text" id="cert-cfg-template-id" class="form-control" required placeholder="Ej. 1aBcDeFg12345HijkLmn">
+          <label for="cert-cfg-template-id" class="form-label">ID o Enlace de Plantilla en Google Drive *</label>
+          <input type="text" id="cert-cfg-template-id" class="form-control" required placeholder="Pegue el enlace de Drive o el ID del PDF">
           <small style="color: var(--color-text-muted); font-size: 0.75rem;">
-            Extraiga el ID del enlace compartido del PDF en Drive (https://drive.google.com/file/d/<strong>ID</strong>/view).
+            Suba su plantilla PDF a Google Drive y pegue aquí el enlace compartido (o su ID). El sistema extraerá el identificador automáticamente.
           </small>
         </div>
 
         <div class="form-grid-2">
           <div class="form-group">
-            <label for="cert-cfg-pos-y" class="form-label">Posición Y (Puntos desde abajo) *</label>
+            <label for="cert-cfg-pos-y" class="form-label">Posición Y (Puntos desde el borde inferior) *</label>
             <input type="number" id="cert-cfg-pos-y" class="form-control" value="260" required>
-            <small style="color: var(--color-text-muted); font-size: 0.75rem;">Estándar recomendado: 260</small>
+            <small style="color: var(--color-text-muted); font-size: 0.75rem;">Puntos pt (0 abajo, 595 arriba en A4). Estándar sugerido: 260</small>
           </div>
           <div class="form-group">
             <label for="cert-cfg-font-size" class="form-label">Tamaño Fuente Inicial *</label>
