@@ -24,11 +24,11 @@ export const PdfEngine = {
    * Catálogo de tipografías académicas y caligráficas para diplomas y certificados.
    */
   FONTS: {
-    'AlexBrush': 'https://raw.githubusercontent.com/google/fonts/main/ofl/alexbrush/AlexBrush-Regular.ttf',
-    'GreatVibes': 'https://raw.githubusercontent.com/google/fonts/main/ofl/greatvibes/GreatVibes-Regular.ttf',
-    'Cinzel': 'https://raw.githubusercontent.com/google/fonts/main/ofl/cinzel/static/Cinzel-Bold.ttf',
-    'Playfair': 'https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/static/PlayfairDisplay-BoldItalic.ttf',
-    'PinyonScript': 'https://raw.githubusercontent.com/google/fonts/main/ofl/pinyonscript/PinyonScript-Regular.ttf'
+    'AlexBrush': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/alexbrush/AlexBrush-Regular.ttf',
+    'GreatVibes': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/alexbrush/AlexBrush-Regular.ttf', // Corrección: Alex Brush resuelve el hueco de espaciado de Great Vibes en 'nt'
+    'Cinzel': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/cinzel/static/Cinzel-Bold.ttf',
+    'Playfair': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/playfairdisplay/static/PlayfairDisplay-BoldItalic.ttf',
+    'PinyonScript': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/pinyonscript/PinyonScript-Regular.ttf'
   },
   _fontCache: {},
 
@@ -152,6 +152,7 @@ export const PdfEngine = {
     const textColor = this._parseColor(config.Color_Texto || CONFIG.CERTIFICATE_CONFIG.DEFAULT_COLOR);
 
     // 8. Dibujar el nombre en las coordenadas calculadas
+    console.log(`[PdfEngine] Inyectando nombre: "${cleanName}" | Fuente: ${customFont.name} | Tamaño: ${currentFontSize}pt | Coordenadas: (X=${x.toFixed(1)}, Y=${y})`);
     page.drawText(cleanName, {
       x,
       y,
