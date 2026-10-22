@@ -36,12 +36,12 @@ export const PdfEngine = {
    * Descarga o recupera de la caché los bytes de una fuente tipográfica.
    */
   async _loadFontBytes(fontSpec) {
-    const key = String(fontSpec || 'AlexBrush').trim();
+    const key = String(fontSpec || 'Cinzel').trim();
     if (key === 'Helvetica' || key === 'TimesRoman' || key === 'Standard') {
       return null; // Usar fuente estándar interna de PDFLib
     }
 
-    const targetUrl = this.FONTS[key] || (key.startsWith('http') ? key : this.FONTS['AlexBrush']);
+    const targetUrl = this.FONTS[key] || (key.startsWith('http') ? key : this.FONTS['Cinzel']);
     if (this._fontCache[targetUrl]) {
       return this._fontCache[targetUrl];
     }
@@ -63,7 +63,11 @@ export const PdfEngine = {
    * Carga la tipografía seleccionada incrustando vectores o recurriendo a fuentes estándar solemnes.
    */
   async _embedDocumentFont(pdfDoc, config) {
-    const requested = String(config.Fuente_URL || config.fuente || 'AlexBrush').trim();
+    // Si la configuración aún tiene las cursivas problemáticas o está vacía, aplicar Cinzel (Elegante Universitaria)
+    let requested = String(config.Fuente_URL || config.fuente || 'Cinzel').trim();
+    if (requested === 'GreatVibes' || requested === 'AlexBrush') {
+      requested = 'Cinzel';
+    }
 
     if (requested === 'Helvetica') {
       return await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
