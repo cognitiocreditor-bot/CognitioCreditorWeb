@@ -24,11 +24,11 @@ export const PdfEngine = {
    * Catálogo de tipografías académicas y caligráficas para diplomas y certificados.
    */
   FONTS: {
-    'GreatVibes': 'https://cdn.jsdelivr.net/fontsource/fonts/great-vibes@latest/latin-400-normal.ttf',
-    'Cinzel': 'https://cdn.jsdelivr.net/fontsource/fonts/cinzel@latest/latin-700-normal.ttf',
-    'Playfair': 'https://cdn.jsdelivr.net/fontsource/fonts/playfair-display@latest/latin-700-italic.ttf',
-    'PinyonScript': 'https://cdn.jsdelivr.net/fontsource/fonts/pinyon-script@latest/latin-400-normal.ttf',
-    'AlexBrush': 'https://cdn.jsdelivr.net/fontsource/fonts/alex-brush@latest/latin-400-normal.ttf'
+    'AlexBrush': 'https://raw.githubusercontent.com/google/fonts/main/ofl/alexbrush/AlexBrush-Regular.ttf',
+    'GreatVibes': 'https://raw.githubusercontent.com/google/fonts/main/ofl/greatvibes/GreatVibes-Regular.ttf',
+    'Cinzel': 'https://raw.githubusercontent.com/google/fonts/main/ofl/cinzel/static/Cinzel-Bold.ttf',
+    'Playfair': 'https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/static/PlayfairDisplay-BoldItalic.ttf',
+    'PinyonScript': 'https://raw.githubusercontent.com/google/fonts/main/ofl/pinyonscript/PinyonScript-Regular.ttf'
   },
   _fontCache: {},
 
@@ -36,12 +36,12 @@ export const PdfEngine = {
    * Descarga o recupera de la caché los bytes de una fuente tipográfica.
    */
   async _loadFontBytes(fontSpec) {
-    const key = String(fontSpec || 'GreatVibes').trim();
+    const key = String(fontSpec || 'AlexBrush').trim();
     if (key === 'Helvetica' || key === 'TimesRoman' || key === 'Standard') {
       return null; // Usar fuente estándar interna de PDFLib
     }
 
-    const targetUrl = this.FONTS[key] || (key.startsWith('http') ? key : this.FONTS['GreatVibes']);
+    const targetUrl = this.FONTS[key] || (key.startsWith('http') ? key : this.FONTS['AlexBrush']);
     if (this._fontCache[targetUrl]) {
       return this._fontCache[targetUrl];
     }
@@ -63,7 +63,7 @@ export const PdfEngine = {
    * Carga la tipografía seleccionada incrustando vectores o recurriendo a fuentes estándar solemnes.
    */
   async _embedDocumentFont(pdfDoc, config) {
-    const requested = String(config.Fuente_URL || config.fuente || 'GreatVibes').trim();
+    const requested = String(config.Fuente_URL || config.fuente || 'AlexBrush').trim();
 
     if (requested === 'Helvetica') {
       return await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);

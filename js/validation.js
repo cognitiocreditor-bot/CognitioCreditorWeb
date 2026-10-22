@@ -93,8 +93,15 @@ export const Validation = {
    */
   toTitleCase(name) {
     if (!name || typeof name !== "string") return "";
+    // Normalizar Unicode a NFC para evitar tildes descompuestas y remover espacios invisibles
+    const cleanStr = name
+      .normalize("NFC")
+      .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, " ")
+      .trim()
+      .replace(/\s+/g, " ");
+
     const connectors = new Set(["de", "del", "la", "las", "los", "y", "e", "da", "do"]);
-    const words = name.trim().replace(/\s+/g, " ").toLowerCase().split(" ");
+    const words = cleanStr.toLowerCase().split(" ");
 
     return words.map((w, index) => {
       if (!w) return "";
