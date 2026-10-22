@@ -50,5 +50,73 @@ const EventService = {
     AuthService.logAudit(adminEmail, "TOGGLE_EVENTO", eventId, `Estado cambiado a ${newStatus}`);
 
     return { eventId, status: newStatus };
+  },
+
+  /**
+   * Crea o actualiza un evento con auditoría y validación estricta.
+   * @param {Object} eventData
+   * @param {string} adminEmail
+   */
+  saveEvent(eventData, adminEmail) {
+    if (!eventData.Titulo_Evento || !eventData.Titulo_Evento.trim()) {
+      throw new Error("El título del evento es obligatorio.");
+    }
+    if (!eventData.Fecha_Evento || !eventData.Fecha_Evento.trim()) {
+      throw new Error("La fecha del evento es obligatoria.");
+    }
+
+    const events = Database.getAll(CONFIG.SHEETS.EVENTOS);
+    const isEdit = Boolean(eventData.Evento_ID && eventData.Evento_ID.trim());
+    let target = isEdit ? events.find(e => e.Evento_ID === eventData.Evento_ID.trim()) : null;
+
+    const todayLimaStr = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "yyyy-MM-dd HH:mm:ss");
+    let eventId = isEdit && target ? target.Evento_ID : this.generateNextEventId(events);
+
+    const record = {
+      Evento_ID: eventId,
+      Titulo_Evento: String(eventData.Titulo_Evento).trim(),
+      Descripcion: String(eventData.Descripcion || "").trim(),
+      Fecha_Evento: String(eventData.Fecha_Evento).trim(),
+      Hora_Evento: String(eventData.Hora_Evento || "").trim(),
+      Expositor: String(eventData.Expositor || "").trim(),
+      Imagen_URL: String(eventData.Imagen_URL || "").trim(),
+      Link_Formulario: String(eventData.Link_Formulario || "").trim(),
+      Link_Plantilla: String(eventData.Link_Plantilla || (target ? target.Link_Plantilla : "") || "").trim(),
+      Estado: String(eventData.Estado || "Activo").trim(),
+      Modalidad: String(eventData.Modalidad || "Virtual").trim(),
+      Fecha_Publicacion: target && target.Fecha_Publicacion ? target.Fecha_Publicacion : todayLimaStr,
+      Configuracion_Certificado_ID: target && target.Configuracion_Certificado_ID ? target.Configuracion_Certificado_ID : "CFG-" + eventId
+    };
+
+    if (isEdit && target) {
+      Database.updateRow(CONFIG.SHEETS.EVENTOS, target._rowIndex, record);
+      AuthService.logAudit(adminEmail, "EDITAR_EVENTO", eventId, `Evento actualizado: ${record.Titulo_Evento}`);
+    } else {
+      Database.insert(CONFIG.SHEETS.EVENTOS, record);
+      AuthService.logAudit(adminEmail, "CREAR_EVENTO", eventId, `Evento creado: ${record.Titulo_Evento}`);
+    }
+
+    return record;
+  },
+
+  /**
+   * Genera el siguiente identificador correlativo con formato EVT-YYYY-NNN
+   */
+  generateNextEventId(events) {
+    const currentYear = new Date().getFullYear();
+    const prefix = `EVT-${currentYear}-`;
+    let maxNum = 0;
+
+    events.forEach(e => {
+      if (e.Evento_ID && e.Evento_ID.startsWith(prefix)) {
+        const numPart = parseInt(e.Evento_ID.replace(prefix, ""), 10);
+        if (!isNaN(numPart) && numPart > maxNum) {
+          maxNum = numPart;
+        }
+      }
+    });
+
+    const nextNum = maxNum + 1;
+    return `${prefix}${String(nextNum).padStart(3, "0")}`;
   }
 };

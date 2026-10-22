@@ -25,6 +25,7 @@ const AdminService = {
       const p = partMap[e.Participante_ID] || {};
       return {
         Inscripcion_ID: e.Inscripcion_ID,
+        Participante_ID: e.Participante_ID,
         DNI: p.DNI || "",
         Nombre_Completo: p.Nombre_Completo || "",
         Evento_ID: e.Evento_ID,
@@ -135,5 +136,108 @@ const AdminService = {
       templateBase64: base64Pdf,
       config: certConfig
     };
+  },
+
+  /**
+   * Obtiene la configuración de certificado para un evento.
+   */
+  getCertConfig(eventId) {
+    const configs = Database.getAll(CONFIG.SHEETS.CONFIG_CERT);
+    const certConfig = configs.find(c => c.Evento_ID === eventId);
+    if (certConfig) return certConfig;
+
+    return {
+      Configuracion_Certificado_ID: "CFG-" + eventId,
+      Evento_ID: eventId,
+      Link_Plantilla: "",
+      Pagina_Certificado: 1,
+      Posicion_X: 0,
+      Posicion_Y: 260,
+      Ancho_Maximo_Nombre: 600,
+      Tamano_Fuente_Inicial: 32,
+      Tamano_Fuente_Minimo: 18,
+      Fuente_URL: "",
+      Alineacion: "Centrado",
+      Color_Texto: "#1B365D",
+      Escala_o_Unidad_Referencia: "pt",
+      Estado_Configuracion: "Borrador"
+    };
+  },
+
+  /**
+   * Guarda o actualiza la configuración de diploma y plantilla de un evento.
+   */
+  saveCertConfig(payload, adminEmail) {
+    const { eventId, config } = payload;
+    if (!eventId) throw new Error("ID de evento requerido.");
+
+    const configs = Database.getAll(CONFIG.SHEETS.CONFIG_CERT);
+    const existing = configs.find(c => c.Evento_ID === eventId);
+
+    const record = {
+      Configuracion_Certificado_ID: config.Configuracion_Certificado_ID || ("CFG-" + eventId),
+      Evento_ID: eventId,
+      Link_Plantilla: String(config.Link_Plantilla || "").trim(),
+      Pagina_Certificado: Number(config.Pagina_Certificado) || 1,
+      Posicion_X: Number(config.Posicion_X) || 0,
+      Posicion_Y: Number(config.Posicion_Y) || 260,
+      Ancho_Maximo_Nombre: Number(config.Ancho_Maximo_Nombre) || 600,
+      Tamano_Fuente_Inicial: Number(config.Tamano_Fuente_Inicial) || 32,
+      Tamano_Fuente_Minimo: Number(config.Tamano_Fuente_Minimo) || 18,
+      Fuente_URL: String(config.Fuente_URL || "").trim(),
+      Alineacion: String(config.Alineacion || "Centrado").trim(),
+      Color_Texto: String(config.Color_Texto || "#1B365D").trim(),
+      Escala_o_Unidad_Referencia: "pt",
+      Estado_Configuracion: String(config.Estado_Configuracion || "Publicado").trim()
+    };
+
+    if (existing) {
+      Database.updateRow(CONFIG.SHEETS.CONFIG_CERT, existing._rowIndex, record);
+    } else {
+      Database.insert(CONFIG.SHEETS.CONFIG_CERT, record);
+    }
+
+    // Sincronizar Link_Plantilla y Configuracion_Certificado_ID en la hoja de Eventos
+    const events = Database.getAll(CONFIG.SHEETS.EVENTOS);
+    const evt = events.find(e => e.Evento_ID === eventId);
+    if (evt) {
+      Database.updateCell(CONFIG.SHEETS.EVENTOS, evt._rowIndex, "Configuracion_Certificado_ID", record.Configuracion_Certificado_ID);
+      if (record.Link_Plantilla) {
+        Database.updateCell(CONFIG.SHEETS.EVENTOS, evt._rowIndex, "Link_Plantilla", record.Link_Plantilla);
+      }
+    }
+
+    AuthService.logAudit(adminEmail, "CONFIGURAR_CERTIFICADO", eventId, `Plantilla y coordenadas actualizadas.`);
+    return record;
+  },
+
+  /**
+   * Actualiza los datos de un participante (corrección ortográfica o de DNI).
+   */
+  updateParticipant(payload, adminEmail) {
+    const { participanteId, dni, nombreCompleto } = payload;
+    if (!participanteId) throw new Error("ID de participante requerido.");
+
+    const participants = Database.getAll(CONFIG.SHEETS.PARTICIPANTES);
+    const target = participants.find(p => p.Participante_ID === participanteId);
+    if (!target) throw new Error("Participante no encontrado.");
+
+    const cleanDni = String(dni || target.DNI).trim();
+    const cleanName = String(nombreCompleto || target.Nombre_Completo).trim();
+
+    Database.updateCell(CONFIG.SHEETS.PARTICIPANTES, target._rowIndex, "DNI", cleanDni);
+    Database.updateCell(CONFIG.SHEETS.PARTICIPANTES, target._rowIndex, "Nombre_Completo", cleanName);
+
+    AuthService.logAudit(adminEmail, "EDITAR_PARTICIPANTE", participanteId, `DNI: ${cleanDni}, Nombre: ${cleanName}`);
+    return { participanteId, dni: cleanDni, nombreCompleto: cleanName };
+  },
+
+  /**
+   * Obtiene el registro de auditoría ordenado descendentemente.
+   */
+  getAuditLogs(limit = 100) {
+    const logs = Database.getAll(CONFIG.SHEETS.AUDITORIA);
+    // Invertir para mostrar los más recientes primero
+    return logs.slice(-limit).reverse();
   }
 };

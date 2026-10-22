@@ -105,6 +105,9 @@ export const Admin = {
   /**
    * Gestión de pestañas del panel administrativo.
    */
+  /**
+   * Gestión de pestañas del panel administrativo.
+   */
   setupTabs() {
     const tabButtons = document.querySelectorAll('.admin-tab-btn');
     tabButtons.forEach(btn => {
@@ -116,8 +119,31 @@ export const Admin = {
         const targetId = btn.getAttribute('data-target');
         const targetContent = document.getElementById(targetId);
         if (targetContent) targetContent.style.display = 'block';
+
+        if (targetId === 'tab-audit') {
+          this.loadAuditLogs();
+        }
       });
     });
+  },
+
+  /**
+   * Control de ventanas modales.
+   */
+  openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  },
+
+  closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
   },
 
   // --------------------------------------------------------------------------
@@ -158,12 +184,17 @@ export const Admin = {
             </span>
           </td>
           <td>
-            <button class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.togglePublish('${evt.Evento_ID}', '${evt.Estado}')">
-              ${isPublished ? 'Desactivar' : 'Activar'}
-            </button>
-            <button class="btn btn-secondary btn-sm" style="color: var(--color-primary); border-color: var(--color-border);" onclick="window.CognitioAdmin.selectEventForConfig('${evt.Evento_ID}')">
-              Configurar Plantilla
-            </button>
+            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+              <button class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.editEvent('${evt.Evento_ID}')">
+                ✎ Editar
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.togglePublish('${evt.Evento_ID}', '${evt.Estado}')">
+                ${isPublished ? 'Desactivar' : 'Activar'}
+              </button>
+              <button class="btn btn-secondary btn-sm" style="color: var(--color-primary); border-color: var(--color-border);" onclick="window.CognitioAdmin.openCertConfigModal('${evt.Evento_ID}')">
+                Diploma & Plantilla
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -183,6 +214,93 @@ export const Admin = {
         <tbody>${rows}</tbody>
       </table>
     `;
+  },
+
+  openNewEventModal() {
+    document.getElementById('modal-event-title').textContent = 'Crear Nuevo Evento';
+    document.getElementById('event-form-id').value = '';
+    document.getElementById('event-form-title').value = '';
+    document.getElementById('event-form-date').value = '';
+    document.getElementById('event-form-time').value = '19:00';
+    document.getElementById('event-form-speaker').value = '';
+    document.getElementById('event-form-modality').value = 'Virtual';
+    document.getElementById('event-form-status').value = 'Activo';
+    document.getElementById('event-form-formlink').value = '';
+    document.getElementById('event-form-image').value = '';
+    document.getElementById('event-form-desc').value = '';
+    
+    this.openModal('modal-event');
+  },
+
+  editEvent(eventId) {
+    const evt = this.eventsCache.find(e => e.Evento_ID === eventId);
+    if (!evt) return;
+
+    document.getElementById('modal-event-title').textContent = `Editar Evento: ${evt.Evento_ID}`;
+    document.getElementById('event-form-id').value = evt.Evento_ID;
+    document.getElementById('event-form-title').value = evt.Titulo_Evento || '';
+    document.getElementById('event-form-date').value = evt.Fecha_Evento || '';
+    document.getElementById('event-form-time').value = evt.Hora_Evento || '19:00';
+    document.getElementById('event-form-speaker').value = evt.Expositor || '';
+    document.getElementById('event-form-modality').value = evt.Modalidad || 'Virtual';
+    document.getElementById('event-form-status').value = evt.Estado || 'Activo';
+    document.getElementById('event-form-formlink').value = evt.Link_Formulario || '';
+    document.getElementById('event-form-image').value = evt.Imagen_URL || '';
+    document.getElementById('event-form-desc').value = evt.Descripcion || '';
+
+    this.openModal('modal-event');
+  },
+
+  async saveEvent() {
+    const eventId = document.getElementById('event-form-id').value.trim();
+    const title = document.getElementById('event-form-title').value.trim();
+    const date = document.getElementById('event-form-date').value.trim();
+    const time = document.getElementById('event-form-time').value.trim();
+    const speaker = document.getElementById('event-form-speaker').value.trim();
+    const modality = document.getElementById('event-form-modality').value;
+    const status = document.getElementById('event-form-status').value;
+    const formlink = document.getElementById('event-form-formlink').value.trim();
+    const image = document.getElementById('event-form-image').value.trim();
+    const desc = document.getElementById('event-form-desc').value.trim();
+
+    if (!title || !date || !speaker || !desc) {
+      alert('Por favor complete los campos obligatorios del evento.');
+      return;
+    }
+
+    const payload = {
+      Evento_ID: eventId,
+      Titulo_Evento: title,
+      Fecha_Evento: date,
+      Hora_Evento: time,
+      Expositor: speaker,
+      Modalidad: modality,
+      Estado: status,
+      Link_Formulario: formlink,
+      Imagen_URL: image,
+      Descripcion: desc
+    };
+
+    const saveBtn = document.getElementById('btn-save-event');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Guardando...';
+
+    try {
+      const res = await Api.post('adminSaveEvent', payload, this.currentAuthToken);
+      if (res.success) {
+        alert(eventId ? 'Evento actualizado exitosamente.' : `¡Evento creado exitosamente con código ${res.data?.Evento_ID || ''}!`);
+        this.closeModal('modal-event');
+        this.loadEvents();
+      } else {
+        alert('Error al guardar evento: ' + res.message);
+      }
+    } catch (err) {
+      console.error('[Admin saveEvent] Error:', err);
+      alert('Error de conexión al guardar el evento.');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Guardar Evento';
+    }
   },
 
   populateEventSelectors() {
@@ -249,13 +367,18 @@ export const Admin = {
           </td>
           <td style="padding: 8px;"><code>${Validation.escapeHTML(ins.Codigo_Consulta)}</code></td>
           <td style="padding: 8px;">
-            ${!isPaid ? `
-              <button class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${ins.Inscripcion_ID}')">
-                ✓ Confirmar Pago
+            <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+              ${!isPaid ? `
+                <button class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${ins.Inscripcion_ID}')">
+                  ✓ Confirmar Pago
+                </button>
+              ` : `
+                <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ Pagado</span>
+              `}
+              <button class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.openEditParticipantModal('${ins.Participante_ID}', '${ins.DNI}', '${Validation.escapeHTML(ins.Nombre_Completo)}')">
+                ✎ Corregir
               </button>
-            ` : `
-              <span style="color: var(--color-success); font-weight: 600;">✓ Conciliado</span>
-            `}
+            </div>
           </td>
         </tr>
       `;
@@ -486,6 +609,194 @@ export const Admin = {
       feedbackBox.innerHTML = `<div class="alert alert-danger">Error generando el lote: ${Validation.escapeHTML(err.message)}</div>`;
     } finally {
       startBtn.disabled = false;
+    }
+  },
+
+  // --------------------------------------------------------------------------
+  // EDICIÓN DE PARTICIPANTES (CORRECCIÓN DE DATOS)
+  // --------------------------------------------------------------------------
+  openEditParticipantModal(participanteId, dni, nombreCompleto) {
+    document.getElementById('part-form-id').value = participanteId || '';
+    document.getElementById('part-form-dni').value = dni || '';
+    document.getElementById('part-form-name').value = nombreCompleto || '';
+    this.openModal('modal-participant');
+  },
+
+  async saveParticipant() {
+    const participanteId = document.getElementById('part-form-id').value.trim();
+    const dni = document.getElementById('part-form-dni').value.trim();
+    const nombreCompleto = document.getElementById('part-form-name').value.trim();
+
+    if (!Validation.isValidDNI(dni)) {
+      alert('El DNI debe tener exactamente 8 dígitos.');
+      return;
+    }
+    if (!Validation.isValidFullName(nombreCompleto)) {
+      alert('Ingrese un nombre y apellidos válidos.');
+      return;
+    }
+
+    const saveBtn = document.getElementById('btn-save-part');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Guardando...';
+
+    try {
+      const res = await Api.post('adminUpdateParticipant', {
+        participanteId,
+        dni,
+        nombreCompleto: Validation.normalizeName(nombreCompleto)
+      }, this.currentAuthToken);
+
+      if (res.success) {
+        alert('Datos del participante actualizados correctamente.');
+        this.closeModal('modal-participant');
+        this.loadEnrollments();
+      } else {
+        alert('Error: ' + res.message);
+      }
+    } catch (err) {
+      console.error('[Admin saveParticipant] Error:', err);
+      alert('Error de conexión al actualizar datos.');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Guardar Cambios';
+    }
+  },
+
+  // --------------------------------------------------------------------------
+  // CONFIGURACIÓN DE CERTIFICADO Y PLANTILLA PDF
+  // --------------------------------------------------------------------------
+  async openCertConfigModal(eventId) {
+    if (!eventId) return;
+
+    try {
+      const res = await Api.post('adminGetCertConfig', { eventId }, this.currentAuthToken);
+      const cfg = res.data || {};
+
+      document.getElementById('cert-cfg-event-id').value = eventId;
+      document.getElementById('cert-cfg-id').value = cfg.Configuracion_Certificado_ID || ('CFG-' + eventId);
+      document.getElementById('cert-cfg-template-id').value = cfg.Link_Plantilla || '';
+      document.getElementById('cert-cfg-pos-y').value = cfg.Posicion_Y !== undefined ? cfg.Posicion_Y : 260;
+      document.getElementById('cert-cfg-font-size').value = cfg.Tamano_Fuente_Inicial || 32;
+      document.getElementById('cert-cfg-color').value = cfg.Color_Texto || '#1B365D';
+      document.getElementById('cert-cfg-alignment').value = cfg.Alineacion || 'Centrado';
+      document.getElementById('cert-cfg-status').value = cfg.Estado_Configuracion || 'Publicado';
+      document.getElementById('cert-cfg-page').value = cfg.Pagina_Certificado || 1;
+
+      this.openModal('modal-cert-config');
+    } catch (err) {
+      console.error('[Admin openCertConfig] Error:', err);
+      alert('No fue posible cargar la configuración del certificado.');
+    }
+  },
+
+  async saveCertConfig() {
+    const eventId = document.getElementById('cert-cfg-event-id').value;
+    const templateId = document.getElementById('cert-cfg-template-id').value.trim();
+    const posY = Number(document.getElementById('cert-cfg-pos-y').value);
+    const fontSize = Number(document.getElementById('cert-cfg-font-size').value);
+    const color = document.getElementById('cert-cfg-color').value.trim();
+    const alignment = document.getElementById('cert-cfg-alignment').value;
+    const status = document.getElementById('cert-cfg-status').value;
+    const page = Number(document.getElementById('cert-cfg-page').value) || 1;
+
+    if (!templateId) {
+      alert('Ingrese el ID de la plantilla PDF en Google Drive.');
+      return;
+    }
+
+    const payload = {
+      eventId,
+      config: {
+        Configuracion_Certificado_ID: document.getElementById('cert-cfg-id').value || ('CFG-' + eventId),
+        Link_Plantilla: templateId,
+        Pagina_Certificado: page,
+        Posicion_X: 0,
+        Posicion_Y: posY,
+        Ancho_Maximo_Nombre: 600,
+        Tamano_Fuente_Inicial: fontSize,
+        Tamano_Fuente_Minimo: 18,
+        Alineacion: alignment,
+        Color_Texto: color,
+        Estado_Configuracion: status
+      }
+    };
+
+    const saveBtn = document.getElementById('btn-save-cert-cfg');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Guardando...';
+
+    try {
+      const res = await Api.post('adminSaveCertConfig', payload, this.currentAuthToken);
+      if (res.success) {
+        alert('Configuración de certificado guardada y vinculada al evento exitosamente.');
+        this.closeModal('modal-cert-config');
+        this.loadEvents();
+      } else {
+        alert('Error al guardar configuración: ' + res.message);
+      }
+    } catch (err) {
+      console.error('[Admin saveCertConfig] Error:', err);
+      alert('Error de conexión al guardar configuración.');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Guardar Configuración';
+    }
+  },
+
+  // --------------------------------------------------------------------------
+  // HISTORIAL DE AUDITORÍA
+  // --------------------------------------------------------------------------
+  async loadAuditLogs() {
+    const container = document.getElementById('admin-audit-list');
+    if (!container) return;
+
+    container.innerHTML = `<div class="loading-container"><div class="spinner"></div><p>Cargando auditoría...</p></div>`;
+
+    try {
+      const res = await Api.post('adminGetAuditLogs', { limit: 50 }, this.currentAuthToken);
+      if (!res.success) {
+        container.innerHTML = `<div class="alert alert-danger">${Validation.escapeHTML(res.message)}</div>`;
+        return;
+      }
+
+      const logs = res.data || [];
+      if (logs.length === 0) {
+        container.innerHTML = `<p style="color: var(--color-text-muted);">No hay acciones registradas en el libro de auditoría todavía.</p>`;
+        return;
+      }
+
+      const rows = logs.map(log => `
+        <tr>
+          <td style="padding: 8px; white-space: nowrap;"><code>${Validation.escapeHTML(log.Timestamp || '')}</code></td>
+          <td style="padding: 8px;">${Validation.escapeHTML(log.Usuario_Admin || '')}</td>
+          <td style="padding: 8px;">
+            <span class="badge" style="background: #E0E7FF; color: #3730A3; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">
+              ${Validation.escapeHTML(log.Accion || '')}
+            </span>
+          </td>
+          <td style="padding: 8px;"><code>${Validation.escapeHTML(log.Entidad_Afectada || '')}</code></td>
+          <td style="padding: 8px;">${Validation.escapeHTML(log.Detalle || '')}</td>
+        </tr>
+      `).join('');
+
+      container.innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" class="admin-table">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--color-border); text-align: left;">
+              <th style="padding: 8px;">Fecha / Hora</th>
+              <th style="padding: 8px;">Directivo</th>
+              <th style="padding: 8px;">Acción</th>
+              <th style="padding: 8px;">Entidad</th>
+              <th style="padding: 8px;">Detalle</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    } catch (err) {
+      console.error('[Admin Audit] Error:', err);
+      container.innerHTML = `<div class="alert alert-danger">Error cargando auditoría: ${Validation.escapeHTML(err.message)}</div>`;
     }
   }
 };

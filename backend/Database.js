@@ -96,5 +96,27 @@ const Database = {
     }
 
     sheet.getRange(rowIndex, colIndex).setValue(newValue);
+  },
+
+  /**
+   * Actualiza múltiples campos de una fila existente respetando los encabezados.
+   * @param {string} sheetName
+   * @param {number} rowIndex
+   * @param {Object} rowData
+   */
+  updateRow(sheetName, rowIndex, rowData) {
+    const sheet = this.getSheet(sheetName);
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    for (let j = 0; j < headers.length; j++) {
+      const header = headers[j];
+      if (rowData[header] !== undefined) {
+        let val = rowData[header];
+        if (header === "DNI" && typeof val === "string") {
+          sheet.getRange(rowIndex, j + 1).setValue("'" + val);
+        } else {
+          sheet.getRange(rowIndex, j + 1).setValue(val);
+        }
+      }
+    }
   }
 };

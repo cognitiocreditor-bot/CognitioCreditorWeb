@@ -57,6 +57,70 @@
       border-bottom: 1px solid var(--color-border);
       text-align: left;
     }
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+      backdrop-filter: blur(2px);
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      max-width: 650px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--color-border);
+      padding: 2rem;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.75rem;
+    }
+    .modal-header h3 {
+      margin: 0;
+      color: var(--color-primary);
+      font-size: 1.25rem;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      line-height: 1;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      border-top: 1px solid var(--color-border);
+      padding-top: 1rem;
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 640px) {
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -112,14 +176,18 @@
           <button class="admin-tab-btn" data-target="tab-enrollments">2. Inscripciones y Pagos</button>
           <button class="admin-tab-btn" data-target="tab-excel">3. Importación Excel</button>
           <button class="admin-tab-btn" data-target="tab-batch">4. Lote Certificados Físicos</button>
+          <button class="admin-tab-btn" data-target="tab-audit">5. Auditoría</button>
         </nav>
 
         <!-- PESTAÑA 1: Eventos -->
         <div id="tab-events" class="admin-tab-content">
           <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-              <h2 style="color: var(--color-primary); font-size: 1.35rem;">Catálogo General de Eventos</h2>
-              <button class="btn btn-primary btn-sm" onclick="window.CognitioAdmin.loadEvents()">↻ Actualizar Lista</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+              <h2 style="color: var(--color-primary); font-size: 1.35rem; margin: 0;">Catálogo General de Eventos</h2>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openNewEventModal()">+ Crear Nuevo Evento</button>
+                <button class="btn btn-primary btn-sm" onclick="window.CognitioAdmin.loadEvents()">↻ Actualizar Lista</button>
+              </div>
             </div>
             <div id="admin-events-list">
               <!-- Renderizado dinámico -->
@@ -195,10 +263,205 @@
           </div>
         </div>
 
+        <!-- PESTAÑA 5: Auditoría -->
+        <div id="tab-audit" class="admin-tab-content" style="display: none;">
+          <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+              <div>
+                <h2 style="color: var(--color-primary); font-size: 1.35rem; margin: 0;">Historial de Auditoría de Operaciones</h2>
+                <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                  Registro inmutable de acciones realizadas por los directivos autorizados.
+                </p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="window.CognitioAdmin.loadAuditLogs()">↻ Actualizar Auditoría</button>
+            </div>
+
+            <div id="admin-audit-list">
+              <p style="color: var(--color-text-muted);">Haga clic en 'Actualizar Auditoría' para cargar el historial.</p>
+            </div>
+          </div>
+        </div>
+
       </section>
 
     </div>
   </main>
+
+  <!-- MODAL: Crear / Editar Evento -->
+  <div id="modal-event" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-event-title">Nuevo Evento</h3>
+        <button class="modal-close-btn" onclick="window.CognitioAdmin.closeModal('modal-event')">&times;</button>
+      </div>
+      <form id="form-event" onsubmit="event.preventDefault(); window.CognitioAdmin.saveEvent();">
+        <input type="hidden" id="event-form-id">
+        
+        <div class="form-group">
+          <label for="event-form-title" class="form-label">Título del Evento *</label>
+          <input type="text" id="event-form-title" class="form-control" required placeholder="Ej. Conferencia: Normas Contables y Tributarias">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="event-form-date" class="form-label">Fecha del Evento *</label>
+            <input type="date" id="event-form-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="event-form-time" class="form-label">Hora (HH:mm)</label>
+            <input type="time" id="event-form-time" class="form-control" value="19:00">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="event-form-speaker" class="form-label">Expositor / Ponente *</label>
+            <input type="text" id="event-form-speaker" class="form-control" required placeholder="Ej. Dr. Juan Pérez">
+          </div>
+          <div class="form-group">
+            <label for="event-form-modality" class="form-label">Modalidad *</label>
+            <select id="event-form-modality" class="form-control">
+              <option value="Virtual">Virtual</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Hibrido">Híbrido</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="event-form-status" class="form-label">Estado *</label>
+            <select id="event-form-status" class="form-control">
+              <option value="Activo">Activo (Visible en portal)</option>
+              <option value="Borrador">Borrador</option>
+              <option value="Finalizado">Finalizado</option>
+              <option value="Cancelado">Cancelado</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="event-form-formlink" class="form-label">Link de Formulario Externo</label>
+            <input type="url" id="event-form-formlink" class="form-control" placeholder="https://forms.google.com/...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="event-form-image" class="form-label">URL de Imagen / Banner</label>
+          <input type="text" id="event-form-image" class="form-control" placeholder="assets/images/logo.jpg o URL web">
+        </div>
+
+        <div class="form-group">
+          <label for="event-form-desc" class="form-label">Descripción Académica *</label>
+          <textarea id="event-form-desc" class="form-control" rows="3" required placeholder="Detalle temático del evento..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-event')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-event">Guardar Evento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Configurar Certificado y Plantilla PDF -->
+  <div id="modal-cert-config" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Configuración de Diploma y Plantilla</h3>
+        <button class="modal-close-btn" onclick="window.CognitioAdmin.closeModal('modal-cert-config')">&times;</button>
+      </div>
+      <form id="form-cert-config" onsubmit="event.preventDefault(); window.CognitioAdmin.saveCertConfig();">
+        <input type="hidden" id="cert-cfg-event-id">
+        <input type="hidden" id="cert-cfg-id">
+
+        <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+          Configure la plantilla PDF de Google Drive y la posición vertical donde se inyectará el nombre del participante.
+        </p>
+
+        <div class="form-group">
+          <label for="cert-cfg-template-id" class="form-label">ID de Plantilla en Google Drive *</label>
+          <input type="text" id="cert-cfg-template-id" class="form-control" required placeholder="Ej. 1aBcDeFg12345HijkLmn">
+          <small style="color: var(--color-text-muted); font-size: 0.75rem;">
+            Extraiga el ID del enlace compartido del PDF en Drive (https://drive.google.com/file/d/<strong>ID</strong>/view).
+          </small>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="cert-cfg-pos-y" class="form-label">Posición Y (Puntos desde abajo) *</label>
+            <input type="number" id="cert-cfg-pos-y" class="form-control" value="260" required>
+            <small style="color: var(--color-text-muted); font-size: 0.75rem;">Estándar recomendado: 260</small>
+          </div>
+          <div class="form-group">
+            <label for="cert-cfg-font-size" class="form-label">Tamaño Fuente Inicial *</label>
+            <input type="number" id="cert-cfg-font-size" class="form-control" value="32" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="cert-cfg-color" class="form-label">Color de Texto (Hexadecimal) *</label>
+            <input type="text" id="cert-cfg-color" class="form-control" value="#1B365D" required>
+          </div>
+          <div class="form-group">
+            <label for="cert-cfg-alignment" class="form-label">Alineación *</label>
+            <select id="cert-cfg-alignment" class="form-control">
+              <option value="Centrado">Centrado</option>
+              <option value="Izquierda">Izquierda</option>
+              <option value="Derecha">Derecha</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="cert-cfg-status" class="form-label">Estado Configuración *</label>
+            <select id="cert-cfg-status" class="form-control">
+              <option value="Publicado">Publicado</option>
+              <option value="Borrador">Borrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cert-cfg-page" class="form-label">Página de Inyección *</label>
+            <input type="number" id="cert-cfg-page" class="form-control" value="1" required min="1">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-cert-config')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-cert-cfg">Guardar Configuración</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Corregir Datos de Participante -->
+  <div id="modal-participant" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>Corregir Datos del Participante</h3>
+        <button class="modal-close-btn" onclick="window.CognitioAdmin.closeModal('modal-participant')">&times;</button>
+      </div>
+      <form id="form-participant" onsubmit="event.preventDefault(); window.CognitioAdmin.saveParticipant();">
+        <input type="hidden" id="part-form-id">
+
+        <div class="form-group">
+          <label for="part-form-dni" class="form-label">DNI (8 dígitos) *</label>
+          <input type="text" id="part-form-dni" class="form-control" maxlength="8" required pattern="\d{8}">
+        </div>
+
+        <div class="form-group">
+          <label for="part-form-name" class="form-label">Nombre Completo (como aparecerá en certificado) *</label>
+          <input type="text" id="part-form-name" class="form-control" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-participant')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-part">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <div class="container footer-bottom">
@@ -213,11 +476,20 @@
     window.CognitioAdmin = {
       logout: () => Admin.logout(),
       loadEvents: () => Admin.loadEvents(),
+      openNewEventModal: () => Admin.openNewEventModal(),
+      editEvent: (id) => Admin.editEvent(id),
+      saveEvent: () => Admin.saveEvent(),
       togglePublish: (id, st) => Admin.togglePublish(id, st),
+      openCertConfigModal: (eventId) => Admin.openCertConfigModal(eventId),
+      saveCertConfig: () => Admin.saveCertConfig(),
       loadEnrollments: () => Admin.loadEnrollments(),
       confirmPayment: (id) => Admin.confirmPayment(id),
+      openEditParticipantModal: (partId, dni, name) => Admin.openEditParticipantModal(partId, dni, name),
+      saveParticipant: () => Admin.saveParticipant(),
       executeExcelImport: () => Admin.executeExcelImport(),
-      executeBatchPhysicalEmission: () => Admin.executeBatchPhysicalEmission()
+      executeBatchPhysicalEmission: () => Admin.executeBatchPhysicalEmission(),
+      loadAuditLogs: () => Admin.loadAuditLogs(),
+      closeModal: (id) => Admin.closeModal(id)
     };
 
     document.addEventListener('DOMContentLoaded', () => {

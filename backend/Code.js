@@ -63,8 +63,23 @@ function doPost(e) {
       return jsonResponse({ success: true, data: events });
     }
 
+    if (action === "adminSaveEvent") {
+      const res = EventService.saveEvent(payload, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
     if (action === "adminToggleEventStatus") {
       const res = EventService.toggleEventStatus(payload.eventId, payload.nextStatus, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
+    if (action === "adminGetCertConfig") {
+      const res = AdminService.getCertConfig(payload.eventId);
+      return jsonResponse({ success: true, data: res });
+    }
+
+    if (action === "adminSaveCertConfig") {
+      const res = AdminService.saveCertConfig(payload, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
 
@@ -78,6 +93,11 @@ function doPost(e) {
       return jsonResponse({ success: true, data: res });
     }
 
+    if (action === "adminUpdateParticipant") {
+      const res = AdminService.updateParticipant(payload, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
     if (action === "adminBatchImport") {
       const res = AdminService.batchImport(payload.eventId, payload.records, adminUser.email);
       return jsonResponse({ success: true, data: res });
@@ -85,6 +105,11 @@ function doPost(e) {
 
     if (action === "adminGetBatchCertificateData") {
       const res = AdminService.getBatchPhysicalData(payload.eventId, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
+    if (action === "adminGetAuditLogs") {
+      const res = AdminService.getAuditLogs(payload ? payload.limit : 100);
       return jsonResponse({ success: true, data: res });
     }
 
@@ -107,3 +132,14 @@ function jsonResponse(obj) {
   output.setMimeType(ContentService.MimeType.JSON);
   return output;
 }
+
+/**
+ * Función auxiliar para conceder permisos iniciales en el editor de Apps Script.
+ * Ejecute esta función una sola vez desde el botón 'Ejecutar' de Google Apps Script
+ * para aprobar los permisos de llamadas externas (UrlFetchApp), Sheets y Drive.
+ */
+function autorizarPermisos() {
+  UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo");
+  Logger.log("Permisos de UrlFetchApp autorizados correctamente.");
+}
+
