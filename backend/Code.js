@@ -68,6 +68,11 @@ function doPost(e) {
       return jsonResponse({ success: true, data: res });
     }
 
+    if (action === "adminDeleteEvent") {
+      const res = EventService.deleteEvent(payload.eventId, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
     if (action === "adminToggleEventStatus") {
       const res = EventService.toggleEventStatus(payload.eventId, payload.nextStatus, adminUser.email);
       return jsonResponse({ success: true, data: res });

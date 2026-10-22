@@ -14,6 +14,7 @@ export const Admin = {
   currentAdminEmail: null,
   eventsCache: [],
   enrollmentsCache: [],
+  eventFilter: 'active',
 
   /**
    * Inicializa el entorno administrativo.
@@ -164,6 +165,11 @@ export const Admin = {
     this.populateEventSelectors();
   },
 
+  setEventFilter(filterValue) {
+    this.eventFilter = filterValue;
+    this.renderEventsTable();
+  },
+
   renderEventsTable() {
     const listContainer = document.getElementById('admin-events-list');
     if (this.eventsCache.length === 0) {
@@ -171,7 +177,24 @@ export const Admin = {
       return;
     }
 
-    const rows = this.eventsCache.map(evt => {
+    // Aplicar filtro visual seleccionado
+    let filteredEvents = this.eventsCache;
+    if (this.eventFilter === 'active') {
+      filteredEvents = this.eventsCache.filter(e => e.Estado === 'Activo');
+    } else if (this.eventFilter === 'archived') {
+      filteredEvents = this.eventsCache.filter(e => e.Estado !== 'Activo');
+    }
+
+    if (filteredEvents.length === 0) {
+      listContainer.innerHTML = `
+        <p style="color: var(--color-text-muted);">
+          No hay eventos para la vista seleccionada ('${this.eventFilter === 'active' ? 'Solo Activos' : 'Archivados'}').
+        </p>
+      `;
+      return;
+    }
+
+    const rows = filteredEvents.map(evt => {
       const isPublished = evt.Estado === 'Activo';
       return `
         <tr>
@@ -185,7 +208,7 @@ export const Admin = {
           </td>
           <td>
             <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
-              <button class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.editEvent('${evt.Evento_ID}')">
+              <button class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.editEvent('${evt.Evento_ID}')" title="Editar datos del evento">
                 ✎ Editar
               </button>
               <button class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.togglePublish('${evt.Evento_ID}', '${evt.Estado}')">
@@ -193,6 +216,9 @@ export const Admin = {
               </button>
               <button class="btn btn-secondary btn-sm" style="color: var(--color-primary); border-color: var(--color-border);" onclick="window.CognitioAdmin.openCertConfigModal('${evt.Evento_ID}')">
                 Diploma & Plantilla
+              </button>
+              <button class="btn btn-outline btn-sm" style="color: #DC2626; border-color: #FCA5A5;" onclick="window.CognitioAdmin.deleteEvent('${evt.Evento_ID}')" title="Eliminar evento si no tiene alumnos inscritos">
+                🗑️ Eliminar
               </button>
             </div>
           </td>
@@ -214,6 +240,27 @@ export const Admin = {
         <tbody>${rows}</tbody>
       </table>
     `;
+  },
+
+  async deleteEvent(eventId) {
+    if (!eventId) return;
+
+    const confirmMsg = `¿Confirma que desea ELIMINAR definitivamente el evento '${eventId}'?\n\n• Si el evento NO tiene alumnos inscritos, la fila se eliminará físicamente de Google Sheets sin dejar registros basura.\n• Si ya tiene alumnos inscritos, el sistema cancelará la operación para proteger sus datos.\n\n¿Desea continuar?`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const res = await Api.post('adminDeleteEvent', { eventId }, this.currentAuthToken);
+
+      if (res.success) {
+        alert(res.message || `Evento ${eventId} eliminado correctamente.`);
+        this.loadEvents();
+      } else {
+        alert(res.message || 'No fue posible eliminar el evento.');
+      }
+    } catch (err) {
+      console.error('[Admin deleteEvent] Error:', err);
+      alert('Error de conexión al procesar la eliminación.');
+    }
   },
 
   openNewEventModal() {

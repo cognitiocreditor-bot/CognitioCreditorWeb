@@ -184,7 +184,13 @@
           <div class="admin-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
               <h2 style="color: var(--color-primary); font-size: 1.35rem; margin: 0;">Catálogo General de Eventos</h2>
-              <div style="display: flex; gap: 0.5rem;">
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <label for="event-view-filter" style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0;">Mostrar:</label>
+                <select id="event-view-filter" class="form-control" style="width: auto; padding: 0.35rem 0.65rem; font-size: 0.85rem;" onchange="window.CognitioAdmin.setEventFilter(this.value)">
+                  <option value="all">Todos los Eventos</option>
+                  <option value="active" selected>Solo Activos</option>
+                  <option value="archived">Inactivos / Cancelados / Borradores</option>
+                </select>
                 <button class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openNewEventModal()">+ Crear Nuevo Evento</button>
                 <button class="btn btn-primary btn-sm" onclick="window.CognitioAdmin.loadEvents()">↻ Actualizar Lista</button>
               </div>
@@ -479,6 +485,8 @@
       openNewEventModal: () => Admin.openNewEventModal(),
       editEvent: (id) => Admin.editEvent(id),
       saveEvent: () => Admin.saveEvent(),
+      deleteEvent: (id) => Admin.deleteEvent(id),
+      setEventFilter: (f) => Admin.setEventFilter(f),
       togglePublish: (id, st) => Admin.togglePublish(id, st),
       openCertConfigModal: (eventId) => Admin.openCertConfigModal(eventId),
       saveCertConfig: () => Admin.saveCertConfig(),

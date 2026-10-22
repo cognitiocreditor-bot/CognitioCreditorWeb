@@ -118,5 +118,45 @@ const EventService = {
 
     const nextNum = maxNum + 1;
     return `${prefix}${String(nextNum).padStart(3, "0")}`;
+  },
+
+  /**
+   * Eliminación segura e inteligente de un evento.
+   * Si tiene alumnos inscritos, bloquea la eliminación para proteger la integridad.
+   * Si no tiene alumnos, elimina la fila física en Eventos y Configuracion_Certificados.
+   * @param {string} eventId
+   * @param {string} adminEmail
+   */
+  deleteEvent(eventId, adminEmail) {
+    if (!eventId) throw new Error("ID de evento requerido para eliminar.");
+
+    const events = Database.getAll(CONFIG.SHEETS.EVENTOS);
+    const target = events.find(e => e.Evento_ID === eventId);
+    if (!target) {
+      throw new Error(`El evento '${eventId}' no existe.`);
+    }
+
+    // Verificar si tiene inscripciones vinculadas
+    const enrollments = Database.getAll(CONFIG.SHEETS.INSCRIPCIONES);
+    const linkedEnrollments = enrollments.filter(ins => ins.Evento_ID === eventId);
+
+    if (linkedEnrollments.length > 0) {
+      throw new Error(
+        `BLOQUEO DE SEGURIDAD: No se puede eliminar el evento '${eventId}' porque cuenta con ${linkedEnrollments.length} participante(s) registrado(s). Para ocultarlo de la web sin destruir el historial académico de los alumnos, cambie su estado a 'Cancelado' o 'Inactivo'.`
+      );
+    }
+
+    // Borrado seguro por Clave Primaria (sin descuadres de índices)
+    const deletedEvent = Database.deleteRowByPk(CONFIG.SHEETS.EVENTOS, "Evento_ID", eventId);
+    if (!deletedEvent) {
+      throw new Error(`No fue posible ubicar físicamente la fila del evento '${eventId}'.`);
+    }
+
+    // Eliminar configuración de certificado asociada si existiera
+    Database.deleteRowByPk(CONFIG.SHEETS.CONFIG_CERT, "Evento_ID", eventId);
+
+    AuthService.logAudit(adminEmail, "ELIMINAR_EVENTO", eventId, `Evento eliminado físicamente (0 inscritos). Título: ${target.Titulo_Evento}`);
+
+    return { eventId, deleted: true, message: `Evento ${eventId} eliminado correctamente.` };
   }
 };

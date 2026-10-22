@@ -118,5 +118,38 @@ const Database = {
         }
       }
     }
+  },
+
+  /**
+   * Elimina de forma atómica y segura una fila localizándola por su Clave Primaria (PK).
+   * Evita descuadres de índices y jamás elimina la fila 1 de cabeceras.
+   * @param {string} sheetName
+   * @param {string} pkColumnName
+   * @param {string} pkValue
+   * @returns {boolean}
+   */
+  deleteRowByPk(sheetName, pkColumnName, pkValue) {
+    const sheet = this.getSheet(sheetName);
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return false;
+
+    const headers = data[0].map(h => String(h).trim());
+    const colIdx = headers.indexOf(pkColumnName);
+    if (colIdx === -1) {
+      throw new Error(`La columna PK '${pkColumnName}' no existe en '${sheetName}'.`);
+    }
+
+    const cleanPk = String(pkValue).trim();
+    for (let i = 1; i < data.length; i++) {
+      const val = String(data[i][colIdx]).trim();
+      if (val === cleanPk) {
+        const physicalRow = i + 1;
+        if (physicalRow > 1) {
+          sheet.deleteRow(physicalRow);
+          return true;
+        }
+      }
+    }
+    return false;
   }
 };

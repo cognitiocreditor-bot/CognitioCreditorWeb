@@ -265,10 +265,13 @@ export const Certificates = {
   },
 
   _getWhatsAppUrl(eventTitle) {
-    if (!CONFIG.isWhatsAppConfigured()) {
-      return '#';
+    if (CONFIG.WHATSAPP_NUMBER && !CONFIG.WHATSAPP_NUMBER.includes("TU_NUMERO_WHATSAPP")) {
+      const msg = encodeURIComponent(`${CONFIG.WHATSAPP_DEFAULT_MESSAGE}mi inscripción en: ${eventTitle}`);
+      return `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${msg}`;
     }
-    const msg = encodeURIComponent(`${CONFIG.WHATSAPP_DEFAULT_MESSAGE}mi inscripción en: ${eventTitle}`);
-    return `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${msg}`;
+    if (CONFIG.WHATSAPP_URL && !CONFIG.WHATSAPP_URL.includes("TU_URL")) {
+      return CONFIG.WHATSAPP_URL;
+    }
+    return '#';
   }
 };

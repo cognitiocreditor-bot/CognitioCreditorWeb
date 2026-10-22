@@ -866,7 +866,13 @@ body {
 
 @media (min-width: 768px) {
   .footer-grid {
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 1.5fr 1fr 1fr;
+  }
+}
+
+@media (min-width: 992px) {
+  .footer-grid {
+    grid-template-columns: 2fr 1fr 1fr 1.2fr;
   }
 }
 
@@ -893,6 +899,190 @@ body {
 .footer-link:hover {
   color: var(--color-accent-light);
 }
+
+/* --------------------------------------------------------------------------
+   Sección y Componentes de Redes Sociales y Canales Oficiales
+   -------------------------------------------------------------------------- */
+.social-hub-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.15rem;
+  margin-top: 2.25rem;
+}
+
+@media (min-width: 600px) {
+  .social-hub-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .social-hub-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.social-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--color-text-main);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.social-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.social-card:hover, .social-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.social-card-whatsapp:hover { border-color: #25D366; }
+.social-card-whatsapp:hover::before { background: #25D366; }
+
+.social-card-facebook:hover { border-color: #1877F2; }
+.social-card-facebook:hover::before { background: #1877F2; }
+
+.social-card-tiktok:hover { border-color: #0F172A; }
+.social-card-tiktok:hover::before { background: #0F172A; }
+
+.social-card-instagram:hover { border-color: #E1306C; }
+.social-card-instagram:hover::before { background: #E1306C; }
+
+.social-card-gmail:hover { border-color: #EA4335; }
+.social-card-gmail:hover::before { background: #EA4335; }
+
+.social-icon-wrapper {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.social-card:hover .social-icon-wrapper {
+  transform: scale(1.08);
+}
+
+.social-icon-wrapper.whatsapp { background: #E7F9EE; color: #25D366; }
+.social-icon-wrapper.facebook { background: #EBF3FE; color: #1877F2; }
+.social-icon-wrapper.tiktok { background: #F1F5F9; color: #0F172A; }
+.social-icon-wrapper.instagram { background: #FDF1F5; color: #E1306C; }
+.social-icon-wrapper.gmail { background: #FEECEB; color: #EA4335; }
+
+.social-card-info {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex-grow: 1;
+}
+
+.social-card-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-primary);
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.social-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.04em;
+}
+
+.social-badge.whatsapp {
+  background: #E7F9EE;
+  color: #059669;
+}
+
+.social-badge.official {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.social-card-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.social-card-arrow {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: 1.15rem;
+  opacity: 0.35;
+  transition: all var(--transition-fast);
+}
+
+.social-card:hover .social-card-arrow {
+  opacity: 1;
+  color: var(--color-accent);
+  transform: translateX(3px);
+}
+
+/* Redes en el Footer */
+.footer-social-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.footer-social-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #CBD5E1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all var(--transition-fast);
+}
+
+.footer-social-btn:hover, .footer-social-btn:focus-visible {
+  transform: translateY(-2px);
+  color: #FFFFFF;
+}
+
+.footer-social-btn.whatsapp:hover { background: #25D366; border-color: #25D366; }
+.footer-social-btn.facebook:hover { background: #1877F2; border-color: #1877F2; }
+.footer-social-btn.tiktok:hover { background: #000000; border-color: #38BDF8; }
+.footer-social-btn.instagram:hover { background: #E1306C; border-color: #E1306C; }
+.footer-social-btn.gmail:hover { background: #EA4335; border-color: #EA4335; }
 
 .footer-bottom {
   padding-top: 2rem;

@@ -24,13 +24,13 @@ export const CONFIG = {
   FAVICON_URL: "assets/images/logo.jpg",
   
   // Canales Oficiales y Redes Sociales
-  // Reemplace con los enlaces reales; los valores vacíos o no configurados serán advertidos en la interfaz
-  WHATSAPP_NUMBER: "TU_NUMERO_WHATSAPP", // Formato internacional sin +, ej: 51987654321
+  WHATSAPP_URL: "https://whatsapp.com/channel/0029Vb65sZxFMqrfk0LW7F21",
+  WHATSAPP_NUMBER: "", // Opcional si se habilita chat directo, ej: 51987654321
   WHATSAPP_DEFAULT_MESSAGE: "Hola, me comunico desde el portal web de Cognitio Creditor para consultar sobre ",
-  FACEBOOK_URL: "TU_URL_FACEBOOK",
-  INSTAGRAM_URL: "TU_URL_INSTAGRAM",
-  LINKEDIN_URL: "", // Opcional
-  CONTACT_EMAIL: "contacto@cognitiocreditor.org", // Marcador editable
+  FACEBOOK_URL: "https://www.facebook.com/share/1FJDDaDiMk/",
+  TIKTOK_URL: "https://www.tiktok.com/@c.e.cognitio.creditor?_r=1&_t=ZS-9AlyerpciSy",
+  INSTAGRAM_URL: "https://www.instagram.com/c.e.cognitiocreditor?utm_source=qr&exln=MWh3YW1od3h1cW5mNA==",
+  CONTACT_EMAIL: "cognitiocreditorcc@gmail.com",
   
   // Configuración Regional y Fechas
   TIMEZONE: "America/Lima",
@@ -56,6 +56,7 @@ export const CONFIG = {
   },
   
   isWhatsAppConfigured() {
-    return this.WHATSAPP_NUMBER && !this.WHATSAPP_NUMBER.includes("TU_NUMERO_WHATSAPP");
+    return Boolean((this.WHATSAPP_URL && !this.WHATSAPP_URL.includes("TU_URL")) ||
+                   (this.WHATSAPP_NUMBER && !this.WHATSAPP_NUMBER.includes("TU_NUMERO_WHATSAPP")));
   }
 };
