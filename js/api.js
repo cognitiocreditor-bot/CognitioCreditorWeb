@@ -8,13 +8,34 @@ import { CONFIG } from './config.js';
 
 export const Api = {
   /**
-   * Realiza una petición GET al backend de Google Apps Script.
+   * Realiza una petición GET al backend de Google Apps Script con soporte para caché inteligente (TTL).
    * @param {string} action - Nombre de la operación
    * @param {Object} params - Parámetros de consulta
+   * @param {Object} options - { bypassCache: boolean, ttlMs: number }
    */
-  async get(action, params = {}) {
+  async get(action, params = {}, options = {}) {
     if (!CONFIG.isBackendConfigured()) {
       return this._handleUnconfiguredBackend(action, params);
+    }
+
+    const { bypassCache = false, ttlMs = 5 * 60 * 1000 } = options; // 5 minutos por defecto
+    const cacheKey = `cognitio_cache_${action}_${JSON.stringify(params)}`;
+
+    // Solo cacheamos operaciones públicas de lectura estables (ej. getPublicEvents)
+    const isCacheable = (action === 'getPublicEvents') && !bypassCache;
+
+    if (isCacheable) {
+      try {
+        const cachedRaw = sessionStorage.getItem(cacheKey);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          if (Date.now() - cached.timestamp < ttlMs && cached.data) {
+            return cached.data;
+          }
+        }
+      } catch (e) {
+        // Fallback si sessionStorage está bloqueado
+      }
     }
 
     const url = new URL(CONFIG.BACKEND_API_URL);
@@ -35,7 +56,18 @@ export const Api = {
         throw new Error(`Error de red HTTP ${response.status}: ${response.statusText}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+
+      if (isCacheable && result && result.success) {
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            timestamp: Date.now(),
+            data: result
+          }));
+        } catch (e) {}
+      }
+
+      return result;
     } catch (err) {
       console.error(`[API GET ${action}] Error:`, err);
       return {
@@ -44,6 +76,22 @@ export const Api = {
         message: "No fue posible conectar con el servidor. Verifique su conexión a internet."
       };
     }
+  },
+
+  /**
+   * Invalida las entradas de caché del cliente (útil tras crear o editar eventos).
+   */
+  clearCache(actionPattern = '') {
+    try {
+      const keys = Object.keys(sessionStorage);
+      keys.forEach(key => {
+        if (key.startsWith('cognitio_cache_')) {
+          if (!actionPattern || key.includes(actionPattern)) {
+            sessionStorage.removeItem(key);
+          }
+        }
+      });
+    } catch (e) {}
   },
 
   /**

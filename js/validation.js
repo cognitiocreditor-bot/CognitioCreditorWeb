@@ -101,5 +101,40 @@ export const Validation = {
     if (!regex.test(dateStr)) return false;
     const date = new Date(dateStr + "T00:00:00");
     return !isNaN(date.getTime());
+  },
+
+  /**
+   * Normaliza la URL o ruta del banner para máxima velocidad y compatibilidad.
+   * - Si es un archivo en assets/images/ (ej. "banner.jpg" o "assets/images/banner.jpg"), estandariza la ruta.
+   * - Si es un enlace de Google Drive, lo convierte a la URL directa de contenido lh3.googleusercontent.com.
+   * - Si está vacío, usa el logotipo por defecto.
+   * @param {string} url
+   * @returns {string}
+   */
+  formatImageUrl(url) {
+    if (!url || typeof url !== "string" || !url.trim()) {
+      return "assets/images/logo.jpg";
+    }
+    const clean = url.trim();
+
+    // 1. Google Drive: transformar enlace /view o /open a lh3.googleusercontent.com/d/ID
+    const driveMatch = clean.match(/\/d\/([a-zA-Z0-9_-]+)/) || clean.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      return `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+    }
+
+    // 2. Si ya es una URL web completa (https:// o http://) o data URI
+    if (/^(https?:\/\/|data:)/i.test(clean)) {
+      return clean;
+    }
+
+    // 3. Si ya tiene la ruta assets/
+    if (clean.startsWith("assets/")) {
+      return clean;
+    }
+
+    // 4. Si solo escribieron el nombre de la imagen (ej: "afiche1.jpg" o "banner.png")
+    return `assets/images/${clean.replace(/^\/+/, "")}`;
   }
 };
+

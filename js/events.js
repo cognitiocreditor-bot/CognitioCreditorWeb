@@ -64,7 +64,7 @@ export const Events = {
    */
   renderEvents(events) {
     const html = events.map(evt => {
-      const imageSrc = evt.Imagen_URL && evt.Imagen_URL.trim() ? Validation.escapeHTML(evt.Imagen_URL) : 'assets/images/logo.jpg';
+      const imageSrc = Validation.formatImageUrl(evt.Imagen_URL);
       const title = Validation.escapeHTML(evt.Titulo_Evento || 'Evento Académico');
       const speaker = Validation.escapeHTML(evt.Expositor || 'Por confirmar');
       const date = evt.Fecha_Evento ? Validation.escapeHTML(evt.Fecha_Evento) : 'Próximamente';

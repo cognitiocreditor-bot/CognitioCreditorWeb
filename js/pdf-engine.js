@@ -9,14 +9,24 @@ import { Validation } from './validation.js';
 
 export const PdfEngine = {
   /**
+   * Asegura que la librería diferida PDFLib esté lista antes de generar documentos.
+   */
+  async ensureReady() {
+    if (typeof PDFLib !== 'undefined') return true;
+    for (let i = 0; i < 25; i++) {
+      await new Promise(r => setTimeout(r, 120));
+      if (typeof PDFLib !== 'undefined') return true;
+    }
+    throw new Error('El motor de generación PDF aún se está iniciando. Por favor reintente en unos instantes.');
+  },
+
+  /**
    * Genera un certificado virtual individual en el navegador del cliente.
    * @param {Object} certData - Datos del certificado y plantilla autorizada
    * @returns {Promise<Uint8Array>} Bytes del PDF generado
    */
   async generateCertificatePdf(certData) {
-    if (typeof PDFLib === 'undefined') {
-      throw new Error('La biblioteca pdf-lib no se encuentra cargada en la página.');
-    }
+    await this.ensureReady();
 
     const {
       templateBytes,      // ArrayBuffer o Uint8Array del PDF plantilla
@@ -105,9 +115,7 @@ export const PdfEngine = {
    * @param {Function} onProgress - Callback de avance (index, total)
    */
   async generateBatchPdf(items, onProgress = null) {
-    if (typeof PDFLib === 'undefined') {
-      throw new Error('pdf-lib no está disponible.');
-    }
+    await this.ensureReady();
 
     const mergedDoc = await PDFLib.PDFDocument.create();
     if (typeof fontkit !== 'undefined') {

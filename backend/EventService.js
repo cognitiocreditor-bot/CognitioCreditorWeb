@@ -6,15 +6,23 @@
 const EventService = {
   /**
    * Obtiene exclusivamente los eventos activos y publicados para el portal público.
+   * Utiliza CacheService en memoria RAM para responder en submilisegundos sin golpear Sheets.
    */
   getPublicEvents() {
+    try {
+      const cache = CacheService.getScriptCache();
+      const cached = cache.get("PUBLIC_EVENTS");
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (e) {
+      // Continuar a Google Sheets si hay alguna anomalía con la caché
+    }
+
     const events = Database.getAll(CONFIG.SHEETS.EVENTOS);
     
     // Filtrar solo eventos con Estado = 'Activo'
-    const publicEvents = events.filter(evt => evt.Estado === "Activo");
-
-    // Proyectar solo los campos públicos (sin links internos de plantillas)
-    return publicEvents.map(evt => ({
+    const publicEvents = events.filter(evt => evt.Estado === "Activo").map(evt => ({
       Evento_ID: evt.Evento_ID,
       Titulo_Evento: evt.Titulo_Evento,
       Descripcion: evt.Descripcion,
@@ -26,6 +34,24 @@ const EventService = {
       Modalidad: evt.Modalidad,
       Estado: evt.Estado
     }));
+
+    try {
+      const cache = CacheService.getScriptCache();
+      // Guardar en caché RAM de Google por 10 minutos (600 segundos)
+      cache.put("PUBLIC_EVENTS", JSON.stringify(publicEvents), 600);
+    } catch (e) {}
+
+    return publicEvents;
+  },
+
+  /**
+   * Invalida la caché de eventos públicos en RAM tras cambios administrativos.
+   */
+  invalidatePublicCache() {
+    try {
+      const cache = CacheService.getScriptCache();
+      cache.remove("PUBLIC_EVENTS");
+    } catch (e) {}
   },
 
   /**
@@ -47,6 +73,7 @@ const EventService = {
     }
 
     Database.updateCell(CONFIG.SHEETS.EVENTOS, target._rowIndex, "Estado", newStatus);
+    this.invalidatePublicCache();
     AuthService.logAudit(adminEmail, "TOGGLE_EVENTO", eventId, `Estado cambiado a ${newStatus}`);
 
     return { eventId, status: newStatus };
@@ -95,6 +122,8 @@ const EventService = {
       Database.insert(CONFIG.SHEETS.EVENTOS, record);
       AuthService.logAudit(adminEmail, "CREAR_EVENTO", eventId, `Evento creado: ${record.Titulo_Evento}`);
     }
+
+    this.invalidatePublicCache();
 
     return record;
   },
@@ -154,6 +183,8 @@ const EventService = {
 
     // Eliminar configuración de certificado asociada si existiera
     Database.deleteRowByPk(CONFIG.SHEETS.CONFIG_CERT, "Evento_ID", eventId);
+
+    this.invalidatePublicCache();
 
     AuthService.logAudit(adminEmail, "ELIMINAR_EVENTO", eventId, `Evento eliminado físicamente (0 inscritos). Título: ${target.Titulo_Evento}`);
 

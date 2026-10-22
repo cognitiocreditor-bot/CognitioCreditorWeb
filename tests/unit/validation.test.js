@@ -53,6 +53,15 @@ assert(escaped.includes('&lt;') && escaped.includes('&gt;'), 'Entidades HTML gen
 console.log('\n[5] Normalización de Nombres:');
 assert(Validation.normalizeName('  carlos   alberto   gonzales  ') === 'CARLOS ALBERTO GONZALES', 'Espacios redundantes eliminados y mayúsculas aplicadas');
 
+// 6. Normalización de Imágenes y Banners
+console.log('\n[6] Normalización de Banners (formatImageUrl):');
+assert(Validation.formatImageUrl('') === 'assets/images/logo.jpg', 'Imagen vacía usa logo institucional');
+assert(Validation.formatImageUrl(null) === 'assets/images/logo.jpg', 'Imagen nula usa logo institucional');
+assert(Validation.formatImageUrl('banner1.jpg') === 'assets/images/banner1.jpg', 'Nombre simple se prefija con assets/images/');
+assert(Validation.formatImageUrl('assets/images/afiche.png') === 'assets/images/afiche.png', 'Ruta local existente se preserva');
+assert(Validation.formatImageUrl('https://drive.google.com/file/d/129Hh6V95wJ1ZoAHqhOF6cVPJ85ReDcgQ/view?usp=sharing') === 'https://lh3.googleusercontent.com/d/129Hh6V95wJ1ZoAHqhOF6cVPJ85ReDcgQ', 'Enlace de Google Drive transformado a lh3 directo');
+assert(Validation.formatImageUrl('https://cdn.example.com/foto.jpg') === 'https://cdn.example.com/foto.jpg', 'URL externa https se respeta intacta');
+
 console.log(`\n========================================`);
 console.log(`TOTAL: ${passed + failed} | APROBADAS: ${passed} | FALLIDAS: ${failed}`);
 console.log(`========================================`);

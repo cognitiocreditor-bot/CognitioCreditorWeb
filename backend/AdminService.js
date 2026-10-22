@@ -174,10 +174,16 @@ const AdminService = {
     const configs = Database.getAll(CONFIG.SHEETS.CONFIG_CERT);
     const existing = configs.find(c => c.Evento_ID === eventId);
 
+    let cleanTemplate = String(config.Link_Plantilla || "").trim();
+    const driveMatch = cleanTemplate.match(/\/d\/([a-zA-Z0-9_-]+)/) || cleanTemplate.match(/id=([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      cleanTemplate = driveMatch[1];
+    }
+
     const record = {
       Configuracion_Certificado_ID: config.Configuracion_Certificado_ID || ("CFG-" + eventId),
       Evento_ID: eventId,
-      Link_Plantilla: String(config.Link_Plantilla || "").trim(),
+      Link_Plantilla: cleanTemplate,
       Pagina_Certificado: Number(config.Pagina_Certificado) || 1,
       Posicion_X: Number(config.Posicion_X) || 0,
       Posicion_Y: Number(config.Posicion_Y) || 260,

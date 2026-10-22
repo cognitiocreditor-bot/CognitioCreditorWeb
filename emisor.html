@@ -11,12 +11,12 @@
   <!-- Google Identity Services (OAuth2) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <!-- SheetJS para importación de listas Excel -->
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <!-- SheetJS para importación de listas Excel (Carga diferida) -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" defer></script>
 
-  <!-- pdf-lib y fontkit para previsualización y lotes masivos -->
-  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
+  <!-- pdf-lib y fontkit para previsualización y lotes masivos (Carga diferida) -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js" defer></script>
 
   <style>
     .admin-nav {
@@ -352,8 +352,11 @@
         </div>
 
         <div class="form-group">
-          <label for="event-form-image" class="form-label">URL de Imagen / Banner</label>
-          <input type="text" id="event-form-image" class="form-control" placeholder="assets/images/logo.jpg o URL web">
+          <label for="event-form-image" class="form-label">Banner del Evento (en assets/images/ o Enlace)</label>
+          <input type="text" id="event-form-image" class="form-control" placeholder="Ej. assets/images/banner1.jpg o nombre del archivo">
+          <small style="color: var(--color-text-muted); font-size: 0.75rem;">
+            ⚡ <strong>Máxima velocidad recomendada</strong>: Guarde su imagen en <code>assets/images/</code> del repositorio y coloque aquí su nombre (ej: <code>banner1.jpg</code>). También puede pegar enlaces web directos o de Google Drive.
+          </small>
         </div>
 
         <div class="form-group">

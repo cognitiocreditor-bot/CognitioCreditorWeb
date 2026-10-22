@@ -252,6 +252,7 @@ export const Admin = {
       const res = await Api.post('adminDeleteEvent', { eventId }, this.currentAuthToken);
 
       if (res.success) {
+        Api.clearCache('getPublicEvents');
         alert(res.message || `Evento ${eventId} eliminado correctamente.`);
         this.loadEvents();
       } else {
@@ -315,6 +316,8 @@ export const Admin = {
       return;
     }
 
+    const formattedImage = image ? Validation.formatImageUrl(image) : '';
+
     const payload = {
       Evento_ID: eventId,
       Titulo_Evento: title,
@@ -324,7 +327,7 @@ export const Admin = {
       Modalidad: modality,
       Estado: status,
       Link_Formulario: formlink,
-      Imagen_URL: image,
+      Imagen_URL: formattedImage,
       Descripcion: desc
     };
 
@@ -335,6 +338,7 @@ export const Admin = {
     try {
       const res = await Api.post('adminSaveEvent', payload, this.currentAuthToken);
       if (res.success) {
+        Api.clearCache('getPublicEvents');
         alert(eventId ? 'Evento actualizado exitosamente.' : `¡Evento creado exitosamente con código ${res.data?.Evento_ID || ''}!`);
         this.closeModal('modal-event');
         this.loadEvents();
@@ -366,6 +370,7 @@ export const Admin = {
 
     const res = await Api.post('adminToggleEventStatus', { eventId, nextStatus }, this.currentAuthToken);
     if (res.success) {
+      Api.clearCache('getPublicEvents');
       alert('Estado actualizado correctamente.');
       this.loadEvents();
     } else {
