@@ -21,6 +21,72 @@ export const PdfEngine = {
   },
 
   /**
+   * Catálogo de tipografías académicas y caligráficas para diplomas y certificados.
+   */
+  FONTS: {
+    'GreatVibes': 'https://cdn.jsdelivr.net/fontsource/fonts/great-vibes@latest/latin-400-normal.ttf',
+    'Cinzel': 'https://cdn.jsdelivr.net/fontsource/fonts/cinzel@latest/latin-700-normal.ttf',
+    'Playfair': 'https://cdn.jsdelivr.net/fontsource/fonts/playfair-display@latest/latin-700-italic.ttf',
+    'PinyonScript': 'https://cdn.jsdelivr.net/fontsource/fonts/pinyon-script@latest/latin-400-normal.ttf',
+    'AlexBrush': 'https://cdn.jsdelivr.net/fontsource/fonts/alex-brush@latest/latin-400-normal.ttf'
+  },
+  _fontCache: {},
+
+  /**
+   * Descarga o recupera de la caché los bytes de una fuente tipográfica.
+   */
+  async _loadFontBytes(fontSpec) {
+    const key = String(fontSpec || 'GreatVibes').trim();
+    if (key === 'Helvetica' || key === 'TimesRoman' || key === 'Standard') {
+      return null; // Usar fuente estándar interna de PDFLib
+    }
+
+    const targetUrl = this.FONTS[key] || (key.startsWith('http') ? key : this.FONTS['GreatVibes']);
+    if (this._fontCache[targetUrl]) {
+      return this._fontCache[targetUrl];
+    }
+
+    try {
+      const response = await fetch(targetUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const arrayBuffer = await response.arrayBuffer();
+      const uint8 = new Uint8Array(arrayBuffer);
+      this._fontCache[targetUrl] = uint8;
+      return uint8;
+    } catch (err) {
+      console.warn(`[PdfEngine] No se pudo descargar la tipografía '${key}':`, err);
+      return null;
+    }
+  },
+
+  /**
+   * Carga la tipografía seleccionada incrustando vectores o recurriendo a fuentes estándar solemnes.
+   */
+  async _embedDocumentFont(pdfDoc, config) {
+    const requested = String(config.Fuente_URL || config.fuente || 'GreatVibes').trim();
+
+    if (requested === 'Helvetica') {
+      return await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    }
+    if (requested === 'TimesRoman') {
+      return await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBoldItalic);
+    }
+
+    // Intentar incrustar fuente caligráfica/TrueType personalizada
+    try {
+      const fontBytes = config.fontBytes || (await this._loadFontBytes(requested));
+      if (fontBytes) {
+        return await pdfDoc.embedFont(fontBytes);
+      }
+    } catch (customErr) {
+      console.warn('[PdfEngine] Error incrustando fuente TTF, recurriendo a TimesRomanBoldItalic:', customErr);
+    }
+
+    // Fallback solemne tradicional para certificados (Times Roman en cursiva y negrita)
+    return await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBoldItalic);
+  },
+
+  /**
    * Genera un certificado virtual individual en el navegador del cliente.
    * @param {Object} certData - Datos del certificado y plantilla autorizada
    * @returns {Promise<Uint8Array>} Bytes del PDF generado
@@ -55,19 +121,8 @@ export const PdfEngine = {
     const page = pages[pageIndex];
     const { width: pageWidth, height: pageHeight } = page.getSize();
 
-    // 4. Cargar la fuente tipográfica autorizada
-    let customFont;
-    try {
-      if (config.fontBytes) {
-        customFont = await pdfDoc.embedFont(config.fontBytes);
-      } else {
-        // Fallback a fuente estándar Helvetica-Bold si no hay archivo de fuente externa
-        customFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-      }
-    } catch (fontErr) {
-      console.warn('[PdfEngine] No se pudo incrustar fuente personalizada, usando Helvetica:', fontErr);
-      customFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-    }
+    // 4. Cargar la fuente tipográfica autorizada (Caligráfica por defecto o configurada)
+    const customFont = await this._embedDocumentFont(pdfDoc, config);
 
     // 5. Normalizar el nombre y calcular ajuste de escala
     const cleanName = Validation.normalizeName(participantName);

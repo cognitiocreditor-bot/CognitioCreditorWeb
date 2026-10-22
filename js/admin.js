@@ -744,6 +744,7 @@ export const Admin = {
       document.getElementById('cert-cfg-font-size').value = cfg.Tamano_Fuente_Inicial || 32;
       document.getElementById('cert-cfg-color').value = cfg.Color_Texto || '#1B365D';
       document.getElementById('cert-cfg-alignment').value = cfg.Alineacion || 'Centrado';
+      document.getElementById('cert-cfg-font').value = cfg.Fuente_URL || 'GreatVibes';
       document.getElementById('cert-cfg-status').value = cfg.Estado_Configuracion || 'Publicado';
       document.getElementById('cert-cfg-page').value = cfg.Pagina_Certificado || 1;
 
@@ -765,6 +766,7 @@ export const Admin = {
     const fontSize = Number(document.getElementById('cert-cfg-font-size').value);
     const color = document.getElementById('cert-cfg-color').value.trim();
     const alignment = document.getElementById('cert-cfg-alignment').value;
+    const font = document.getElementById('cert-cfg-font').value;
     const status = document.getElementById('cert-cfg-status').value;
     const page = Number(document.getElementById('cert-cfg-page').value) || 1;
 
@@ -784,6 +786,7 @@ export const Admin = {
         Ancho_Maximo_Nombre: 600,
         Tamano_Fuente_Inicial: fontSize,
         Tamano_Fuente_Minimo: 18,
+        Fuente_URL: font,
         Alineacion: alignment,
         Color_Texto: color,
         Estado_Configuracion: status
