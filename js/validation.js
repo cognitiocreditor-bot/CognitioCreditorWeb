@@ -85,6 +85,27 @@ export const Validation = {
   },
 
   /**
+   * Convierte un nombre a formato Título (Capitalizado).
+   * La inicial de cada palabra en mayúscula y el resto en minúscula,
+   * preservando conectores en minúscula (de, del, la, y) y respetando tildes/ñ.
+   * @param {string} name
+   * @returns {string}
+   */
+  toTitleCase(name) {
+    if (!name || typeof name !== "string") return "";
+    const connectors = new Set(["de", "del", "la", "las", "los", "y", "e", "da", "do"]);
+    const words = name.trim().replace(/\s+/g, " ").toLowerCase().split(" ");
+
+    return words.map((w, index) => {
+      if (!w) return "";
+      if (index > 0 && connectors.has(w)) {
+        return w;
+      }
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(" ");
+  },
+
+  /**
    * Valida si un email tiene estructura aceptable.
    * @param {string} email
    * @returns {boolean}

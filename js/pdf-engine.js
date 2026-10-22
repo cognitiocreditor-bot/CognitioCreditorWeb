@@ -124,8 +124,8 @@ export const PdfEngine = {
     // 4. Cargar la fuente tipográfica autorizada (Caligráfica por defecto o configurada)
     const customFont = await this._embedDocumentFont(pdfDoc, config);
 
-    // 5. Normalizar el nombre y calcular ajuste de escala
-    const cleanName = Validation.normalizeName(participantName);
+    // 5. Normalizar el nombre a formato Título (Iniciales en mayúscula, resto en minúscula)
+    const cleanName = Validation.toTitleCase(participantName);
     const initialSize = Number(config.Tamano_Fuente_Inicial) || CONFIG.CERTIFICATE_CONFIG.DEFAULT_FONT_SIZE;
     const minSize = Number(config.Tamano_Fuente_Minimo) || CONFIG.CERTIFICATE_CONFIG.MIN_FONT_SIZE;
     const maxWidth = Number(config.Ancho_Maximo_Nombre) || (pageWidth * 0.75);

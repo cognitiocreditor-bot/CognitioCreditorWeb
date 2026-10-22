@@ -52,6 +52,8 @@ assert(escaped.includes('&lt;') && escaped.includes('&gt;'), 'Entidades HTML gen
 // 5. Normalización de Nombre
 console.log('\n[5] Normalización de Nombres:');
 assert(Validation.normalizeName('  carlos   alberto   gonzales  ') === 'CARLOS ALBERTO GONZALES', 'Espacios redundantes eliminados y mayúsculas aplicadas');
+assert(Validation.toTitleCase('  carlos   alberto   gonzales  ') === 'Carlos Alberto Gonzales', 'Formato Título aplicado');
+assert(Validation.toTitleCase('MARÍA DEL CARMEN DE LA CRUZ') === 'María del Carmen de la Cruz', 'Conectores en minúscula preservados');
 
 // 6. Normalización de Imágenes y Banners
 console.log('\n[6] Normalización de Banners (formatImageUrl):');
