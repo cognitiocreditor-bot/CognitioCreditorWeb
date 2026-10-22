@@ -18,9 +18,9 @@ const CONFIG = {
 
   // Lista blanca de correos de Google autorizados para operar el panel administrativo
   ADMIN_EMAILS: [
-    "directiva.cognitiocreditor@gmail.com",
-    "coordinacion.cognitio@gmail.com"
-    // Añada aquí los correos de la directiva autorizados
+    "valentinbabiloniarodriguez@gmail.com",
+    "danielgarciaisern6c@gmail.com",
+    "cognitiocreditor@gmail.com"
   ],
 
   // Google OAuth2 Client ID (debe coincidir con js/config.js)
