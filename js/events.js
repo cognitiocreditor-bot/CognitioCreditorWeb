@@ -64,7 +64,7 @@ export const Events = {
    */
   renderEvents(events) {
     const html = events.map(evt => {
-      const imageSrc = evt.Imagen_URL && evt.Imagen_URL.trim() ? Validation.escapeHTML(evt.Imagen_URL) : 'assets/images/logo-placeholder.svg';
+      const imageSrc = evt.Imagen_URL && evt.Imagen_URL.trim() ? Validation.escapeHTML(evt.Imagen_URL) : 'assets/images/logo.jpg';
       const title = Validation.escapeHTML(evt.Titulo_Evento || 'Evento Académico');
       const speaker = Validation.escapeHTML(evt.Expositor || 'Por confirmar');
       const date = evt.Fecha_Evento ? Validation.escapeHTML(evt.Fecha_Evento) : 'Próximamente';
@@ -76,7 +76,7 @@ export const Events = {
       return `
         <article class="event-card" id="event-${Validation.escapeHTML(evt.Evento_ID)}">
           <div class="event-image-wrapper">
-            <img src="${imageSrc}" alt="Banner de ${title}" class="event-image" loading="lazy" onerror="this.src='assets/images/logo-placeholder.svg'">
+            <img src="${imageSrc}" alt="Banner de ${title}" class="event-image" loading="lazy" onerror="this.src='assets/images/logo.jpg'">
             <span class="event-badge-modalidad">${modality}</span>
           </div>
           <div class="event-content">

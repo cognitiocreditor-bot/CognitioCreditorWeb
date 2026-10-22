@@ -97,3 +97,17 @@ Este documento define la estructura oficial, tipos de datos, restricciones y for
 | D | `Accion` | Texto | Sí | `CONFIRMAR_PAGO`, `CREAR_EVENTO`, `EDITAR_EVENTO`, `GENERAR_LOTE`, `IMPORTAR_EXCEL` |
 | E | `Entidad_Afectada` | Texto | Sí | ID del registro modificado (ej. `INS-2026-0001`) |
 | F | `Detalle` | Texto | No | Resumen de la acción sin datos sensibles |
+
+---
+
+## 7. Gobernanza de Datos y Reglas de Protección Automatizadas
+
+Para evitar la corrupción de datos y la pérdida de integridad referencial identificadas en el análisis de riesgos, se aplican las siguientes defensas a través de [`backend/SetupDatabase.js`](file:///c:/Users/USUARIO/PROYECTO%20COGNITIO/backend/SetupDatabase.js):
+
+1. **Blindaje de Cabeceras**: La Fila 1 de las 5 pestañas se encuentra protegida con advertencia (`WarningOnly`) y congelada (`FrozenRows: 1`) para evitar alteraciones de nombres que rompan los mapeos del DAO (`Database.js`).
+2. **Validación de Integridad de DNI**:
+   - Validación nativa por fórmula: `=REGEXMATCH(TO_TEXT(B2), "^\d{8}$")` (Rechaza entradas no numéricas o de longitud distinta a 8).
+   - Formateo forzado a `@` (*Plain Text*) en columnas de claves foráneas y DNI.
+   - Trigger reactivo `onEdit` que auto-completa con ceros a la izquierda (`padStart(8, "0")`) ante pegados accidentales.
+3. **Listas Desplegables de Estados**: Los campos de estado y modalidad restringen la entrada exclusivamente a los valores canónicos permitidos, previniendo discrepancias por mayúsculas/minúsculas o espacios accidentales.
+

@@ -101,24 +101,24 @@ export const Api = {
         data: [
           {
             Evento_ID: "EVT-DEMO-001",
-            Titulo_Evento: "Seminario de Derecho Concursal y Reestructuración Patrimonial",
-            Descripcion: "Análisis doctrinal y jurisprudencial sobre la ley general del sistema concursal peruano.",
+            Titulo_Evento: "Conferencia: Estados Financieros, Auditoría y Gestión Tributaria",
+            Descripcion: "Jornada académica sobre análisis contable, normas internacionales y rigor metodológico en la investigación empresarial.",
             Fecha_Evento: "2026-11-15",
             Hora_Evento: "19:00",
             Expositor: "Dr. Roberto Mendoza Vidal",
-            Imagen_URL: "assets/images/logo-placeholder.svg",
+            Imagen_URL: "assets/images/logo.jpg",
             Link_Formulario: "",
             Modalidad: "Virtual",
             Estado: "Activo"
           },
           {
             Evento_ID: "EVT-DEMO-002",
-            Titulo_Evento: "Taller Práctico: Títulos Valores y Garantías Mobiliarias",
-            Descripcion: "Sesión intensiva sobre ejecución de garantías crediticias y precedentes vinculantes.",
+            Titulo_Evento: "Taller Práctico: Metodología de la Investigación Científica y Redacción Académica",
+            Descripcion: "Sesión intensiva sobre formulación de hipótesis, recolección de datos y competencias científicas.",
             Fecha_Evento: "2026-11-28",
             Hora_Evento: "18:30",
             Expositor: "Dra. Carmen Salazar Peña",
-            Imagen_URL: "assets/images/logo-placeholder.svg",
+            Imagen_URL: "assets/images/logo.jpg",
             Link_Formulario: "",
             Modalidad: "Virtual",
             Estado: "Activo"

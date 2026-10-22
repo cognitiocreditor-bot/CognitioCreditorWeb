@@ -145,10 +145,16 @@ body {
 .brand-logo {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  padding: 4px;
-  object-fit: contain;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 2px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform var(--transition-fast);
+}
+
+.brand-wrapper:hover .brand-logo {
+  transform: scale(1.04);
 }
 
 .brand-text {
@@ -436,6 +442,164 @@ body {
 .section-subtitle {
   color: var(--color-text-muted);
   font-size: 1.05rem;
+}
+
+/* --------------------------------------------------------------------------
+   Misión, Visión y Actividades Institucionales
+   -------------------------------------------------------------------------- */
+.mv-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 3.5rem;
+}
+
+@media (min-width: 860px) {
+  .mv-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.mv-card {
+  background: var(--color-bg);
+  padding: 2.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.mv-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.mv-icon {
+  font-size: 2.25rem;
+  margin-bottom: 1rem;
+}
+
+.mv-title {
+  color: var(--color-primary);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0.85rem;
+  letter-spacing: -0.01em;
+}
+
+.mv-text {
+  color: var(--color-text-main);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  flex-grow: 1;
+}
+
+.activities-container {
+  margin-top: 1rem;
+}
+
+.activities-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.activities-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.activities-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .activities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .activities-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.activity-card {
+  background: var(--color-bg);
+  padding: 1.75rem 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.activity-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent-light);
+}
+
+.activity-card.highlighted {
+  border: 2px solid var(--color-accent);
+  background: linear-gradient(180deg, rgba(2, 132, 199, 0.04) 0%, var(--color-bg) 100%);
+}
+
+.activity-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: rgba(2, 132, 199, 0.12);
+  color: var(--color-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-full);
+}
+
+.activity-icon {
+  font-size: 2rem;
+  margin-bottom: 0.85rem;
+}
+
+.activity-name {
+  color: var(--color-primary);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+}
+
+.activity-desc {
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  flex-grow: 1;
+}
+
+.activity-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1.25rem;
+  color: var(--color-accent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: gap var(--transition-fast);
+}
+
+.activity-link:hover {
+  color: var(--color-primary);
+  gap: 0.6rem;
 }
 
 /* --------------------------------------------------------------------------

@@ -9,19 +9,19 @@ export const CONFIG = {
   // Identidad Institucional
   ORGANIZATION_NAME: "Círculo de Estudios Cognitio Creditor",
   ORGANIZATION_SHORT_NAME: "Cognitio Creditor",
-  SLOGAN: "Formación, excelencia académica e investigación colaborativa",
+  SLOGAN: "Excelencia académica, contabilidad e investigación científica",
   
   // URLs de Integración con el Backend
-  // Reemplace 'TU_URL_GOOGLE_APPS_SCRIPT' con la URL Web App publicada (terminada en /exec)
-  BACKEND_API_URL: "TU_URL_GOOGLE_APPS_SCRIPT",
+  // URL oficial de la Web App desplegada en Google Apps Script
+  BACKEND_API_URL: "https://script.google.com/macros/s/AKfycbzFLI5PoSA2-jZkaKhNfVon5kkSU9P1QnHQv5LGztBYYrSmudZ2BtDdssy3LbG6ZRyQ/exec",
   
   // Autenticación Administrativa (Google Identity Services)
   // Obtenga su Client ID desde Google Cloud Console (APIs & Services > Credentials)
   GOOGLE_CLIENT_ID: "TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
   
   // Recursos Visuales
-  LOGO_URL: "assets/images/logo-placeholder.svg",
-  FAVICON_URL: "assets/images/favicon.ico",
+  LOGO_URL: "assets/images/logo.jpg",
+  FAVICON_URL: "assets/images/logo.jpg",
   
   // Canales Oficiales y Redes Sociales
   // Reemplace con los enlaces reales; los valores vacíos o no configurados serán advertidos en la interfaz

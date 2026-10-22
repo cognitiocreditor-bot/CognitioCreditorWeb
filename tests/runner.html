@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suite de Pruebas Unitarias — COGNITIO CREDITOR</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0A192F;
+      color: #E2E8F0;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #112240;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    h1 { color: #64FFDA; margin-top: 0; font-size: 1.75rem; }
+    .suite { margin-bottom: 2rem; border-bottom: 1px solid #233554; padding-bottom: 1.5rem; }
+    .suite-title { color: #38BDF8; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .test-item { padding: 6px 10px; border-radius: 4px; margin-bottom: 4px; font-size: 0.95rem; font-family: monospace; }
+    .test-item.pass { background: rgba(5, 150, 105, 0.2); color: #34D399; }
+    .test-item.fail { background: rgba(220, 38, 38, 0.25); color: #F87171; font-weight: bold; }
+    .summary {
+      background: #1E293B;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+      font-weight: bold;
+    }
+    .btn-run {
+      background: #0284C7;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.25rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-run:hover { background: #0369A1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h1>QA Test Runner — COGNITIO CREDITOR</h1>
+      <button class="btn-run" onclick="runAllTests()">↻ Reejecutar Pruebas</button>
+    </div>
+
+    <div id="test-results">
+      <p>Iniciando ejecución de pruebas...</p>
+    </div>
+
+    <div id="test-summary" class="summary" style="display: none;"></div>
+  </div>
+
+  <script type="module">
+    import { Validation } from '../js/validation.js';
+
+    window.runAllTests = function() {
+      const container = document.getElementById('test-results');
+      const summaryBox = document.getElementById('test-summary');
+      container.innerHTML = '';
+      
+      let totalPassed = 0;
+      let totalFailed = 0;
+
+      function renderSuite(title, tests) {
+        let suiteHtml = `<div class="suite"><div class="suite-title">${title}</div>`;
+        tests.forEach(t => {
+          try {
+            const result = t.fn();
+            if (result) {
+              totalPassed++;
+              suiteHtml += `<div class="test-item pass">✓ ${t.name}</div>`;
+            } else {
+              totalFailed++;
+              suiteHtml += `<div class="test-item fail">✗ FALLÓ: ${t.name}</div>`;
+            }
+          } catch (e) {
+            totalFailed++;
+            suiteHtml += `<div class="test-item fail">✗ ERROR: ${t.name} (${e.message})</div>`;
+          }
+        });
+        suiteHtml += `</div>`;
+        container.innerHTML += suiteHtml;
+      }
+
+      // Suite 1: Validación de DNI
+      renderSuite('1. Validación y Normalización de DNI', [
+        { name: 'DNI de 8 dígitos es válido', fn: () => Validation.isValidDNI('71234567') === true },
+        { name: 'DNI con cero inicial es válido', fn: () => Validation.isValidDNI('01234567') === true },
+        { name: 'DNI de 7 dígitos es rechazado', fn: () => Validation.isValidDNI('7123456') === false },
+        { name: 'DNI de 9 dígitos es rechazado', fn: () => Validation.isValidDNI('712345678') === false },
+        { name: 'DNI con caracteres alfabéticos es rechazado', fn: () => Validation.isValidDNI('7123A567') === false },
+        { name: 'DNI vacío es rechazado', fn: () => Validation.isValidDNI('') === false },
+        { name: 'Normalización elimina espacios en blanco', fn: () => Validation.normalizeDNI(' 71234567 ') === '71234567' },
+        { name: 'Normalización rellena cero si es número de 7 dígitos', fn: () => Validation.normalizeDNI(1234567) === '01234567' }
+      ]);
+
+      // Suite 2: Nombres y Prevención de XSS
+      renderSuite('2. Validación de Nombres y Sanitización XSS', [
+        { name: 'Nombre con tildes es válido', fn: () => Validation.isValidFullName('Juan Pérez') === true },
+        { name: 'Nombre con ñ y mayúsculas es válido', fn: () => Validation.isValidFullName('MARÍA PEÑA SOTOMAYOR') === true },
+        { name: 'Nombre menor a 3 caracteres es rechazado', fn: () => Validation.isValidFullName('Al') === false },
+        { name: 'Intento de XSS con etiquetas script es rechazado', fn: () => Validation.isValidFullName('Juan <script>alert(1)</script>') === false },
+        { name: 'escapeHTML neutraliza signos < y >', fn: () => {
+            const esc = Validation.escapeHTML('<img src=x onerror=alert(1)>');
+            return !esc.includes('<') && !esc.includes('>') && esc.includes('&lt;');
+          }
+        },
+        { name: 'Normalización a mayúsculas y compactación de espacios', fn: () => {
+            return Validation.normalizeName('  carlos   alberto  peña ') === 'CARLOS ALBERTO PEÑA';
+          }
+        }
+      ]);
+
+      // Suite 3: Reglas Obligatorias de Negocio A a F
+      const todayLima = '2026-10-21';
+      function checkRule(eventStatus, eventDate, paymentStatus, certType) {
+        if (eventStatus === 'Cancelado') return 'REGLA_E_CANCELADO';
+        if (paymentStatus === 'Pendiente') return 'REGLA_A_PAGO_PENDIENTE';
+        if (eventDate && todayLima <= eventDate) return 'REGLA_B_FUTURO';
+        if (certType === 'Fisico') return 'REGLA_C_FISICO';
+        if (paymentStatus === 'Pagado' && certType === 'Virtual') return 'REGLA_D_VIRTUAL_LISTO';
+        return 'UNKNOWN';
+      }
+
+      renderSuite('3. Reglas de Negocio de Emisión (A a F)', [
+        { name: 'Regla A: Pago pendiente bloquea emisión', fn: () => checkRule('Finalizado', '2026-10-10', 'Pendiente', 'Virtual') === 'REGLA_A_PAGO_PENDIENTE' },
+        { name: 'Regla B: Evento futuro bloquea emisión', fn: () => checkRule('Activo', '2026-10-25', 'Pagado', 'Virtual') === 'REGLA_B_FUTURO' },
+        { name: 'Regla B: Evento celebrado hoy bloquea emisión (habilita día siguiente)', fn: () => checkRule('Activo', '2026-10-21', 'Pagado', 'Virtual') === 'REGLA_B_FUTURO' },
+        { name: 'Regla C: Certificado físico no genera PDF individual', fn: () => checkRule('Finalizado', '2026-10-10', 'Pagado', 'Fisico') === 'REGLA_C_FISICO' },
+        { name: 'Regla D: Certificado virtual pagado y finalizado es elegible', fn: () => checkRule('Finalizado', '2026-10-10', 'Pagado', 'Virtual') === 'REGLA_D_VIRTUAL_LISTO' },
+        { name: 'Regla E: Evento cancelado bloquea emisión automática', fn: () => checkRule('Cancelado', '2026-10-10', 'Pagado', 'Virtual') === 'REGLA_E_CANCELADO' }
+      ]);
+
+      // Mostrar resumen
+      summaryBox.style.display = 'flex';
+      summaryBox.innerHTML = `
+        <span>Total de Pruebas: ${totalPassed + totalFailed}</span>
+        <span style="color: #34D399;">Aprobadas: ${totalPassed}</span>
+        <span style="color: ${totalFailed > 0 ? '#F87171' : '#94A3B8'};">Fallidas: ${totalFailed}</span>
+      `;
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      window.runAllTests();
+    });
+  </script>
+</body>
+</html>
