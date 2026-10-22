@@ -17,7 +17,7 @@ export const CONFIG = {
   
   // Autenticación Administrativa (Google Identity Services)
   // Obtenga su Client ID desde Google Cloud Console (APIs & Services > Credentials)
-  GOOGLE_CLIENT_ID: "TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+  GOOGLE_CLIENT_ID: "949987890452-fagccp5h0cs42epbol74dv7gnm08gvi9.apps.googleusercontent.com",
   
   // Recursos Visuales
   LOGO_URL: "assets/images/logo.jpg",

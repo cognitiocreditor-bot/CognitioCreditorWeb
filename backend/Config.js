@@ -24,7 +24,7 @@ const CONFIG = {
   ],
 
   // Google OAuth2 Client ID (debe coincidir con js/config.js)
-  GOOGLE_CLIENT_ID: "TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+  GOOGLE_CLIENT_ID: "949987890452-fagccp5h0cs42epbol74dv7gnm08gvi9.apps.googleusercontent.com",
 
   // Configuración regional
   TIMEZONE: "America/Lima"
