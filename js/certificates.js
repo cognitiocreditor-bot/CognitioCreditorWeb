@@ -4,10 +4,10 @@
  * e interpreta las reglas obligatorias de negocio A a F.
  */
 
-import { Api } from './api.js?v=5';
-import { Validation } from './validation.js?v=5';
-import { PdfEngine } from './pdf-engine.js?v=5';
-import { CONFIG } from './config.js?v=5';
+import { Api } from './api.js?v=7';
+import { Validation } from './validation.js?v=7';
+import { PdfEngine } from './pdf-engine.js?v=7';
+import { CONFIG } from './config.js?v=7';
 
 export const Certificates = {
   formElement: null,

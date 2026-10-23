@@ -9,39 +9,46 @@ import { Validation } from './validation.js';
 
 export const PdfEngine = {
   /**
-   * Asegura que la librería diferida PDFLib esté lista antes de generar documentos.
+   * Asegura que PDFLib, fontkit y la tipografía institucional estén listos antes de generar.
    */
   async ensureReady() {
-    if (typeof PDFLib !== 'undefined') return true;
-    for (let i = 0; i < 25; i++) {
-      await new Promise(r => setTimeout(r, 120));
-      if (typeof PDFLib !== 'undefined') return true;
+    // 1. Esperar a PDFLib
+    if (typeof PDFLib === 'undefined') {
+      for (let i = 0; i < 25; i++) {
+        await new Promise(r => setTimeout(r, 120));
+        if (typeof PDFLib !== 'undefined') break;
+      }
     }
-    throw new Error('El motor de generación PDF aún se está iniciando. Por favor reintente en unos instantes.');
+    if (typeof PDFLib === 'undefined') {
+      throw new Error('El motor de generación PDF aún se está iniciando. Por favor reintente en unos instantes.');
+    }
+
+    // 2. Esperar a fontkit (para fuentes TrueType vectoriales)
+    if (typeof fontkit === 'undefined') {
+      for (let i = 0; i < 15; i++) {
+        await new Promise(r => setTimeout(r, 100));
+        if (typeof fontkit !== 'undefined') break;
+      }
+    }
+
+    // 3. Precargar en memoria la tipografía institucional única para todos los certificados
+    await this._loadFontBytes('Cinzel');
+    return true;
   },
 
   /**
-   * Catálogo de tipografías académicas y caligráficas para diplomas y certificados.
+   * Catálogo oficial de la tipografía institucional.
    */
   FONTS: {
-    'AlexBrush': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/alexbrush/AlexBrush-Regular.ttf',
-    'GreatVibes': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/alexbrush/AlexBrush-Regular.ttf', // Corrección: Alex Brush resuelve el hueco de espaciado de Great Vibes en 'nt'
-    'Cinzel': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/cinzel/static/Cinzel-Bold.ttf',
-    'Playfair': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/playfairdisplay/static/PlayfairDisplay-BoldItalic.ttf',
-    'PinyonScript': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/pinyonscript/PinyonScript-Regular.ttf'
+    'Cinzel': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/cinzel/static/Cinzel-Bold.ttf'
   },
   _fontCache: {},
 
   /**
-   * Descarga o recupera de la caché los bytes de una fuente tipográfica.
+   * Descarga o recupera de la caché en memoria los bytes de la tipografía oficial.
    */
-  async _loadFontBytes(fontSpec) {
-    const key = String(fontSpec || 'Cinzel').trim();
-    if (key === 'Helvetica' || key === 'TimesRoman' || key === 'Standard') {
-      return null; // Usar fuente estándar interna de PDFLib
-    }
-
-    const targetUrl = this.FONTS[key] || (key.startsWith('http') ? key : this.FONTS['Cinzel']);
+  async _loadFontBytes(fontSpec = 'Cinzel') {
+    const targetUrl = this.FONTS['Cinzel'];
     if (this._fontCache[targetUrl]) {
       return this._fontCache[targetUrl];
     }
@@ -54,39 +61,27 @@ export const PdfEngine = {
       this._fontCache[targetUrl] = uint8;
       return uint8;
     } catch (err) {
-      console.warn(`[PdfEngine] No se pudo descargar la tipografía '${key}':`, err);
+      console.warn('[PdfEngine] No se pudo descargar Cinzel, se usará la fuente solemne nativa:', err);
       return null;
     }
   },
 
   /**
-   * Carga la tipografía seleccionada incrustando vectores o recurriendo a fuentes estándar solemnes.
+   * Carga la tipografía institucional ÚNICA para el 100% de los certificados.
+   * Elimina cualquier discrepancia entre eventos y garantiza que TODOS salgan idénticos.
    */
-  async _embedDocumentFont(pdfDoc, config) {
-    // Si la configuración aún tiene las cursivas problemáticas o está vacía, aplicar Cinzel (Elegante Universitaria)
-    let requested = String(config.Fuente_URL || config.fuente || 'Cinzel').trim();
-    if (requested === 'GreatVibes' || requested === 'AlexBrush') {
-      requested = 'Cinzel';
-    }
-
-    if (requested === 'Helvetica') {
-      return await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-    }
-    if (requested === 'TimesRoman') {
-      return await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBoldItalic);
-    }
-
-    // Intentar incrustar fuente caligráfica/TrueType personalizada
+  async _embedDocumentFont(pdfDoc, config = {}) {
+    // 1. Priorizar la tipografía institucional Cinzel
     try {
-      const fontBytes = config.fontBytes || (await this._loadFontBytes(requested));
-      if (fontBytes) {
+      const fontBytes = await this._loadFontBytes('Cinzel');
+      if (fontBytes && typeof fontkit !== 'undefined') {
         return await pdfDoc.embedFont(fontBytes);
       }
     } catch (customErr) {
-      console.warn('[PdfEngine] Error incrustando fuente TTF, recurriendo a TimesRomanBoldItalic:', customErr);
+      console.warn('[PdfEngine] Error incrustando Cinzel TTF, recurriendo a fuente solemne integrada:', customErr);
     }
 
-    // Fallback solemne tradicional para certificados (Times Roman en cursiva y negrita)
+    // 2. Fallback garantizado: Times Roman Cursiva Negrita (nativa e inmutable)
     return await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRomanBoldItalic);
   },
 
