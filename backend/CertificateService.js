@@ -46,8 +46,23 @@ const CertificateService = {
       };
     }
 
-    // 3. Evaluar cada inscripción con las reglas de negocio
-    const allEvents = Database.getAll(CONFIG.SHEETS.EVENTOS);
+    // 3. Evaluar cada inscripción con las reglas de negocio (utilizando caché RAM para eventos)
+    let allEvents = [];
+    try {
+      const cache = CacheService.getScriptCache();
+      const cached = cache.get("ALL_EVENTS_CACHE");
+      if (cached) {
+        allEvents = JSON.parse(cached);
+      }
+    } catch (e) {}
+
+    if (!allEvents || allEvents.length === 0) {
+      allEvents = Database.getAll(CONFIG.SHEETS.EVENTOS);
+      try {
+        CacheService.getScriptCache().put("ALL_EVENTS_CACHE", JSON.stringify(allEvents), 300);
+      } catch (e) {}
+    }
+
     const todayLimaStr = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "yyyy-MM-dd");
 
     const results = userEnrollments.map(ins => {

@@ -99,25 +99,83 @@ const Database = {
   },
 
   /**
-   * Actualiza múltiples campos de una fila existente respetando los encabezados.
+   * Ejecuta una operación crítica protegida por un cerrojo atómico de Google Apps Script.
+   * Evita condiciones de carrera entre múltiples usuarios o directivos concurrentes.
+   * @param {Function} callback
+   * @param {number} timeoutMs - Tiempo máximo de espera en cola (por defecto 25s)
+   */
+  withLock(callback, timeoutMs = 25000) {
+    const lock = LockService.getScriptLock();
+    const hasLock = lock.tryLock(timeoutMs);
+    if (!hasLock) {
+      throw new Error("El servidor está procesando múltiples solicitudes simultáneas de alta demanda. Por favor, reintente en unos instantes.");
+    }
+    try {
+      return callback();
+    } finally {
+      lock.releaseLock();
+    }
+  },
+
+  /**
+   * Actualiza múltiples campos de una fila existente en UNA SOLA LLAMADA en bloque (setValues),
+   * reduciendo drásticamente la latencia y eliminando múltiples RPCs celda por celda.
    * @param {string} sheetName
    * @param {number} rowIndex
    * @param {Object} rowData
    */
   updateRow(sheetName, rowIndex, rowData) {
     const sheet = this.getSheet(sheetName);
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const lastCol = sheet.getLastColumn();
+    const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    const currentRowValues = sheet.getRange(rowIndex, 1, 1, lastCol).getValues()[0];
+
     for (let j = 0; j < headers.length; j++) {
       const header = headers[j];
       if (rowData[header] !== undefined) {
         let val = rowData[header];
         if (header === "DNI" && typeof val === "string") {
-          sheet.getRange(rowIndex, j + 1).setValue("'" + val);
+          currentRowValues[j] = "'" + val;
         } else {
-          sheet.getRange(rowIndex, j + 1).setValue(val);
+          currentRowValues[j] = val;
         }
       }
     }
+
+    // Escritura en bloque atómica de toda la fila
+    sheet.getRange(rowIndex, 1, 1, lastCol).setValues([currentRowValues]);
+  },
+
+  /**
+   * Inserta múltiples registros en una sola operación atómica de bloque.
+   * Esencial para importaciones masivas de la directiva (Excel) sin riesgo de timeout.
+   * @param {string} sheetName
+   * @param {Array<Object>} rowsData
+   * @returns {number} Cantidad de filas insertadas
+   */
+  insertBatch(sheetName, rowsData) {
+    if (!rowsData || rowsData.length === 0) return 0;
+    const sheet = this.getSheet(sheetName);
+    const lastCol = sheet.getLastColumn();
+    const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+
+    const matrix = rowsData.map(rowData => {
+      const row = [];
+      for (let j = 0; j < headers.length; j++) {
+        const header = headers[j];
+        let val = rowData[header] !== undefined ? rowData[header] : "";
+        if (header === "DNI" && typeof val === "string") {
+          row.push("'" + val);
+        } else {
+          row.push(val);
+        }
+      }
+      return row;
+    });
+
+    const startRow = sheet.getLastRow() + 1;
+    sheet.getRange(startRow, 1, matrix.length, headers.length).setValues(matrix);
+    return matrix.length;
   },
 
   /**

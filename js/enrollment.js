@@ -88,6 +88,7 @@ export const Enrollment = {
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<span class="spinner spinner-sm"></span> Registrando...`;
 
+    let isSuccess = false;
     try {
       const payload = {
         Evento_ID: this.currentEventId,
@@ -103,6 +104,8 @@ export const Enrollment = {
         this.showAlert(response.message || 'No fue posible completar la inscripción.', 'danger');
         return;
       }
+
+      isSuccess = true;
 
       // Éxito: Mostrar Código de Consulta
       const queryCode = response.data?.Codigo_Consulta || 'ASIGNADO';
@@ -122,14 +125,19 @@ export const Enrollment = {
       `;
 
       // Ocultar campos de formulario
-      document.getElementById('enrollment-form-fields').style.display = 'none';
+      const fieldsContainer = document.getElementById('enrollment-form-fields');
+      if (fieldsContainer) fieldsContainer.style.display = 'none';
       submitBtn.style.display = 'none';
     } catch (err) {
       console.error('[Enrollment] Error:', err);
       this.showAlert('Ocurrió un error inesperado al procesar la inscripción.', 'danger');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = `Completar Inscripción`;
+      if (!isSuccess) {
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `Completar Inscripción`;
+        }, 1200);
+      }
     }
   },
 
