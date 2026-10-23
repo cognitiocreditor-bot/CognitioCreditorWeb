@@ -227,18 +227,23 @@ export const Admin = {
     }).join('');
 
     listContainer.innerHTML = `
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;" class="admin-table">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--color-border); text-align: left;">
-            <th style="padding: 8px;">ID</th>
-            <th style="padding: 8px;">Título</th>
-            <th style="padding: 8px;">Fecha</th>
-            <th style="padding: 8px;">Estado</th>
-            <th style="padding: 8px;">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="table-scroll-hint">
+        <span>↔ Desliza horizontalmente para ver todas las columnas y acciones</span>
+      </div>
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="min-width: 140px;">ID Evento</th>
+              <th style="min-width: 220px;">Título</th>
+              <th style="min-width: 110px;">Fecha</th>
+              <th style="min-width: 100px;">Estado</th>
+              <th style="min-width: 280px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     `;
   },
 
@@ -437,20 +442,25 @@ export const Admin = {
     }).join('');
 
     container.innerHTML = `
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" class="admin-table">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--color-border); text-align: left;">
-            <th style="padding: 8px;">ID</th>
-            <th style="padding: 8px;">DNI</th>
-            <th style="padding: 8px;">Nombre</th>
-            <th style="padding: 8px;">Tipo</th>
-            <th style="padding: 8px;">Pago</th>
-            <th style="padding: 8px;">Cód. Consulta</th>
-            <th style="padding: 8px;">Acción</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="table-scroll-hint">
+        <span>↔ Desliza horizontalmente para ver todos los participantes y acciones</span>
+      </div>
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="min-width: 140px;">ID Inscripción</th>
+              <th style="min-width: 90px;">DNI</th>
+              <th style="min-width: 200px;">Nombre Completo</th>
+              <th style="min-width: 100px;">Tipo</th>
+              <th style="min-width: 100px;">Pago</th>
+              <th style="min-width: 130px;">Cód. Consulta</th>
+              <th style="min-width: 180px;">Acción</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     `;
   },
 
@@ -852,18 +862,23 @@ export const Admin = {
       `).join('');
 
       container.innerHTML = `
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" class="admin-table">
-          <thead>
-            <tr style="border-bottom: 2px solid var(--color-border); text-align: left;">
-              <th style="padding: 8px;">Fecha / Hora</th>
-              <th style="padding: 8px;">Directivo</th>
-              <th style="padding: 8px;">Acción</th>
-              <th style="padding: 8px;">Entidad</th>
-              <th style="padding: 8px;">Detalle</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+        <div class="table-scroll-hint">
+          <span>↔ Desliza horizontalmente para ver todos los detalles del registro de auditoría</span>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="min-width: 160px;">Fecha / Hora</th>
+                <th style="min-width: 180px;">Directivo</th>
+                <th style="min-width: 140px;">Acción</th>
+                <th style="min-width: 140px;">Entidad</th>
+                <th style="min-width: 250px;">Detalle</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
       `;
     } catch (err) {
       console.error('[Admin Audit] Error:', err);

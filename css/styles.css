@@ -1100,3 +1100,48 @@ body {
     flex-direction: row;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Componentes del Panel Administrativo y Tablas Responsivas
+   -------------------------------------------------------------------------- */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-sizing: border-box;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.table-scroll-hint {
+  display: none;
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  align-items: center;
+  gap: 0.35rem;
+  background: #F0F9FF;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed #BAE6FD;
+}
+
+@media (max-width: 768px) {
+  .table-scroll-hint {
+    display: flex;
+  }
+}
+
