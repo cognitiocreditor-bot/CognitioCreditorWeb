@@ -1,6 +1,6 @@
 /**
  * MÓDULO DE EVENTOS — COGNITIO CREDITOR
- * Carga de eventos públicos, renderizado de tarjetas y apertura de inscripción.
+ * Carga de eventos públicos, renderizado de tarjetas, skeleton loading y apertura de inscripción.
  */
 
 import { Api } from './api.js';
@@ -22,13 +22,14 @@ export const Events = {
   },
 
   /**
-   * Muestra estado de carga accesible.
+   * Muestra estado de carga con skeletons fluidos y accesibilidad.
    */
   renderLoading() {
     this.containerElement.innerHTML = `
-      <div class="loading-container" role="status" aria-live="polite">
-        <div class="spinner"></div>
-        <p>Cargando eventos académicos del Círculo...</p>
+      <div class="events-grid" role="status" aria-live="polite" aria-label="Cargando agenda de eventos académicos...">
+        <div class="skeleton-card" style="height: 380px;"></div>
+        <div class="skeleton-card" style="height: 380px;"></div>
+        <div class="skeleton-card" style="height: 380px;"></div>
       </div>
     `;
   },
@@ -112,14 +113,16 @@ export const Events = {
   },
 
   /**
-   * Estado sin eventos públicos.
+   * Estado sin eventos públicos (Empty State institucional).
    */
   renderEmpty() {
     this.containerElement.innerHTML = `
-      <div class="alert alert-info" style="text-align: center; justify-content: center;">
-        <div>
-          <strong>No hay eventos académicos abiertos actualmente.</strong>
-          <p style="margin-top: 0.25rem;">Pronto publicaremos nuevas conferencias y talleres. Síguenos en nuestras redes oficiales para estar al tanto.</p>
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">📅</div>
+        <h3 class="empty-title">Próximos Eventos en Programación</h3>
+        <p class="empty-desc">Actualmente estamos consolidando la nueva agenda académica de conferencias y talleres. Síguenos en nuestros canales oficiales para conocer las convocatorias inmediatas.</p>
+        <div style="margin-top: 1.25rem;">
+          <a href="#contacto" class="btn btn-secondary btn-sm">Ver Canales Oficiales</a>
         </div>
       </div>
     `;
@@ -130,11 +133,11 @@ export const Events = {
    */
   renderError(msg) {
     this.containerElement.innerHTML = `
-      <div class="alert alert-danger" role="alert">
+      <div class="alert alert-danger" role="alert" style="max-width: 540px; margin: 1.5rem auto; text-align: center;">
         <div>
-          <strong>Error de conexión:</strong> ${Validation.escapeHTML(msg)}
+          <strong>Error de sincronización:</strong> ${Validation.escapeHTML(msg)}
           <div style="margin-top: 0.75rem;">
-            <button class="btn btn-outline btn-sm" onclick="window.CognitioPortal.reloadEvents()">Reintentar</button>
+            <button class="btn btn-outline btn-sm" onclick="window.CognitioPortal.reloadEvents()">↻ Reintentar Carga</button>
           </div>
         </div>
       </div>

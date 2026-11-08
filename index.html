@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Plataforma oficial del Círculo de Estudios Cognitio Creditor. Formación académica, contabilidad, investigación científica y consulta de certificados.">
-  <title>COGNITIO CREDITOR — Círculo de Estudios</title>
-  
+  <meta name="description" content="Plataforma oficial del Círculo de Estudios Cognitio Creditor — UNAP. Formación académica, contabilidad, investigación científica y consulta y verificación de certificados.">
+  <title>COGNITIO CREDITOR — Círculo de Estudios | UNAP</title>
+
+  <!-- Google Fonts: Merriweather (Titulares solemnes) e Inter (Interfaz y datos) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/styles.css">
   <link rel="icon" href="assets/images/logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="assets/images/logo.jpg">
@@ -18,14 +23,22 @@
   <!-- Enlace accesible de salto -->
   <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
-  <!-- Encabezado / Navegación -->
+  <!-- Cintillo Institucional UNAP -->
+  <div class="unap-banner" role="banner" aria-label="Afiliación Institucional">
+    <div class="container unap-banner-inner">
+      <span class="unap-badge">UNAP</span>
+      <span class="unap-text">Universidad Nacional de la Amazonía Peruana &bull; Facultad de Ciencias Contables y Financieras</span>
+    </div>
+  </div>
+
+  <!-- Encabezado / Navegación Principal -->
   <header class="site-header">
     <div class="container header-inner">
-      <a href="index.html" class="brand-wrapper">
-        <img src="assets/images/logo.jpg" alt="Logotipo de Cognitio Creditor" class="brand-logo" id="header-logo">
+      <a href="index.html" class="brand-wrapper" aria-label="Cognitio Creditor - Inicio">
+        <img src="assets/images/logo.jpg" alt="Logotipo oficial de Cognitio Creditor" class="brand-logo" id="header-logo">
         <div class="brand-text">
           <span class="brand-title">COGNITIO CREDITOR</span>
-          <span class="brand-subtitle">Círculo de Estudios</span>
+          <span class="brand-subtitle">Círculo de Estudios Académico</span>
         </div>
       </a>
 
@@ -35,7 +48,7 @@
         <a href="#institucional" class="nav-link">Nosotros</a>
         <a href="#eventos" class="nav-link">Eventos</a>
         <a href="#certificados" class="nav-link">Certificados</a>
-        <a href="emisor.html" class="nav-link" style="opacity: 0.85;" title="Acceso exclusivo directiva">Panel Directiva</a>
+        <a href="emisor.html" class="nav-link" title="Acceso exclusivo directiva">Panel Directiva</a>
         <a href="#contacto" class="btn btn-primary btn-sm" id="btn-header-contact">Contacto</a>
       </nav>
 
@@ -57,26 +70,34 @@
   </header>
 
   <main id="main-content">
-    <!-- Hero Principal -->
+    <!-- Hero Principal Clásico-Editorial -->
     <section id="inicio" class="hero-section">
       <div class="container hero-grid">
         <div class="hero-text-content">
           <span class="hero-tag">🎓 Excelencia académica, contabilidad e investigación científica</span>
-          <h1 class="hero-title">Impulsando la contabilidad, la investigación científica y el pensamiento crítico</h1>
+          <h1 class="hero-title">Impulsando la investigación contable, el rigor científico y el pensamiento crítico</h1>
           <p class="hero-description" id="hero-slogan">
-            Comunidad estudiantil multidisciplinaria e interfacultades de la Universidad Nacional de la Amazonía Peruana, dedicada a impulsar la investigación formativa, la ética académica y la proyección social.
+            Comunidad estudiantil multidisciplinaria e interfacultades de la Universidad Nacional de la Amazonía Peruana, dedicada a consolidar la investigación formativa, la ética profesional y la proyección social.
           </p>
           <div class="hero-actions">
             <a href="#eventos" class="btn btn-primary">Explorar Próximos Eventos</a>
-            <a href="#certificados" class="btn btn-secondary">Consultar Certificados</a>
+            <a href="#certificados" class="btn btn-secondary">🔍 Validar Certificado</a>
           </div>
-        </div>
 
-        <div class="hero-card-wrapper">
-          <div class="hero-card">
-            <h3>Portal de Verificación</h3>
-            <p>¿Participaste en alguna de nuestras conferencias o talleres? Consulta la validez de tu certificación oficial y descarga tu constancia virtual.</p>
-            <a href="#certificados" class="btn btn-primary btn-block">Ir a Consulta de Certificados →</a>
+          <!-- Barra de Confianza y Rigor Académico -->
+          <div class="stats-strip">
+            <div class="stat-card">
+              <span class="stat-number">100%</span>
+              <span class="stat-label">Validación Criptográfica y QR</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">UNAP</span>
+              <span class="stat-label">Comunidad Interfacultades</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number">Ética & Rigor</span>
+              <span class="stat-label">Investigación y Proyección Social</span>
+            </div>
           </div>
         </div>
       </div>
@@ -119,7 +140,7 @@
           </div>
 
           <div class="activities-grid">
-            <!-- 1. Conferencias académicas (Destacada / Frecuente) -->
+            <!-- 1. Conferencias académicas -->
             <div class="activity-card highlighted">
               <span class="activity-badge">Más Frecuente</span>
               <div class="activity-icon" aria-hidden="true">🎤</div>
@@ -127,10 +148,10 @@
               <p class="activity-desc">
                 Exposiciones y encuentros sobre contabilidad, investigación científica, formación profesional y temas académicos relacionados.
               </p>
-              <a href="#eventos" class="activity-link">Explorar agenda →</a>
+              <a href="#eventos" class="activity-link">Explorar agenda &rarr;</a>
             </div>
 
-            <!-- 2. Talleres especializados (Destacada / Frecuente) -->
+            <!-- 2. Talleres especializados -->
             <div class="activity-card highlighted">
               <span class="activity-badge">Más Frecuente</span>
               <div class="activity-icon" aria-hidden="true">🛠️</div>
@@ -138,7 +159,7 @@
               <p class="activity-desc">
                 Actividades prácticas y formativas sobre contabilidad, investigación científica y desarrollo de competencias académicas.
               </p>
-              <a href="#eventos" class="activity-link">Ver talleres →</a>
+              <a href="#eventos" class="activity-link">Ver talleres &rarr;</a>
             </div>
 
             <!-- 3. Actividades de investigación -->
@@ -146,9 +167,9 @@
               <div class="activity-icon" aria-hidden="true">🔬</div>
               <h4 class="activity-name">Actividades de Investigación</h4>
               <p class="activity-desc">
-                Iniciativas que promueven el pensamiento crítico, la investigación formativa y la producción académica.
+                Iniciativas que promueven el pensamiento crítico, la investigación formativa y la producción académica interdisciplinaria.
               </p>
-              <a href="#contacto" class="activity-link">Conocer más →</a>
+              <a href="#contacto" class="activity-link">Conocer más &rarr;</a>
             </div>
 
             <!-- 4. Capacitación académica -->
@@ -156,9 +177,9 @@
               <div class="activity-icon" aria-hidden="true">📈</div>
               <h4 class="activity-name">Capacitación Académica</h4>
               <p class="activity-desc">
-                Espacios para fortalecer conocimientos y habilidades útiles para la formación universitaria y el desarrollo profesional.
+                Espacios para fortalecer conocimientos y habilidades técnicas útiles para la formación universitaria y el desarrollo profesional.
               </p>
-              <a href="#contacto" class="activity-link">Más información →</a>
+              <a href="#contacto" class="activity-link">Más información &rarr;</a>
             </div>
           </div>
         </div>
@@ -171,7 +192,7 @@
         <div class="section-header">
           <span class="section-tag">Agenda Académica</span>
           <h2 class="section-title">Próximos Eventos y Capacitaciones</h2>
-          <p class="section-subtitle">Inscríbete en nuestras conferencias, talleres y capacitaciones académicas.</p>
+          <p class="section-subtitle">Inscríbete en nuestras conferencias, talleres y capacitaciones académicas oficiales.</p>
         </div>
 
         <div id="events-container">
@@ -185,8 +206,8 @@
       <div class="container container-narrow">
         <div class="section-header">
           <span class="section-tag">Verificación Oficial</span>
-          <h2 class="section-title">Consulta de Certificados</h2>
-          <p class="section-subtitle">Ingresa tu documento de identidad y tu código de consulta para obtener tu certificado virtual oficial.</p>
+          <h2 class="section-title">Consulta y Verificación de Certificados</h2>
+          <p class="section-subtitle">Ingresa tu documento de identidad y tu código de consulta para verificar la autenticidad y descargar tu constancia oficial.</p>
         </div>
 
         <div class="cert-lookup-box">
@@ -215,13 +236,13 @@
       </div>
     </section>
 
-    <!-- Sección de Contacto y Redes -->
+    <!-- Sección de Contacto y Redes Oficiales -->
     <section id="contacto" class="section">
       <div class="container" style="text-align: center; max-width: 960px;">
         <span class="section-tag">Canales Oficiales</span>
         <h2 class="section-title">¿Tienes alguna duda o consulta?</h2>
         <p class="section-subtitle" style="margin-bottom: 2.25rem; max-width: 680px; margin-left: auto; margin-right: auto;">
-          Conéctate directamente con la directiva y la comunidad de Cognitio Creditor a través de nuestros canales oficiales para coordinaciones académicas, eventos o consultas de certificados.
+          Conéctate directamente con la directiva y la comunidad de Cognitio Creditor a través de nuestros canales institucionales para coordinaciones académicas, eventos o consultas de certificados.
         </p>
 
         <div class="social-hub-grid">
@@ -281,7 +302,7 @@
             <span class="social-card-arrow" aria-hidden="true">&rarr;</span>
           </a>
 
-          <!-- 5. Gmail / Correo Oficial -->
+          <!-- 5. Gmail / Correo Institucional -->
           <a href="mailto:cognitiocreditorcc@gmail.com" id="link-email-main" target="_blank" rel="noopener noreferrer" class="social-card social-card-gmail" aria-label="Enviar correo institucional a cognitiocreditorcc@gmail.com">
             <div class="social-icon-wrapper gmail">
               <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
@@ -299,15 +320,15 @@
     </section>
   </main>
 
-  <!-- Modal de Inscripción Propia -->
-  <div id="enrollment-modal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(10, 37, 64, 0.75); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 1rem;" role="dialog" aria-modal="true" aria-labelledby="modal-event-title">
-    <div style="background: var(--color-surface); width: 100%; max-width: 520px; border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-xl); position: relative; max-height: 90vh; overflow-y: auto;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+  <!-- Modal de Inscripción Oficial -->
+  <div id="enrollment-modal" class="modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-event-title">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
         <div>
-          <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-accent); text-transform: uppercase;">Inscripción Oficial</span>
-          <h3 id="modal-event-title" style="color: var(--color-primary); font-size: 1.25rem; line-height: 1.2;">Evento Académico</h3>
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--color-gold); text-transform: uppercase; letter-spacing: 0.06em;">Inscripción Oficial</span>
+          <h3 id="modal-event-title" style="color: var(--color-primary); font-size: 1.25rem; line-height: 1.25; margin-top: 0.25rem;">Evento Académico</h3>
         </div>
-        <button type="button" onclick="window.CognitioPortal.closeEnrollmentModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-muted);">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="window.CognitioPortal.closeEnrollmentModal()" aria-label="Cerrar modal">&times;</button>
       </div>
 
       <div id="enrollment-feedback" style="display: none;"></div>
@@ -341,15 +362,15 @@
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-          <button type="button" class="btn btn-secondary btn-block" style="color: var(--color-text-main); border-color: var(--color-border);" onclick="window.CognitioPortal.closeEnrollmentModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary btn-block" id="enroll-submit-btn">Completar Inscripción</button>
+        <div class="modal-footer" style="padding-left: 0; padding-right: 0; padding-bottom: 0;">
+          <button type="button" class="btn btn-secondary" onclick="window.CognitioPortal.closeEnrollmentModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="enroll-submit-btn">Completar Inscripción</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Pie de Página -->
+  <!-- Pie de Página Institucional -->
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
@@ -357,7 +378,7 @@
           <img src="assets/images/logo.jpg" alt="Logo Cognitio Creditor" class="brand-logo">
           <div class="brand-text">
             <span class="brand-title" style="color: #FFF;">COGNITIO CREDITOR</span>
-            <span class="brand-subtitle">Círculo de Estudios</span>
+            <span class="brand-subtitle" style="color: var(--color-gold);">Círculo de Estudios Académico</span>
           </div>
         </div>
         <p style="font-size: 0.9rem; line-height: 1.6; max-width: 380px;">
@@ -369,9 +390,10 @@
         <h4 class="footer-title">Enlaces Directos</h4>
         <ul class="footer-links">
           <li><a href="#inicio" class="footer-link">Inicio</a></li>
+          <li><a href="#institucional" class="footer-link">Nosotros y Actividades</a></li>
           <li><a href="#eventos" class="footer-link">Eventos Académicos</a></li>
           <li><a href="#certificados" class="footer-link">Verificación de Certificados</a></li>
-          <li><a href="emisor.html" class="footer-link">Panel Administrativo</a></li>
+          <li><a href="emisor.html" class="footer-link">Panel Directiva</a></li>
         </ul>
       </div>
 
@@ -424,7 +446,7 @@
 
     <div class="container footer-bottom">
       <p>&copy; <span id="footer-year"></span> Círculo de Estudios Cognitio Creditor. Todos los derechos reservados.</p>
-      <p style="font-size: 0.8rem; color: #64748B;">Desarrollado con arquitectura abierta y segura.</p>
+      <p style="font-size: 0.8rem; color: #64748B;">Universidad Nacional de la Amazonía Peruana &bull; Iquitos, Perú</p>
     </div>
   </footer>
 
@@ -445,7 +467,9 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       // 1. Configuración de Marca y Año
-      document.getElementById('footer-year').textContent = new Date().getFullYear();
+      const yearEl = document.getElementById('footer-year');
+      if (yearEl) yearEl.textContent = new Date().getFullYear();
+
       if (CONFIG.SLOGAN) {
         const sloganEl = document.getElementById('hero-slogan');
         if (sloganEl) sloganEl.textContent = CONFIG.SLOGAN;

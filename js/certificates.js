@@ -1,7 +1,7 @@
 /**
  * MÓDULO DE CONSULTA Y EMISIÓN DE CERTIFICADOS — COGNITIO CREDITOR
  * Ejecuta las validaciones de identidad, maneja parámetros URL (?dni=)
- * e interpreta las reglas obligatorias de negocio A a F.
+ * e interpreta las reglas obligatorias de negocio A a F con presentación editorial.
  */
 
 import { Api } from './api.js?v=7';
@@ -100,7 +100,7 @@ export const Certificates = {
     this.resultContainer.innerHTML = `
       <div class="loading-container" role="status" aria-live="polite">
         <div class="spinner"></div>
-        <p>Verificando registro y elegibilidad de emisión...</p>
+        <p>Verificando registro y elegibilidad de emisión académica...</p>
       </div>
     `;
   },
@@ -118,7 +118,7 @@ export const Certificates = {
    */
   renderResults(records) {
     const html = records.map((rec, index) => {
-      const eventTitle = Validation.escapeHTML(rec.Titulo_Evento || 'Evento');
+      const eventTitle = Validation.escapeHTML(rec.Titulo_Evento || 'Evento Académico');
       const participantName = Validation.escapeHTML(rec.Nombre_Completo || '');
       const certType = rec.Tipo_Certificado || 'Virtual';
       const paymentStatus = rec.Estado_Pago || 'Pendiente';
@@ -131,12 +131,12 @@ export const Certificates = {
 
       // Regla A: Pago pendiente
       if (paymentStatus === 'Pendiente') {
-        statusBadge = `<span class="badge" style="background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; font-weight: 600;">Pago Pendiente</span>`;
+        statusBadge = `<span class="badge badge-warning">Pago Pendiente</span>`;
         actionArea = `
-          <div class="alert alert-warning" style="margin-top: 1rem;">
+          <div class="alert alert-warning" style="margin-top: 1.25rem;">
             <div>
-              <p>Tu inscripción está registrada, pero el pago está pendiente de confirmación. Si ya realizaste el pago, comunícate con la directiva por WhatsApp.</p>
-              <div style="margin-top: 0.75rem;">
+              <p>Tu inscripción está registrada, pero el pago está pendiente de confirmación por la directiva. Si ya realizaste el abono de recuperación, comunícate por WhatsApp con tu comprobante.</p>
+              <div style="margin-top: 0.85rem;">
                 <a href="${this._getWhatsAppUrl(eventTitle)}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm">
                   💬 Contactar Directiva por WhatsApp
                 </a>
@@ -147,20 +147,20 @@ export const Certificates = {
       }
       // Regla B: Evento futuro o en curso
       else if (ruleCode === 'REGLA_B_FUTURO') {
-        statusBadge = `<span class="badge" style="background: #E0F2FE; color: #0369A1; padding: 4px 8px; border-radius: 4px; font-weight: 600;">En Espera</span>`;
+        statusBadge = `<span class="badge badge-info">En Espera de Cierre</span>`;
         actionArea = `
-          <div class="alert alert-info" style="margin-top: 1rem;">
-            Tu certificado estará disponible a partir del día siguiente al evento.
+          <div class="alert alert-info" style="margin-top: 1.25rem;">
+            Tu certificado estará disponible para descarga a partir del día siguiente al término del evento.
           </div>
         `;
       }
       // Regla C: Certificado físico
       else if (certType === 'Fisico') {
-        statusBadge = `<span class="badge" style="background: #F3E8FF; color: #6B21A8; padding: 4px 8px; border-radius: 4px; font-weight: 600;">Certificado Físico</span>`;
+        statusBadge = `<span class="badge badge-info" style="background: rgba(147, 51, 234, 0.12); color: #7E22CE; border-color: rgba(147, 51, 234, 0.25);">Certificado Físico</span>`;
         actionArea = `
-          <div class="alert alert-info" style="margin-top: 1rem;">
-            <p>Tu certificado es físico. Coordina su entrega o recojo con la directiva del círculo.</p>
-            <div style="margin-top: 0.75rem;">
+          <div class="alert alert-info" style="margin-top: 1.25rem;">
+            <p>Has solicitado emisión de certificado en formato físico impreso. Coordina su recojo o entrega con la directiva.</p>
+            <div style="margin-top: 0.85rem;">
               <a href="${this._getWhatsAppUrl(eventTitle)}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm">
                 💬 Coordinar Recojo por WhatsApp
               </a>
@@ -170,7 +170,7 @@ export const Certificates = {
       }
       // Regla D: Certificado virtual elegible para descarga
       else if (isEligible && certType === 'Virtual') {
-        statusBadge = `<span class="badge" style="background: #D1FAE5; color: #065F46; padding: 4px 8px; border-radius: 4px; font-weight: 600;">Listo para Descargar</span>`;
+        statusBadge = `<span class="badge badge-success">Listo para Descargar</span>`;
         actionArea = `
           <div style="margin-top: 1.25rem;">
             <button type="button" class="btn btn-primary btn-block" id="btn-download-${index}" onclick="window.CognitioPortal.downloadCertificate('${rec.Inscripcion_ID}', ${index})">
@@ -181,15 +181,15 @@ export const Certificates = {
       }
       // Regla E: Evento cancelado
       else if (ruleCode === 'REGLA_E_CANCELADO') {
-        statusBadge = `<span class="badge" style="background: #FEE2E2; color: #991B1B; padding: 4px 8px; border-radius: 4px; font-weight: 600;">Evento Cancelado</span>`;
+        statusBadge = `<span class="badge badge-danger">Evento Cancelado</span>`;
         actionArea = `
-          <div class="alert alert-danger" style="margin-top: 1rem;">
-            Este evento fue cancelado. Comunícate con la directiva para cualquier regularización.
+          <div class="alert alert-danger" style="margin-top: 1.25rem;">
+            Este evento fue cancelado. Comunícate con la directiva para cualquier regularización o devolución.
           </div>
         `;
       } else {
         actionArea = `
-          <div class="alert alert-info" style="margin-top: 1rem;">
+          <div class="alert alert-info" style="margin-top: 1.25rem;">
             ${Validation.escapeHTML(ruleMessage || 'Estado en proceso de verificación.')}
           </div>
         `;
@@ -199,8 +199,8 @@ export const Certificates = {
         <div class="result-card" style="margin-bottom: 1.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
             <div>
-              <h4 style="color: var(--color-primary); font-size: 1.15rem; margin-bottom: 0.25rem;">${eventTitle}</h4>
-              <p style="color: var(--color-text-muted); font-size: 0.9rem;">Participante: <strong>${participantName}</strong></p>
+              <h4 style="color: var(--color-primary); font-size: 1.15rem; font-family: var(--font-serif); margin-bottom: 0.25rem;">${eventTitle}</h4>
+              <p style="color: var(--color-text-muted); font-size: 0.9rem;">Participante: <strong style="color: var(--color-text-main);">${participantName}</strong></p>
             </div>
             <div>${statusBadge}</div>
           </div>
@@ -211,7 +211,7 @@ export const Certificates = {
 
     this.resultContainer.innerHTML = `
       <div style="margin-top: 2rem;">
-        <h3 style="font-size: 1.25rem; color: var(--color-primary); margin-bottom: 1rem;">Certificados Encontrados</h3>
+        <h3 style="font-size: 1.25rem; color: var(--color-primary); font-family: var(--font-serif); margin-bottom: 1rem;">Certificados y Constancias Encontradas</h3>
         ${html}
       </div>
     `;
@@ -224,7 +224,7 @@ export const Certificates = {
     const btn = document.getElementById(`btn-download-${index}`);
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = `<span class="spinner spinner-sm"></span> Generando PDF vectorial...`;
+      btn.innerHTML = `<span class="spinner spinner-sm"></span> Generando PDF vectorial de alta resolución...`;
     }
 
     try {
