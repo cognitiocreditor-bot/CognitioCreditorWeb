@@ -25,14 +25,6 @@
   <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js" defer></script>
 </head>
 <body>
-  <!-- Cintillo Institucional UNAP -->
-  <div class="unap-banner" role="banner" aria-label="Afiliación Institucional">
-    <div class="container unap-banner-inner">
-      <span class="unap-badge">UNAP</span>
-      <span class="unap-text">Universidad Nacional de la Amazonía Peruana &bull; Facultad de Ciencias Contables y Financieras</span>
-    </div>
-  </div>
-
   <!-- Encabezado Administrativo -->
   <header class="site-header admin-header">
     <div class="container header-inner">
@@ -40,23 +32,28 @@
         <img src="assets/images/logo.jpg" alt="Logotipo Cognitio Creditor" class="brand-logo">
         <div class="brand-text">
           <span class="brand-title">COGNITIO CREDITOR</span>
-          <span class="brand-subtitle">Panel de Gestión de la Directiva</span>
+          <span class="brand-affiliation">Panel de Gestión de la Directiva</span>
         </div>
       </div>
       <div class="admin-header-actions">
-        <a href="index.html" class="nav-link">← Ver Portal Público</a>
+        <a href="index.html" class="nav-link">&larr; Ver Portal Público</a>
       </div>
     </div>
   </header>
 
-  <main class="section" style="padding-top: 2rem; padding-bottom: 3.5rem;">
+  <main class="section" style="padding-top: 3rem; padding-bottom: 4rem;">
     <div class="container">
       
       <!-- SECCIÓN 1: Control de Acceso Institucional (Google Sign-In) -->
       <section id="auth-gate-section" class="admin-auth-section">
         <div class="admin-card auth-card">
-          <div style="font-size: 2.75rem; margin-bottom: 0.75rem;" aria-hidden="true">🔐</div>
-          <h1 style="color: var(--color-primary); font-size: 1.5rem; margin-bottom: 0.5rem; font-family: var(--font-serif);">Acceso Directiva Institucional</h1>
+          <div style="display: flex; justify-content: center; margin-bottom: 1.25rem; color: var(--color-accent);" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h1 style="color: var(--color-primary); font-size: 1.5rem; margin-bottom: 0.5rem;">Acceso Directiva Institucional</h1>
           <p style="color: var(--color-text-muted); font-size: 0.92rem; margin-bottom: 1.5rem; line-height: 1.5;">
             Inicie sesión con su cuenta institucional de Google autorizada para administrar eventos, conciliar pagos y emitir certificaciones académicas.
           </p>
