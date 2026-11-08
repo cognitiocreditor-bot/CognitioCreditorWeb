@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=9">
   <link rel="icon" href="assets/images/logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="assets/images/logo.jpg">
 
@@ -31,7 +31,7 @@
         <img src="assets/images/logo.jpg" alt="Logotipo oficial de Cognitio Creditor" class="brand-logo" id="header-logo">
         <div class="brand-text">
           <span class="brand-title">COGNITIO CREDITOR</span>
-          <span class="brand-affiliation">UNAP &bull; Facultad de Ciencias Contables y Financieras</span>
+          <span class="brand-affiliation">Círculo de Estudios de Contabilidad &bull; UNAP</span>
         </div>
       </a>
 
@@ -78,7 +78,7 @@
         <div class="hero-content">
           <h1 class="hero-title hero-enter" style="animation-delay: 40ms;">Impulsando la investigación contable y el rigor científico</h1>
           <p class="hero-description hero-enter" style="animation-delay: 90ms;" id="hero-slogan">
-            Comunidad académica de la Facultad de Ciencias Contables y Financieras de la Universidad Nacional de la Amazonía Peruana, dedicada a promover la investigación formativa, la ética profesional y la proyección social en la Amazonía.
+            Comunidad académica de la Facultad de Ciencias Económicas y de Negocios (FACEN) de la Universidad Nacional de la Amazonía Peruana, dedicada a promover la investigación formativa, la ética profesional y la proyección social en la Amazonía.
           </p>
           <div class="hero-actions hero-enter" style="animation-delay: 140ms;">
             <a href="#eventos" class="btn btn-primary btn-lg">
@@ -92,80 +92,50 @@
           </div>
         </div>
 
-        <!-- Demostración Interactiva del Producto Real (Live Interactive Sandbox & Spotlight) -->
-        <div class="hero-proof-wrapper hero-enter" style="animation-delay: 190ms;">
-          <div class="proof-card spotlight-card" id="hero-proof-card">
-            <div class="proof-card-header">
-              <div class="proof-badge">
+        <!-- Componente de Imagen Interactivo Estilo Emil Kowalski & Linear -->
+        <div class="hero-image-wrapper hero-enter" style="animation-delay: 190ms;">
+          <article class="cognitio-photo-card spotlight-card" id="hero-photo-card" tabindex="0" role="region" aria-label="Fotografía oficial de la comunidad académica Cognitio Creditor">
+            <!-- Marco de imagen con efecto zoom y blur de entrada -->
+            <div class="cognitio-photo-frame">
+              <img 
+                src="foto_cognitio.jpg" 
+                alt="Comunidad Académica del Círculo de Estudios Cognitio Creditor — UNAP" 
+                class="cognitio-photo-img" 
+                loading="eager"
+                onerror="this.src='assets/images/logo.jpg'"
+              >
+              <!-- Sutil degradado ambiental para legibilidad y elegancia visual -->
+              <div class="cognitio-photo-overlay" aria-hidden="true"></div>
+            </div>
+
+            <!-- Insignias flotantes en cristal templado (Frosted Glass Badge) -->
+            <div class="cognitio-photo-glass-header">
+              <div class="photo-glass-pill">
                 <span class="live-pulse" aria-hidden="true">
                   <span class="pulse-ring"></span>
                   <span class="pulse-core"></span>
                 </span>
-                <span>Motor de Validación Criptográfica en Tiempo Real</span>
-              </div>
-              <div class="proof-meta-tag">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-                <span>Respaldo Institucional UNAP</span>
+                <span>Comunidad Académica Activa</span>
               </div>
             </div>
 
-            <div class="proof-card-body">
-              <!-- Selector de Píldoras Interactivas (Emil Kowalski Smooth Tab Pattern) -->
-              <div class="proof-pill-nav" role="tablist" aria-label="Tipos de constancia de muestra">
-                <button type="button" class="proof-pill-btn active" data-sample="asistencia" role="tab" aria-selected="true">Constancia de Asistencia</button>
-                <button type="button" class="proof-pill-btn" data-sample="taller" role="tab" aria-selected="false">Taller de Especialización</button>
-                <button type="button" class="proof-pill-btn" data-sample="ponente" role="tab" aria-selected="false">Ponente Magistral</button>
+            <!-- Pie editorial integrado sobre la fotografía -->
+            <div class="cognitio-photo-caption">
+              <div class="photo-caption-content">
+                <h3 class="photo-caption-title">Círculo de Estudios Cognitio Creditor</h3>
+                <p class="photo-caption-subtitle">Investigación formativa, rigor contable-financiero y proyección social en la Amazonía.</p>
               </div>
-
-              <!-- Barra de Escaneo Simulado -->
-              <div class="proof-scanner-bar" id="proof-scanner" aria-hidden="true"></div>
-
-              <!-- Contenido Dinámico con Transición Blur -->
-              <div class="proof-snippet proof-dynamic-content" id="proof-dynamic-content">
-                <div class="proof-row">
-                  <span class="proof-label">Evento Académico</span>
-                  <strong class="proof-value" id="proof-event-title">I Simposio Amazónico de Normas Internacionales NIIF</strong>
-                </div>
-                <div class="proof-row">
-                  <span class="proof-label">Participante Acreditado</span>
-                  <span class="proof-value" id="proof-participant-name">Milagros Valderrama Ríos &bull; UNAP</span>
-                </div>
-                <div class="proof-row">
-                  <span class="proof-label">Seguridad Criptográfica</span>
-                  <span class="proof-value proof-tech-specs" id="proof-specs">
-                    <span class="spec-pill">Código: CC-2025-0814</span>
-                    <span class="spec-pill">Firma Criptográfica SHA-256</span>
-                    <span class="spec-pill">Inmutable</span>
-                  </span>
-                </div>
-                <div class="proof-row">
-                  <span class="proof-label">Estado de Autenticidad</span>
-                  <span class="proof-value">
-                    <span class="proof-interactive-badge" id="proof-status-badge">
-                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      <span id="proof-status-text">Firma Digital UNAP Verificada (100% Auténtica)</span>
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              <div class="proof-cta">
-                <button type="button" class="btn btn-outline btn-sm" id="btn-simulate-verify" style="font-size: 0.8rem; padding: 0.35rem 0.85rem;">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 21h5v-5"></path></svg>
-                  <span>Simular Re-verificación en Vivo</span>
-                </button>
-                <a href="#certificados" class="proof-link">
-                  <span>Consultar con mi propio DNI</span>
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <div class="photo-caption-action">
+                <a href="#institucional" class="photo-caption-btn" aria-label="Conocer más sobre el equipo de Cognitio Creditor">
+                  <span>Conócenos</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="5" x2="19" y1="12" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 </a>
               </div>
             </div>
-          </div>
+          </article>
         </div>
       </div>
     </section>
@@ -359,7 +329,7 @@
             </button>
             <div class="faq-content">
               <div class="faq-answer">
-                Todo documento emitido cuenta con un código QR único y una firma criptográfica inmutable vinculada al DNI del participante. Cualquier entidad o empleador puede escanear el código QR o ingresar a este portal con el DNI del titular para verificar al instante la fecha de emisión, el evento acreditado y el respaldo oficial de la UNAP.
+                Todo documento emitido cuenta con un código QR único y un identificador digital inmutable vinculado al DNI del participante. Cualquier entidad, docente o empleador puede escanear el código QR o ingresar a este portal con el DNI del titular para verificar al instante la fecha de emisión, el evento acreditado y las firmas de respaldo correspondientes.
               </div>
             </div>
           </div>
@@ -367,14 +337,14 @@
           <!-- Item 2 -->
           <div class="faq-item">
             <button type="button" class="faq-question" aria-expanded="false">
-              <span>¿Los certificados tienen valor curricular y resolución universitaria?</span>
+              <span>¿Qué respaldo y validez tienen los certificados emitidos?</span>
               <svg class="faq-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
             <div class="faq-content">
               <div class="faq-answer">
-                Sí. Los eventos académicos organizados por Cognitio Creditor se realizan bajo el auspicio de la Facultad de Ciencias Contables y Financieras de la Universidad Nacional de la Amazonía Peruana. Cada certificación consigna el número de horas lectivas y la resolución de respaldo correspondiente para el cómputo de créditos extracurriculares.
+                Los certificados son emitidos por el Círculo de Estudios Cognitio Creditor (comunidad académica adscrita a la Facultad de Ciencias Económicas y de Negocios — FACEN de la UNAP). Cuentan con pleno valor curricular avalado por las firmas oficiales del ponente especialista a cargo del evento, del docente asesor del Círculo y de la presidenta de la directiva, consignando el número de horas académicas lectivas correspondientes.
               </div>
             </div>
           </div>
@@ -397,18 +367,62 @@
           <!-- Item 4 -->
           <div class="faq-item">
             <button type="button" class="faq-question" aria-expanded="false">
-              <span>¿Cómo puedo postular e incorporarme como miembro del Círculo?</span>
+              <span>¿Cómo se ingresa o se forma parte del Círculo de Estudios?</span>
               <svg class="faq-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
             <div class="faq-content">
               <div class="faq-answer">
-                Las convocatorias ordinarias para nuevos miembros se publican al inicio de cada semestre académico a través de nuestras redes institucionales (Facebook, Instagram y canal de WhatsApp). Se evalúa vocación por la investigación científica, rendimiento académico y compromiso ético con la comunidad universitaria.
+                El ingreso al Círculo se realiza mediante invitación directa por parte de los miembros vigentes. Más que buscar calificaciones perfectas, valoramos a estudiantes que sean proactivos, comprometidos, trabajadores y que tengan ganas de aportar con su iniciativa a las actividades y proyectos del equipo. Si demuestras disposición para colaborar y sumar esfuerzos, los integrantes del Círculo te considerarán para sumarte a la comunidad.
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Controlador de Interacción Acordeón FAQ Resiliente e Inmediato -->
+        <script>
+          (function() {
+            function bindFaq() {
+              var container = document.getElementById('faq-accordion-container');
+              if (!container) return;
+              if (container.dataset.faqInitialized === 'true') return;
+              container.dataset.faqInitialized = 'true';
+
+              container.addEventListener('click', function(e) {
+                var btn = e.target.closest('.faq-question');
+                if (!btn) return;
+                var item = btn.closest('.faq-item');
+                if (!item) return;
+
+                var isAlreadyOpen = item.classList.contains('open');
+
+                var allItems = container.querySelectorAll('.faq-item');
+                for (var i = 0; i < allItems.length; i++) {
+                  if (allItems[i] !== item) {
+                    allItems[i].classList.remove('open');
+                    var otherBtn = allItems[i].querySelector('.faq-question');
+                    if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+                  }
+                }
+
+                if (isAlreadyOpen) {
+                  item.classList.remove('open');
+                  btn.setAttribute('aria-expanded', 'false');
+                } else {
+                  item.classList.add('open');
+                  btn.setAttribute('aria-expanded', 'true');
+                }
+              });
+            }
+
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', bindFaq);
+            } else {
+              bindFaq();
+            }
+          })();
+        </script>
       </div>
     </section>
 
@@ -472,7 +486,7 @@
             </div>
             <div class="social-card-info">
               <span class="social-card-title">Instagram</span>
-              <span class="social-card-desc">Afiches oficiales y convocatorias</span>
+              <span class="social-card-desc">Afiches y eventos académicos</span>
             </div>
             <span class="social-card-arrow" aria-hidden="true">&rarr;</span>
           </a>
@@ -553,7 +567,7 @@
           <img src="assets/images/logo.jpg" alt="Logo Cognitio Creditor" class="brand-logo">
           <div class="brand-text">
             <span class="brand-title" style="color: #FFFFFF;">COGNITIO CREDITOR</span>
-            <span class="brand-affiliation" style="color: #94A3B8;">UNAP &bull; Facultad de Ciencias Contables</span>
+            <span class="brand-affiliation" style="color: #94A3B8;">Facultad de Ciencias Económicas y de Negocios (FACEN) &bull; UNAP</span>
           </div>
         </div>
         <p style="font-size: 0.88rem; line-height: 1.6; max-width: 380px; color: #94A3B8;">
@@ -594,7 +608,7 @@
 
     <div class="container footer-bottom">
       <p>&copy; <span id="footer-year"></span> Círculo de Estudios Cognitio Creditor &bull; UNAP. Todos los derechos reservados.</p>
-      <p style="font-size: 0.8rem; color: #64748B;">Facultad de Ciencias Contables y Financieras &bull; Iquitos, Perú</p>
+      <p style="font-size: 0.8rem; color: #64748B;">Facultad de Ciencias Económicas y de Negocios (FACEN) &bull; Iquitos, Perú</p>
     </div>
   </footer>
 
@@ -604,22 +618,19 @@
     import { Events } from './js/events.js?v=7';
     import { Enrollment } from './js/enrollment.js?v=7';
     import { Certificates } from './js/certificates.js?v=7';
+    import { MotionOrchestrator } from './js/motion.js?v=8';
 
     window.CognitioPortal = {
       openEnrollmentModal: (id, title) => Enrollment.openModal(id, title),
       closeEnrollmentModal: () => Enrollment.closeModal(),
       downloadCertificate: (id, idx) => Certificates.processDownload(id, idx),
-      reloadEvents: () => Events.loadEvents()
+      reloadEvents: () => Events.loadEvents(),
+      animateDynamicGrid: (el) => MotionOrchestrator.animateDynamicGrid(el)
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function initPortal() {
       const yearEl = document.getElementById('footer-year');
       if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-      if (CONFIG.SLOGAN) {
-        const sloganEl = document.getElementById('hero-slogan');
-        if (sloganEl) sloganEl.textContent = CONFIG.SLOGAN;
-      }
 
       const setLink = (id, url) => {
         const el = document.getElementById(id);
@@ -678,84 +689,7 @@
         });
       });
 
-      // 3. Hero Live Proof Sandbox (Demostrador Interactivo con Transición Blur)
-      const sampleData = {
-        asistencia: {
-          title: 'I Simposio Amazónico de Normas Internacionales NIIF',
-          participant: 'Milagros Valderrama Ríos • UNAP',
-          code: 'CC-2025-0814',
-          specs: ['Código: CC-2025-0814', 'Firma Criptográfica SHA-256', 'Inmutable']
-        },
-        taller: {
-          title: 'Taller de Alta Especialización en Tributación Sectorial y Selva',
-          participant: 'Carlos Eduardo Pinedo Soria • UNAP',
-          code: 'CC-2025-0922',
-          specs: ['Código: CC-2025-0922', 'Valor Curricular 32 Horas', 'Firma Decanal']
-        },
-        ponente: {
-          title: 'Panel Magistral: Auditoría Forense y Prevención de Delitos Financieros',
-          participant: 'Dr. Fernando Arévalo Lozano • Expositor Principal',
-          code: 'CC-2025-0105',
-          specs: ['Código: CC-2025-0105', 'Reconocimiento Académico', 'Resolución UNAP']
-        }
-      };
-
-      const pillBtns = document.querySelectorAll('.proof-pill-btn');
-      const dynamicContent = document.getElementById('proof-dynamic-content');
-      const eventTitleEl = document.getElementById('proof-event-title');
-      const participantEl = document.getElementById('proof-participant-name');
-      const specsEl = document.getElementById('proof-specs');
-      const scannerBar = document.getElementById('proof-scanner');
-      const btnSimulate = document.getElementById('btn-simulate-verify');
-      const statusBadge = document.getElementById('proof-status-badge');
-      const statusText = document.getElementById('proof-status-text');
-
-      pillBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (btn.classList.contains('active')) return;
-          pillBtns.forEach(b => {
-            b.classList.remove('active');
-            b.setAttribute('aria-selected', 'false');
-          });
-          btn.classList.add('active');
-          btn.setAttribute('aria-selected', 'true');
-
-          const sampleKey = btn.dataset.sample;
-          const data = sampleData[sampleKey];
-          if (!data || !dynamicContent) return;
-
-          // Regla Emil Kowalski: Blur sutil de 2px durante la transición para evitar saltos
-          dynamicContent.classList.add('transitioning');
-          setTimeout(() => {
-            if (eventTitleEl) eventTitleEl.textContent = data.title;
-            if (participantEl) participantEl.textContent = data.participant;
-            if (specsEl) {
-              specsEl.innerHTML = data.specs.map(s => `<span class="spec-pill">${s}</span>`).join('');
-            }
-            dynamicContent.classList.remove('transitioning');
-          }, 140);
-        });
-      });
-
-      if (btnSimulate) {
-        btnSimulate.addEventListener('click', () => {
-          btnSimulate.disabled = true;
-          if (scannerBar) scannerBar.style.display = 'block';
-          if (statusText) statusText.textContent = 'Verificando con nodo UNAP...';
-
-          setTimeout(() => {
-            if (scannerBar) scannerBar.style.display = 'none';
-            btnSimulate.disabled = false;
-            if (statusText) statusText.textContent = 'Firma Digital UNAP Verificada (100% Auténtica)';
-            if (statusBadge) {
-              statusBadge.style.transform = 'scale(1.05)';
-              setTimeout(() => { statusBadge.style.transform = 'scale(1)'; }, 200);
-            }
-          }, 450);
-        });
-      }
-
-      // 4. Contador Reactivo de Dígitos DNI
+      // 3. Contador Reactivo de Dígitos DNI
       const dniInput = document.getElementById('query-dni');
       const dniStatus = document.getElementById('dni-status-indicator');
       if (dniInput && dniStatus) {
@@ -773,31 +707,17 @@
         });
       }
 
-      // 5. FAQ Accordion con CSS Grid Transition (Emil Kowalski Physics)
-      const faqItems = document.querySelectorAll('.faq-item');
-      faqItems.forEach(item => {
-        const questionBtn = item.querySelector('.faq-question');
-        if (questionBtn) {
-          questionBtn.addEventListener('click', () => {
-            const isOpen = item.classList.contains('open');
-            // Cerrar otros para mantener una interfaz sobria y limpia
-            faqItems.forEach(i => {
-              if (i !== item) {
-                i.classList.remove('open');
-                const btn = i.querySelector('.faq-question');
-                if (btn) btn.setAttribute('aria-expanded', 'false');
-              }
-            });
-            item.classList.toggle('open', !isOpen);
-            questionBtn.setAttribute('aria-expanded', !isOpen);
-          });
-        }
-      });
-
       Events.init('#events-container');
       Enrollment.init();
       Certificates.init();
-    });
+      MotionOrchestrator.init();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPortal);
+    } else {
+      initPortal();
+    }
   </script>
 </body>
 </html>

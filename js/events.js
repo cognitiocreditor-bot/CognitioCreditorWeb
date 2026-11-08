@@ -5,6 +5,7 @@
 
 import { Api } from './api.js';
 import { Validation } from './validation.js';
+import { MotionOrchestrator } from './motion.js';
 
 export const Events = {
   containerElement: null,
@@ -110,6 +111,9 @@ export const Events = {
         ${html}
       </div>
     `;
+
+    // Disparar cascada escalonada con física spring de Emil Kowalski
+    MotionOrchestrator.animateDynamicGrid(this.containerElement.querySelector('.events-grid'));
   },
 
   /**
@@ -120,7 +124,7 @@ export const Events = {
       <div class="empty-state">
         <div class="empty-icon" aria-hidden="true">📅</div>
         <h3 class="empty-title">Próximos Eventos en Programación</h3>
-        <p class="empty-desc">Actualmente estamos consolidando la nueva agenda académica de conferencias y talleres. Síguenos en nuestros canales oficiales para conocer las convocatorias inmediatas.</p>
+        <p class="empty-desc">Actualmente estamos consolidando la nueva agenda académica de conferencias y talleres. Síguenos en nuestros canales oficiales para conocer los próximos lanzamientos y fechas de inscripción.</p>
         <div style="margin-top: 1.25rem;">
           <a href="#contacto" class="btn btn-secondary btn-sm">Ver Canales Oficiales</a>
         </div>

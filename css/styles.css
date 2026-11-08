@@ -518,51 +518,241 @@ p {
 }
 
 /* --------------------------------------------------------------------------
-   Live Proof Card (La joya visual del Hero con estado en vivo)
+   Componente de Imagen Interactivo — Emil Kowalski & Linear Standard
+   (Foto oficial: foto_cognitio.jpg con micro-interacciones y zoom sutil)
    -------------------------------------------------------------------------- */
-.hero-proof-wrapper {
+.hero-image-wrapper {
   width: 100%;
-  max-width: 760px;
+  max-width: 860px;
   margin: 0 auto;
 }
 
-.proof-card {
+.cognitio-photo-card {
+  position: relative;
   background: #FFFFFF;
-  border: 1px solid rgba(37, 99, 235, 0.16);
   border-radius: var(--radius-xl);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8),
-              0 10px 30px -10px rgba(37, 99, 235, 0.08),
-              0 20px 45px -15px rgba(15, 23, 42, 0.08);
   overflow: hidden;
-  transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), border-color 220ms var(--ease-out);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+              0 20px 45px -15px rgba(15, 23, 42, 0.12),
+              0 10px 25px -10px rgba(37, 99, 235, 0.08);
+  isolation: isolate;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 220ms ease;
+  will-change: transform, box-shadow;
+  cursor: pointer;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .proof-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(37, 99, 235, 0.3);
-    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.1),
-                0 15px 40px -10px rgba(37, 99, 235, 0.12),
-                0 25px 50px -15px rgba(15, 23, 42, 0.12);
+  .cognitio-photo-card:hover {
+    transform: translateY(-4px) scale(1.008);
+    border-color: rgba(37, 99, 235, 0.35);
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15),
+                0 25px 55px -15px rgba(15, 23, 42, 0.16),
+                0 15px 35px -10px rgba(37, 99, 235, 0.14);
   }
 }
 
-.proof-card-header {
-  background-color: var(--color-bg-alt);
-  padding: 0.85rem 1.5rem;
+.cognitio-photo-card:active {
+  transform: scale(0.985);
+  transition-duration: 90ms;
+}
+
+.cognitio-photo-frame {
+  position: relative;
+  width: 100%;
+  height: clamp(320px, 48vw, 480px);
+  overflow: hidden;
+  background-color: var(--color-surface-alt);
+}
+
+.cognitio-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  transform-origin: center center;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
+              filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, filter;
+  animation: photoBlurReveal 750ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes photoBlurReveal {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cognitio-photo-card:hover .cognitio-photo-img {
+    transform: scale(1.035);
+  }
+}
+
+.cognitio-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.45) 0%,
+    rgba(15, 23, 42, 0.05) 35%,
+    rgba(15, 23, 42, 0.25) 60%,
+    rgba(15, 23, 42, 0.88) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 300ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cognitio-photo-card:hover .cognitio-photo-overlay {
+    opacity: 0.94;
+  }
+}
+
+/* Insignias flotantes superiores en cristal templado */
+.cognitio-photo-glass-header {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  right: 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--color-border);
+  gap: 0.75rem;
+  z-index: 2;
+  flex-wrap: wrap;
 }
 
-.proof-badge {
-  display: flex;
+.photo-glass-pill {
+  display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
-  color: var(--color-text-main);
-  font-size: 0.82rem;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: var(--color-primary);
+  font-size: 0.8rem;
   font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.photo-glass-pill:hover {
+  transform: translateY(-1px);
+  background: #FFFFFF;
+}
+
+.photo-glass-accent {
+  background: rgba(37, 99, 235, 0.9);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #FFFFFF;
+}
+
+/* Pie editorial integrado sobre la foto */
+.cognitio-photo-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.75rem 1.75rem 1.5rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.25rem;
+  z-index: 2;
+  flex-wrap: wrap;
+}
+
+.photo-caption-content {
+  flex: 1;
+  min-width: 260px;
+}
+
+.photo-caption-title {
+  color: #FFFFFF;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.photo-caption-subtitle {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  margin: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.photo-caption-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #FFFFFF;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease;
+  white-space: nowrap;
+}
+
+.photo-caption-btn:hover {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: translateX(3px);
+}
+
+@media (max-width: 640px) {
+  .cognitio-photo-frame {
+    height: 300px;
+  }
+  .cognitio-photo-glass-header {
+    top: 0.85rem;
+    left: 0.85rem;
+    right: 0.85rem;
+  }
+  .photo-glass-pill {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.65rem;
+  }
+  .cognitio-photo-caption {
+    padding: 1.25rem 1rem 1rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .photo-caption-title {
+    font-size: 1.15rem;
+  }
+  .photo-caption-subtitle {
+    font-size: 0.82rem;
+  }
+  .photo-caption-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Punto pulsante en vivo (Live Pulse Indicator) */
@@ -818,7 +1008,14 @@ p {
   font-weight: 600;
   color: var(--color-text-main);
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
   transition: color var(--transition-fast);
+}
+
+.faq-question > * {
+  pointer-events: none;
 }
 
 .faq-question:hover {
@@ -837,21 +1034,30 @@ p {
 }
 
 .faq-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 220ms var(--ease-out);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: max-height 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease, visibility 320ms ease;
 }
 
 .faq-item.open .faq-content {
-  grid-template-rows: 1fr;
+  max-height: 1000px;
+  opacity: 1;
+  visibility: visible;
 }
 
 .faq-answer {
-  overflow: hidden;
-  padding: 0 1.5rem 1.25rem 1.5rem;
+  padding: 0 1.5rem 1.35rem 1.5rem;
   color: var(--color-text-muted);
   font-size: 0.95rem;
   line-height: 1.65;
+  transform: translateY(-4px);
+  transition: transform 220ms ease;
+}
+
+.faq-item.open .faq-answer {
+  transform: translateY(0);
 }
 
 @media (max-width: 768px) {
@@ -895,14 +1101,28 @@ p {
   text-decoration: none;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: transform 140ms var(--ease-out), background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 140ms ease,
+              border-color 140ms ease,
+              box-shadow 140ms ease;
   white-space: nowrap;
   user-select: none;
   min-height: 44px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    transform: scale(1.03);
+  }
 }
 
 .btn:active:not(:disabled) {
-  transform: scale(0.975);
+  transform: scale(0.96) !important;
+  transition-duration: 80ms;
 }
 
 .btn:disabled {
@@ -925,9 +1145,35 @@ p {
   color: #FFFFFF;
   box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
-.btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #1D4ED8 0%, #1E40AF 100%);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+
+/* Shimmer sweep effect (Linear / Emil Kowalski style) */
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.32) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled)::before {
+    left: 170%;
+    transition: left 650ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #1D4ED8 0%, #1E40AF 100%);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+  }
 }
 
 .btn-secondary {
@@ -1849,3 +2095,149 @@ p {
   flex-grow: 1;
   min-width: 260px;
 }
+
+/* ==========================================================================
+   SISTEMA DE DISEÑO DE MOVIMIENTO (EMIL KOWALSKI & LINEAR SPEC)
+   ========================================================================== */
+
+/* 1. ENTRADAS FLUIDAS Y ESCALONADAS (Staggered Reveal con Spring Physics) */
+.motion-stagger-item {
+  opacity: 0;
+  transform: translateY(16px);
+  will-change: opacity, transform;
+  transition: opacity 460ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--stagger-index, 0) * 80ms);
+}
+
+.motion-stagger-active .motion-stagger-item,
+.motion-stagger-active.motion-stagger-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 2. TARJETAS INTERACTIVAS CON ELEVACIÓN FÍSICA */
+/* whileHover={{ y: -4, scale: 1.01 }} y whileTap={{ scale: 0.98 }} */
+.card-interactive,
+.event-card,
+.statement-card,
+.disciplines-column,
+.proof-card,
+.social-card,
+.cert-lookup-box,
+.faq-item,
+.admin-card {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 180ms ease;
+  will-change: transform, box-shadow;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-interactive:hover,
+  .event-card:hover,
+  .statement-card:hover,
+  .disciplines-column:hover,
+  .proof-card:hover,
+  .social-card:hover,
+  .faq-item:hover,
+  .admin-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.09),
+                0 10px 15px -5px rgba(37, 99, 235, 0.05);
+  }
+}
+
+.card-interactive:active,
+.event-card:active,
+.statement-card:active,
+.disciplines-column:active,
+.proof-card:active,
+.social-card:active,
+.faq-item:active,
+.admin-card:active {
+  transform: scale(0.98);
+  transition-duration: 90ms;
+}
+
+/* 4. INDICADOR FLOTANTE EN NAVEGACIÓN Y PESTAÑAS (layoutId="activeIndicator") */
+.nav-desktop {
+  position: relative;
+  isolation: isolate;
+}
+
+.nav-active-indicator {
+  position: absolute;
+  background-color: var(--color-accent-soft);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+              width 240ms cubic-bezier(0.22, 1, 0.36, 1),
+              height 240ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 160ms ease;
+  will-change: transform, width;
+}
+
+.nav-desktop .nav-link {
+  position: relative;
+  z-index: 1;
+  background-color: transparent !important;
+}
+
+.proof-pill-nav {
+  position: relative;
+  isolation: isolate;
+}
+
+.proof-pill-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background-color: #FFFFFF;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 2px 8px -1px rgba(15, 23, 42, 0.06);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              height 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 160ms ease;
+  will-change: transform, width;
+}
+
+.proof-pill-btn {
+  position: relative;
+  z-index: 1;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Modo accesibilidad: Respeto a usuarios con sensibilidad a movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .motion-stagger-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .card-interactive:hover,
+  .event-card:hover,
+  .statement-card:hover,
+  .disciplines-column:hover,
+  .proof-card:hover,
+  .social-card:hover,
+  .faq-item:hover,
+  .btn:hover {
+    transform: none !important;
+  }
+  .btn-primary::before {
+    display: none !important;
+  }
+  .nav-active-indicator,
+  .proof-pill-indicator {
+    transition-duration: 0ms !important;
+  }
+}
+
