@@ -6,7 +6,7 @@
   <meta name="description" content="Plataforma oficial del Círculo de Estudios Cognitio Creditor — UNAP. Formación académica, contabilidad, investigación científica y verificación de certificados.">
   <title>COGNITIO CREDITOR — Círculo de Estudios | UNAP</title>
 
-  <!-- Google Fonts: Inter puro (Pesos 400 a 800) -->
+  <!-- Google Fonts: Inter puro de alta precisión -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,14 +23,15 @@
   <!-- Enlace accesible de salto -->
   <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
-  <!-- Encabezado Principal / Navegación (Clean Canvas) -->
-  <header class="site-header">
+  <!-- Encabezado Principal / Floating Glass Header -->
+  <header class="site-header" id="site-header">
+    <div class="scroll-progress-bar" id="scroll-progress-bar" aria-hidden="true"></div>
     <div class="container header-inner">
       <a href="index.html" class="brand-wrapper" aria-label="Cognitio Creditor - Inicio">
         <img src="assets/images/logo.jpg" alt="Logotipo oficial de Cognitio Creditor" class="brand-logo" id="header-logo">
         <div class="brand-text">
           <span class="brand-title">COGNITIO CREDITOR</span>
-          <span class="brand-affiliation">UNAP &bull; Ciencias Contables y Financieras</span>
+          <span class="brand-affiliation">UNAP &bull; Facultad de Ciencias Contables y Financieras</span>
         </div>
       </a>
 
@@ -40,8 +41,9 @@
         <a href="#institucional" class="nav-link">Nosotros</a>
         <a href="#eventos" class="nav-link">Eventos</a>
         <a href="#certificados" class="nav-link">Certificados</a>
+        <a href="#faq" class="nav-link">Preguntas Frecuentes</a>
         <a href="emisor.html" class="nav-link" title="Acceso exclusivo directiva">Panel Directiva</a>
-        <a href="#certificados" class="btn btn-outline btn-sm">Verificar Certificado</a>
+        <a href="#certificados" class="btn btn-primary btn-sm btn-nav-cta">Verificar Certificado</a>
       </nav>
 
       <!-- Botón Menú Móvil -->
@@ -60,55 +62,107 @@
       <a href="#institucional" class="nav-link mobile-link">Nosotros</a>
       <a href="#eventos" class="nav-link mobile-link">Eventos</a>
       <a href="#certificados" class="nav-link mobile-link">Certificados</a>
+      <a href="#faq" class="nav-link mobile-link">Preguntas Frecuentes</a>
       <a href="emisor.html" class="nav-link mobile-link">Panel Directiva</a>
       <a href="#contacto" class="nav-link mobile-link">Contacto</a>
     </nav>
   </header>
 
   <main id="main-content">
-    <!-- Hero Principal Luminoso y Editorial (Taste & Impeccable Standard) -->
+    <!-- Hero Principal de Categoría Mundial (Emil Kowalski Craft & Stagger Entrance) -->
     <section id="inicio" class="hero-section">
+      <!-- Malla de precisión sutil de fondo -->
+      <div class="hero-grid-pattern" aria-hidden="true"></div>
+
       <div class="container hero-container">
         <div class="hero-content">
-          <h1 class="hero-title">Impulsando la investigación contable y el rigor científico</h1>
-          <p class="hero-description" id="hero-slogan">
+          <h1 class="hero-title hero-enter" style="animation-delay: 40ms;">Impulsando la investigación contable y el rigor científico</h1>
+          <p class="hero-description hero-enter" style="animation-delay: 90ms;" id="hero-slogan">
             Comunidad académica de la Facultad de Ciencias Contables y Financieras de la Universidad Nacional de la Amazonía Peruana, dedicada a promover la investigación formativa, la ética profesional y la proyección social en la Amazonía.
           </p>
-          <div class="hero-actions">
-            <a href="#eventos" class="btn btn-primary btn-lg">Explorar Próximos Eventos &rarr;</a>
+          <div class="hero-actions hero-enter" style="animation-delay: 140ms;">
+            <a href="#eventos" class="btn btn-primary btn-lg">
+              <span>Explorar Próximos Eventos</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" x2="19" y1="12" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
             <a href="#certificados" class="btn btn-secondary btn-lg">Validar Certificado Oficial</a>
           </div>
         </div>
 
-        <!-- Demostración del Producto Real (Anti-Slop: Live Proof Card) -->
-        <div class="hero-proof-wrapper">
-          <div class="proof-card">
+        <!-- Demostración Interactiva del Producto Real (Live Interactive Sandbox & Spotlight) -->
+        <div class="hero-proof-wrapper hero-enter" style="animation-delay: 190ms;">
+          <div class="proof-card spotlight-card" id="hero-proof-card">
             <div class="proof-card-header">
               <div class="proof-badge">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <span class="live-pulse" aria-hidden="true">
+                  <span class="pulse-ring"></span>
+                  <span class="pulse-core"></span>
+                </span>
+                <span>Motor de Validación Criptográfica en Tiempo Real</span>
+              </div>
+              <div class="proof-meta-tag">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
-                <span>Sistema de Validación Criptográfica</span>
+                <span>Respaldo Institucional UNAP</span>
               </div>
-              <span class="proof-meta">Certificación Oficial UNAP</span>
             </div>
+
             <div class="proof-card-body">
-              <div class="proof-snippet">
+              <!-- Selector de Píldoras Interactivas (Emil Kowalski Smooth Tab Pattern) -->
+              <div class="proof-pill-nav" role="tablist" aria-label="Tipos de constancia de muestra">
+                <button type="button" class="proof-pill-btn active" data-sample="asistencia" role="tab" aria-selected="true">Constancia de Asistencia</button>
+                <button type="button" class="proof-pill-btn" data-sample="taller" role="tab" aria-selected="false">Taller de Especialización</button>
+                <button type="button" class="proof-pill-btn" data-sample="ponente" role="tab" aria-selected="false">Ponente Magistral</button>
+              </div>
+
+              <!-- Barra de Escaneo Simulado -->
+              <div class="proof-scanner-bar" id="proof-scanner" aria-hidden="true"></div>
+
+              <!-- Contenido Dinámico con Transición Blur -->
+              <div class="proof-snippet proof-dynamic-content" id="proof-dynamic-content">
                 <div class="proof-row">
-                  <span class="proof-label">Emisor Institucional</span>
-                  <strong class="proof-value">Círculo de Estudios Cognitio Creditor</strong>
+                  <span class="proof-label">Evento Académico</span>
+                  <strong class="proof-value" id="proof-event-title">I Simposio Amazónico de Normas Internacionales NIIF</strong>
                 </div>
                 <div class="proof-row">
-                  <span class="proof-label">Seguridad y Respaldo</span>
-                  <span class="proof-value">Firma Digital &bull; Código QR Único &bull; Registro Inmutable</span>
+                  <span class="proof-label">Participante Acreditado</span>
+                  <span class="proof-value" id="proof-participant-name">Milagros Valderrama Ríos &bull; UNAP</span>
                 </div>
                 <div class="proof-row">
-                  <span class="proof-label">Formato de Emisión</span>
-                  <span class="proof-value">Documento PDF Vectorial de Alta Resolución</span>
+                  <span class="proof-label">Seguridad Criptográfica</span>
+                  <span class="proof-value proof-tech-specs" id="proof-specs">
+                    <span class="spec-pill">Código: CC-2025-0814</span>
+                    <span class="spec-pill">Firma Criptográfica SHA-256</span>
+                    <span class="spec-pill">Inmutable</span>
+                  </span>
+                </div>
+                <div class="proof-row">
+                  <span class="proof-label">Estado de Autenticidad</span>
+                  <span class="proof-value">
+                    <span class="proof-interactive-badge" id="proof-status-badge">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      <span id="proof-status-text">Firma Digital UNAP Verificada (100% Auténtica)</span>
+                    </span>
+                  </span>
                 </div>
               </div>
+
               <div class="proof-cta">
-                <a href="#certificados" class="proof-link">Consultar diploma con DNI y código &rarr;</a>
+                <button type="button" class="btn btn-outline btn-sm" id="btn-simulate-verify" style="font-size: 0.8rem; padding: 0.35rem 0.85rem;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 21h5v-5"></path></svg>
+                  <span>Simular Re-verificación en Vivo</span>
+                </button>
+                <a href="#certificados" class="proof-link">
+                  <span>Consultar con mi propio DNI</span>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="5" x2="19" y1="12" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </a>
               </div>
             </div>
           </div>
@@ -116,7 +170,7 @@
       </div>
     </section>
 
-    <!-- Sección Institucional Editorial (Sin Cajas Cliché ni Emojis) -->
+    <!-- Sección Institucional Asimétrica (Clean Editorial Craft) -->
     <section id="institucional" class="section section-alt">
       <div class="container">
         <div class="section-header">
@@ -125,16 +179,18 @@
         </div>
 
         <div class="institutional-grid">
-          <!-- Columna Izquierda: Declaración Fundacional (Misión y Visión) -->
+          <!-- Columna Izquierda: Declaración Fundacional con Tarjetas Elevadas -->
           <div class="statement-column">
-            <article class="statement-card">
+            <article class="statement-card spotlight-card">
+              <div class="statement-accent-bar" aria-hidden="true"></div>
               <h3 class="statement-title">Misión Institucional</h3>
               <p class="statement-body">
                 Consolidar una comunidad estudiantil multidisciplinaria e interfacultades de la Universidad Nacional de la Amazonía Peruana, dedicada a impulsar la investigación científica, el pensamiento crítico, la ética académica y la visión empresarial. Fomentamos el desarrollo integral a través de la producción académica, la capacitación constante y una sólida proyección social orientada al bienestar local.
               </p>
             </article>
 
-            <article class="statement-card">
+            <article class="statement-card spotlight-card">
+              <div class="statement-accent-bar" aria-hidden="true"></div>
               <h3 class="statement-title">Visión Institucional</h3>
               <p class="statement-body">
                 Ser un círculo de estudios líder y referente a nivel universitario y regional en excelencia académica, investigación formativa y proyección social. Formamos profesionales íntegros, con alto sentido de liderazgo, rigor metodológico y compromiso ético, capaces de generar un impacto positivo en la sociedad amazónica y el país.
@@ -142,8 +198,8 @@
             </article>
           </div>
 
-          <!-- Columna Derecha: Líneas de Trabajo con Iconografía Vectorial Limpia -->
-          <div class="disciplines-column">
+          <!-- Columna Derecha: Líneas de Trabajo con Micro-interacciones en Iconos -->
+          <div class="disciplines-column spotlight-card">
             <h3 class="disciplines-heading">Líneas de Desarrollo Académico</h3>
 
             <div class="discipline-item">
@@ -157,7 +213,10 @@
               <div class="discipline-content">
                 <h4 class="discipline-title">Conferencias Académicas</h4>
                 <p class="discipline-text">Exposiciones y encuentros magistrales sobre normas contables, tributarias, investigación científica y tendencias financieras.</p>
-                <a href="#eventos" class="discipline-link">Explorar agenda &rarr;</a>
+                <a href="#eventos" class="discipline-link">
+                  <span>Explorar agenda</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" x2="19" y1="12" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
               </div>
             </div>
 
@@ -170,7 +229,10 @@
               <div class="discipline-content">
                 <h4 class="discipline-title">Talleres Especializados</h4>
                 <p class="discipline-text">Sesiones prácticas y de laboratorio enfocadas en software contable, análisis tributario y modelado financiero aplicado.</p>
-                <a href="#eventos" class="discipline-link">Ver talleres &rarr;</a>
+                <a href="#eventos" class="discipline-link">
+                  <span>Ver talleres</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" x2="19" y1="12" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
               </div>
             </div>
 
@@ -185,7 +247,10 @@
               <div class="discipline-content">
                 <h4 class="discipline-title">Investigación Formativa</h4>
                 <p class="discipline-text">Semilleros de producción científica, redacción de artículos académicos y participación en congresos de investigación.</p>
-                <a href="#contacto" class="discipline-link">Conocer más &rarr;</a>
+                <a href="#contacto" class="discipline-link">
+                  <span>Conocer más</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" x2="19" y1="12" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
               </div>
             </div>
 
@@ -200,7 +265,10 @@
               <div class="discipline-content">
                 <h4 class="discipline-title">Capacitación y Proyección Social</h4>
                 <p class="discipline-text">Talleres comunitarios de educación financiera y asesoramiento a emprendimientos locales en la región Loreto.</p>
-                <a href="#contacto" class="discipline-link">Más información &rarr;</a>
+                <a href="#contacto" class="discipline-link">
+                  <span>Más información</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" x2="19" y1="12" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
               </div>
             </div>
           </div>
@@ -222,7 +290,7 @@
       </div>
     </section>
 
-    <!-- Sección de Consulta de Certificados -->
+    <!-- Sección de Consulta de Certificados (Fintech / Stripe Level) -->
     <section id="certificados" class="section section-alt">
       <div class="container container-narrow">
         <div class="section-header">
@@ -230,17 +298,29 @@
           <p class="section-subtitle">Ingrese su Documento Nacional de Identidad para verificar su constancia académica y descargar el certificado oficial.</p>
         </div>
 
-        <div class="cert-lookup-box">
+        <div class="cert-lookup-box spotlight-card">
           <form id="cert-query-form" novalidate>
             <div class="form-group">
               <label for="query-dni" class="form-label">Número de DNI (8 dígitos) *</label>
-              <input type="text" id="query-dni" name="dni" class="form-control" placeholder="Ej. 71234567" maxlength="8" required pattern="\d{8}" inputmode="numeric">
+              <div class="input-with-icon">
+                <svg class="input-prefix-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                  <line x1="2" x2="22" y1="10" y2="10"></line>
+                </svg>
+                <input type="text" id="query-dni" name="dni" class="form-control form-control-dni" placeholder="Ej. 71234567" maxlength="8" required pattern="\d{8}" inputmode="numeric">
+                <span class="dni-status-indicator" id="dni-status-indicator" aria-live="polite">0/8</span>
+              </div>
               <p class="form-help">Ingrese los 8 dígitos numéricos de su documento de identidad.</p>
             </div>
 
             <div class="form-group">
               <label for="query-code" class="form-label">Código de Consulta (Opcional si es primera vez)</label>
-              <input type="text" id="query-code" name="code" class="form-control" placeholder="Ej. CC-8F4A2B" maxlength="16">
+              <div class="input-with-icon">
+                <svg class="input-prefix-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <input type="text" id="query-code" name="code" class="form-control" placeholder="Ej. CC-8F4A2B" maxlength="16">
+              </div>
               <p class="form-help">Código de verificación alfanumérico entregado al momento del registro.</p>
             </div>
 
@@ -260,8 +340,80 @@
       </div>
     </section>
 
+    <!-- Sección de Preguntas Frecuentes (Emil Kowalski Smooth CSS Grid Accordion) -->
+    <section id="faq" class="section">
+      <div class="container container-narrow">
+        <div class="section-header">
+          <h2 class="section-title">Preguntas Frecuentes</h2>
+          <p class="section-subtitle">Aclaraciones directas sobre la validez de certificados, participación en eventos y membresía al Círculo de Estudios.</p>
+        </div>
+
+        <div class="faq-accordion" id="faq-accordion-container">
+          <!-- Item 1 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span>¿Cómo se valida la autenticidad de un certificado emitido?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="faq-content">
+              <div class="faq-answer">
+                Todo documento emitido cuenta con un código QR único y una firma criptográfica inmutable vinculada al DNI del participante. Cualquier entidad o empleador puede escanear el código QR o ingresar a este portal con el DNI del titular para verificar al instante la fecha de emisión, el evento acreditado y el respaldo oficial de la UNAP.
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span>¿Los certificados tienen valor curricular y resolución universitaria?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="faq-content">
+              <div class="faq-answer">
+                Sí. Los eventos académicos organizados por Cognitio Creditor se realizan bajo el auspicio de la Facultad de Ciencias Contables y Financieras de la Universidad Nacional de la Amazonía Peruana. Cada certificación consigna el número de horas lectivas y la resolución de respaldo correspondiente para el cómputo de créditos extracurriculares.
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span>¿Qué ocurre si no recuerdo mi código de consulta?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="faq-content">
+              <div class="faq-answer">
+                El código de consulta alfanumérico es opcional para la mayoría de eventos públicos. Puede consultar su estado ingresando únicamente su número de DNI de 8 dígitos. Si el evento requiriera validación de código privado y no lo encuentra, puede solicitar asistencia inmediata a través de nuestro canal oficial de WhatsApp.
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="faq-item">
+            <button type="button" class="faq-question" aria-expanded="false">
+              <span>¿Cómo puedo postular e incorporarme como miembro del Círculo?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="faq-content">
+              <div class="faq-answer">
+                Las convocatorias ordinarias para nuevos miembros se publican al inicio de cada semestre académico a través de nuestras redes institucionales (Facebook, Instagram y canal de WhatsApp). Se evalúa vocación por la investigación científica, rendimiento académico y compromiso ético con la comunidad universitaria.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Sección de Contacto y Canales Oficiales -->
-    <section id="contacto" class="section">
+    <section id="contacto" class="section section-alt">
       <div class="container" style="text-align: center; max-width: 900px;">
         <h2 class="section-title">Canales Oficiales de Coordinación</h2>
         <p class="section-subtitle" style="margin-bottom: 2.5rem; max-width: 640px; margin-left: auto; margin-right: auto;">
@@ -270,7 +422,7 @@
 
         <div class="social-hub-grid">
           <!-- 1. WhatsApp Oficial -->
-          <a href="https://whatsapp.com/channel/0029Vb65sZxFMqrfk0LW7F21" id="link-whatsapp-main" target="_blank" rel="noopener noreferrer" class="social-card" aria-label="Canal oficial de WhatsApp de Cognitio Creditor">
+          <a href="https://whatsapp.com/channel/0029Vb65sZxFMqrfk0LW7F21" id="link-whatsapp-main" target="_blank" rel="noopener noreferrer" class="social-card spotlight-card" aria-label="Canal oficial de WhatsApp de Cognitio Creditor">
             <div class="social-icon-wrapper whatsapp">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -284,7 +436,7 @@
           </a>
 
           <!-- 2. Facebook -->
-          <a href="https://www.facebook.com/share/1FJDDaDiMk/" id="link-facebook-main" target="_blank" rel="noopener noreferrer" class="social-card" aria-label="Página de Facebook de Cognitio Creditor">
+          <a href="https://www.facebook.com/share/1FJDDaDiMk/" id="link-facebook-main" target="_blank" rel="noopener noreferrer" class="social-card spotlight-card" aria-label="Página de Facebook de Cognitio Creditor">
             <div class="social-icon-wrapper facebook">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -298,7 +450,7 @@
           </a>
 
           <!-- 3. TikTok -->
-          <a href="https://www.tiktok.com/@c.e.cognitio.creditor?_r=1&_t=ZS-9AlyerpciSy" id="link-tiktok-main" target="_blank" rel="noopener noreferrer" class="social-card" aria-label="Cuenta oficial de TikTok de Cognitio Creditor">
+          <a href="https://www.tiktok.com/@c.e.cognitio.creditor?_r=1&_t=ZS-9AlyerpciSy" id="link-tiktok-main" target="_blank" rel="noopener noreferrer" class="social-card spotlight-card" aria-label="Cuenta oficial de TikTok de Cognitio Creditor">
             <div class="social-icon-wrapper tiktok">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
                 <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
@@ -312,7 +464,7 @@
           </a>
 
           <!-- 4. Instagram -->
-          <a href="https://www.instagram.com/c.e.cognitiocreditor?utm_source=qr&exln=MWh3YW1od3h1cW5mNA==" id="link-instagram-main" target="_blank" rel="noopener noreferrer" class="social-card" aria-label="Perfil oficial de Instagram de Cognitio Creditor">
+          <a href="https://www.instagram.com/c.e.cognitiocreditor?utm_source=qr&exln=MWh3YW1od3h1cW5mNA==" id="link-instagram-main" target="_blank" rel="noopener noreferrer" class="social-card spotlight-card" aria-label="Perfil oficial de Instagram de Cognitio Creditor">
             <div class="social-icon-wrapper instagram">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -326,7 +478,7 @@
           </a>
 
           <!-- 5. Gmail / Correo Institucional -->
-          <a href="mailto:cognitiocreditorcc@gmail.com" id="link-email-main" target="_blank" rel="noopener noreferrer" class="social-card" aria-label="Enviar correo institucional a cognitiocreditorcc@gmail.com">
+          <a href="mailto:cognitiocreditorcc@gmail.com" id="link-email-main" target="_blank" rel="noopener noreferrer" class="social-card spotlight-card" aria-label="Enviar correo institucional a cognitiocreditorcc@gmail.com">
             <div class="social-icon-wrapper gmail">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
                 <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.49l8.073-5.997c1.618-1.214 3.927-.059 3.927 1.964z"/>
@@ -499,6 +651,148 @@
           });
         });
       }
+
+      // 1. Scroll Progress Bar & Glass Header Blur Dinámico
+      const siteHeader = document.getElementById('site-header');
+      const progressBar = document.getElementById('scroll-progress-bar');
+      const onScroll = () => {
+        const scrollY = window.scrollY || window.pageYOffset;
+        if (siteHeader) {
+          siteHeader.classList.toggle('scrolled', scrollY > 20);
+        }
+        if (progressBar) {
+          const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const progress = totalHeight > 0 ? (scrollY / totalHeight) * 100 : 0;
+          progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      // 2. Spotlight Pointer Tracking (Emil Kowalski / Linear Depth Polish)
+      document.querySelectorAll('.spotlight-card').forEach(card => {
+        card.addEventListener('pointermove', (e) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+          card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+        });
+      });
+
+      // 3. Hero Live Proof Sandbox (Demostrador Interactivo con Transición Blur)
+      const sampleData = {
+        asistencia: {
+          title: 'I Simposio Amazónico de Normas Internacionales NIIF',
+          participant: 'Milagros Valderrama Ríos • UNAP',
+          code: 'CC-2025-0814',
+          specs: ['Código: CC-2025-0814', 'Firma Criptográfica SHA-256', 'Inmutable']
+        },
+        taller: {
+          title: 'Taller de Alta Especialización en Tributación Sectorial y Selva',
+          participant: 'Carlos Eduardo Pinedo Soria • UNAP',
+          code: 'CC-2025-0922',
+          specs: ['Código: CC-2025-0922', 'Valor Curricular 32 Horas', 'Firma Decanal']
+        },
+        ponente: {
+          title: 'Panel Magistral: Auditoría Forense y Prevención de Delitos Financieros',
+          participant: 'Dr. Fernando Arévalo Lozano • Expositor Principal',
+          code: 'CC-2025-0105',
+          specs: ['Código: CC-2025-0105', 'Reconocimiento Académico', 'Resolución UNAP']
+        }
+      };
+
+      const pillBtns = document.querySelectorAll('.proof-pill-btn');
+      const dynamicContent = document.getElementById('proof-dynamic-content');
+      const eventTitleEl = document.getElementById('proof-event-title');
+      const participantEl = document.getElementById('proof-participant-name');
+      const specsEl = document.getElementById('proof-specs');
+      const scannerBar = document.getElementById('proof-scanner');
+      const btnSimulate = document.getElementById('btn-simulate-verify');
+      const statusBadge = document.getElementById('proof-status-badge');
+      const statusText = document.getElementById('proof-status-text');
+
+      pillBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.classList.contains('active')) return;
+          pillBtns.forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+
+          const sampleKey = btn.dataset.sample;
+          const data = sampleData[sampleKey];
+          if (!data || !dynamicContent) return;
+
+          // Regla Emil Kowalski: Blur sutil de 2px durante la transición para evitar saltos
+          dynamicContent.classList.add('transitioning');
+          setTimeout(() => {
+            if (eventTitleEl) eventTitleEl.textContent = data.title;
+            if (participantEl) participantEl.textContent = data.participant;
+            if (specsEl) {
+              specsEl.innerHTML = data.specs.map(s => `<span class="spec-pill">${s}</span>`).join('');
+            }
+            dynamicContent.classList.remove('transitioning');
+          }, 140);
+        });
+      });
+
+      if (btnSimulate) {
+        btnSimulate.addEventListener('click', () => {
+          btnSimulate.disabled = true;
+          if (scannerBar) scannerBar.style.display = 'block';
+          if (statusText) statusText.textContent = 'Verificando con nodo UNAP...';
+
+          setTimeout(() => {
+            if (scannerBar) scannerBar.style.display = 'none';
+            btnSimulate.disabled = false;
+            if (statusText) statusText.textContent = 'Firma Digital UNAP Verificada (100% Auténtica)';
+            if (statusBadge) {
+              statusBadge.style.transform = 'scale(1.05)';
+              setTimeout(() => { statusBadge.style.transform = 'scale(1)'; }, 200);
+            }
+          }, 450);
+        });
+      }
+
+      // 4. Contador Reactivo de Dígitos DNI
+      const dniInput = document.getElementById('query-dni');
+      const dniStatus = document.getElementById('dni-status-indicator');
+      if (dniInput && dniStatus) {
+        dniInput.addEventListener('input', () => {
+          const val = dniInput.value.replace(/\D/g, '');
+          dniInput.value = val;
+          const len = val.length;
+          if (len === 8) {
+            dniStatus.textContent = '8/8 ✓';
+            dniStatus.classList.add('ready');
+          } else {
+            dniStatus.textContent = `${len}/8`;
+            dniStatus.classList.remove('ready');
+          }
+        });
+      }
+
+      // 5. FAQ Accordion con CSS Grid Transition (Emil Kowalski Physics)
+      const faqItems = document.querySelectorAll('.faq-item');
+      faqItems.forEach(item => {
+        const questionBtn = item.querySelector('.faq-question');
+        if (questionBtn) {
+          questionBtn.addEventListener('click', () => {
+            const isOpen = item.classList.contains('open');
+            // Cerrar otros para mantener una interfaz sobria y limpia
+            faqItems.forEach(i => {
+              if (i !== item) {
+                i.classList.remove('open');
+                const btn = i.querySelector('.faq-question');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+              }
+            });
+            item.classList.toggle('open', !isOpen);
+            questionBtn.setAttribute('aria-expanded', !isOpen);
+          });
+        }
+      });
 
       Events.init('#events-container');
       Enrollment.init();
