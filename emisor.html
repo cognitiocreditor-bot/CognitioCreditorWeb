@@ -712,7 +712,7 @@
       openCertConfigModal: (eventId) => Admin.openCertConfigModal(eventId),
       saveCertConfig: () => Admin.saveCertConfig(),
       loadEnrollments: () => Admin.loadEnrollments(),
-      confirmPayment: (id) => Admin.confirmPayment(id),
+      confirmPayment: (id, btnEl) => Admin.confirmPayment(id, btnEl),
       openPaymentModal: (enrollmentId, currentStatus, participantName) => Admin.openPaymentModal(enrollmentId, currentStatus, participantName),
       savePaymentStatusChange: () => Admin.savePaymentStatusChange(),
       onPaymentStatusSelectChange: (st) => Admin.onPaymentStatusSelectChange(st),

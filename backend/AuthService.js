@@ -46,7 +46,8 @@ const AuthService = {
       if (typeof CacheService !== "undefined" && typeof Utilities !== "undefined") {
         cache = CacheService.getScriptCache();
         const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, idToken);
-        cacheKey = "auth_usr_" + Utilities.base64Encode(digest);
+        const webSafeKey = Utilities.base64EncodeWebSafe(digest).replace(/=/g, "");
+        cacheKey = "auth_usr_" + webSafeKey;
         const cached = cache.get(cacheKey);
         if (cached) {
           const cachedUser = JSON.parse(cached);

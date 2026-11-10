@@ -1206,18 +1206,15 @@ export const Admin = {
 
   /**
    * Confirmación rápida de pago verificado (atajo para inscripciones pendientes).
+   * Implementa feedback visual instantáneo (0ms) y actualización optimista sin popups bloqueantes.
    */
-  /**
-   * Confirmación rápida de pago verificado (atajo para inscripciones pendientes).
-   * Implementa actualización optimista y feedback visual instantáneo.
-   */
-  async confirmPayment(enrollmentId, btnEl) {
-    if (!confirm(`¿Confirma que el participante de la inscripción ${enrollmentId} ha completado el pago?`)) return;
+  async confirmPayment(enrollmentId, btnEl = null) {
+    const targetBtn = btnEl || (typeof event !== 'undefined' && event?.target?.closest ? event.target.closest('button') : null);
+    const originalHtml = targetBtn ? targetBtn.innerHTML : '';
 
-    const originalHtml = btnEl ? btnEl.innerHTML : '';
-    if (btnEl) {
-      btnEl.disabled = true;
-      btnEl.innerHTML = '<span class="spinner-sm"></span> Confirmando...';
+    if (targetBtn) {
+      targetBtn.disabled = true;
+      targetBtn.innerHTML = '<span class="spinner-sm"></span> Confirmando...';
     }
 
     try {
@@ -1238,17 +1235,17 @@ export const Admin = {
         this.showToast(`Pago de ${enrollmentId} confirmado exitosamente.`, 'success');
       } else {
         alert('Error: ' + (res?.message || 'Error al confirmar pago'));
-        if (btnEl) {
-          btnEl.disabled = false;
-          btnEl.innerHTML = originalHtml || '✓ Confirmar Pago';
+        if (targetBtn) {
+          targetBtn.disabled = false;
+          targetBtn.innerHTML = originalHtml || '✓ Confirmar Pago';
         }
       }
     } catch (err) {
       console.error('[Admin confirmPayment] Error:', err);
       alert('Error de conexión al confirmar pago.');
-      if (btnEl) {
-        btnEl.disabled = false;
-        btnEl.innerHTML = originalHtml || '✓ Confirmar Pago';
+      if (targetBtn) {
+        targetBtn.disabled = false;
+        targetBtn.innerHTML = originalHtml || '✓ Confirmar Pago';
       }
     }
   },
@@ -2229,3 +2226,9 @@ export const Admin = {
     }, 3200);
   }
 };
+
+// Exposición global para interoperabilidad con templates inline en emisor.html
+if (typeof window !== 'undefined') {
+  window.CognitioAdmin = Admin;
+  window.Admin = Admin;
+}
