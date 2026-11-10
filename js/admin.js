@@ -31,6 +31,7 @@ export const Admin = {
     this.setupTabs();
     this.setupDNIIndicators();
     this.setupModalDismissals();
+    this.setupTableEventDelegation();
     await this.restoreSession();
   },
 
@@ -322,13 +323,41 @@ export const Admin = {
   },
 
   /**
-   * Control de ventanas modales.
+   * Delegación de eventos para botones de tabla: redundancia a prueba de fallos
+   * frente a cualquier eventualidad de timing o inline handlers.
+   */
+  setupTableEventDelegation() {
+    if (typeof document === 'undefined' || !document.addEventListener) return;
+    document.addEventListener('click', (e) => {
+      const btn = e.target?.closest ? e.target.closest('button[data-action]') : null;
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      if (action === 'manage-payment') {
+        const id = btn.dataset.enrollmentId;
+        if (id) this.openPaymentModal(id);
+      } else if (action === 'edit-participant') {
+        const partId = btn.dataset.participantId;
+        const dni = btn.dataset.dni;
+        this.openEditParticipantModal(partId, dni);
+      } else if (action === 'confirm-payment') {
+        const id = btn.dataset.enrollmentId;
+        if (id) this.openConfirmPaymentModal(id);
+      }
+    });
+  },
+
+  /**
+   * Control de ventanas modales con visibilidad y apilamiento garantizados.
    */
   openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
       modal.style.display = 'flex';
+      modal.style.zIndex = '1050';
       document.body.style.overflow = 'hidden';
+    } else {
+      console.warn(`[Admin] Modal con ID '${modalId}' no encontrado en el DOM.`);
     }
   },
 
@@ -1411,7 +1440,7 @@ export const Admin = {
           <td style="padding: 8px;" class="col-payment-actions">
             <div class="admin-table-actions">
               ${isPending ? `
-                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Confirmar pago verificado">
+                <button type="button" class="btn btn-success btn-sm" data-action="confirm-payment" data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Confirmar pago verificado">
                   ✓ Confirmar Pago
                 </button>
               ` : ''}
@@ -1424,10 +1453,10 @@ export const Admin = {
               ${isRefunded ? `
                 <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">↩ Reembolsado</span>
               ` : ''}
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Gestionar y cambiar estado de pago">
+              <button type="button" class="btn btn-secondary btn-sm" data-action="manage-payment" data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Gestionar y cambiar estado de pago">
                 ⚙ Gestionar Pago
               </button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(ins.Participante_ID)}', '${Validation.escapeHTML(ins.DNI)}')" title="Corregir datos de participante">
+              <button type="button" class="btn btn-outline btn-sm" data-action="edit-participant" data-participant-id="${Validation.escapeHTML(ins.Participante_ID)}" data-dni="${Validation.escapeHTML(ins.DNI)}" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(ins.Participante_ID)}', '${Validation.escapeHTML(ins.DNI)}')" title="Corregir datos de participante">
                 ✎ Corregir
               </button>
             </div>
@@ -1507,7 +1536,7 @@ export const Admin = {
       actionsTd.innerHTML = `
         <div class="admin-table-actions">
           ${isPending ? `
-            <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(enrollmentId)}')" title="Confirmar pago verificado">
+            <button type="button" class="btn btn-success btn-sm" data-action="confirm-payment" data-enrollment-id="${Validation.escapeHTML(enrollmentId)}" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(enrollmentId)}')" title="Confirmar pago verificado">
               ✓ Confirmar Pago
             </button>
           ` : ''}
@@ -1520,10 +1549,10 @@ export const Admin = {
           ${isRefunded ? `
             <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">↩ Reembolsado</span>
           ` : ''}
-          <button type="button" class="btn btn-secondary btn-sm" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(enrollmentId)}')" title="Gestionar y cambiar estado de pago">
+          <button type="button" class="btn btn-secondary btn-sm" data-action="manage-payment" data-enrollment-id="${Validation.escapeHTML(enrollmentId)}" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(enrollmentId)}')" title="Gestionar y cambiar estado de pago">
             ⚙ Gestionar Pago
           </button>
-          <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(partId)}', '${Validation.escapeHTML(dni)}')" title="Corregir datos de participante">
+          <button type="button" class="btn btn-outline btn-sm" data-action="edit-participant" data-participant-id="${Validation.escapeHTML(partId)}" data-dni="${Validation.escapeHTML(dni)}" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(partId)}', '${Validation.escapeHTML(dni)}')" title="Corregir datos de participante">
             ✎ Corregir
           </button>
         </div>
@@ -1553,58 +1582,66 @@ export const Admin = {
    * @param {string} enrollmentId - ID de la inscripción
    */
   openConfirmPaymentModal(enrollmentId) {
-    if (!enrollmentId) return;
+    try {
+      if (!enrollmentId) {
+        console.warn('[Admin] openConfirmPaymentModal invocado sin enrollmentId');
+        return;
+      }
 
-    const enrollment = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
-    if (!enrollment) {
-      const msg = 'Error: Inscripción no encontrada en la lista actual.';
-      this.showToast(msg, 'danger');
-      if (typeof alert === 'function') alert(msg);
-      return;
+      const enrollment = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+      if (!enrollment) {
+        const msg = 'Error: Inscripción no encontrada en la lista actual.';
+        this.showToast(msg, 'danger');
+        if (typeof alert === 'function') alert(msg);
+        return;
+      }
+
+      // 1. Verificación previa de estado
+      if (enrollment.Estado_Pago === 'Pagado') {
+        const msg = 'La inscripción ya se encuentra registrada como Pagada.';
+        this.showToast(msg, 'info');
+        if (typeof alert === 'function') alert(msg);
+        return;
+      }
+
+      if (enrollment.Estado_Pago === 'Anulado') {
+        const msg = 'No se puede confirmar una inscripción anulada. Debe reactivarla desde Gestionar Pago.';
+        this.showToast(msg, 'warning');
+        if (typeof alert === 'function') alert(msg);
+        return;
+      }
+
+      // 2. Poblar campos de confirmación
+      const hiddenId = document.getElementById('confirm-modal-enrollment-id');
+      const nameSpan = document.getElementById('confirm-modal-participant-name');
+      const dniSpan = document.getElementById('confirm-modal-dni');
+      const codeSpan = document.getElementById('confirm-modal-code');
+      const certTypeSpan = document.getElementById('confirm-modal-cert-type');
+      const voucherCode = document.getElementById('confirm-modal-voucher');
+      const statusSpan = document.getElementById('confirm-modal-current-status');
+      const confirmBtn = document.getElementById('btn-execute-confirm-payment');
+
+      if (hiddenId) hiddenId.value = enrollmentId;
+      if (nameSpan) nameSpan.textContent = enrollment.Nombre_Completo || 'PARTICIPANTE';
+      if (dniSpan) dniSpan.textContent = enrollment.DNI || 'S/D';
+      if (codeSpan) codeSpan.textContent = enrollment.Codigo_Consulta || enrollment.Inscripcion_ID;
+      if (certTypeSpan) certTypeSpan.textContent = enrollment.Tipo_Certificado || 'Virtual';
+      if (voucherCode) voucherCode.textContent = enrollment.Referencia_Comprobante || 'Sin registrar';
+      if (statusSpan) {
+        statusSpan.textContent = enrollment.Estado_Pago || 'Pendiente';
+        statusSpan.className = 'badge ' + (enrollment.Estado_Pago === 'Pendiente' ? 'badge-warning' : 'badge-secondary');
+      }
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '✓ Confirmar Pago';
+      }
+
+      // 3. Apertura inmediata del modal (0ms)
+      this.openModal('modal-confirm-payment');
+    } catch (err) {
+      console.error('[Admin] Error en openConfirmPaymentModal:', err);
+      this.showToast('Error al abrir modal de confirmación: ' + (err.message || err), 'danger');
     }
-
-    // 1. Verificación previa de estado
-    if (enrollment.Estado_Pago === 'Pagado') {
-      const msg = 'La inscripción ya se encuentra registrada como Pagada.';
-      this.showToast(msg, 'info');
-      if (typeof alert === 'function') alert(msg);
-      return;
-    }
-
-    if (enrollment.Estado_Pago === 'Anulado') {
-      const msg = 'No se puede confirmar una inscripción anulada. Debe reactivarla desde Gestionar Pago.';
-      this.showToast(msg, 'warning');
-      if (typeof alert === 'function') alert(msg);
-      return;
-    }
-
-    // 2. Poblar campos de confirmación
-    const hiddenId = document.getElementById('confirm-modal-enrollment-id');
-    const nameSpan = document.getElementById('confirm-modal-participant-name');
-    const dniSpan = document.getElementById('confirm-modal-dni');
-    const codeSpan = document.getElementById('confirm-modal-code');
-    const certTypeSpan = document.getElementById('confirm-modal-cert-type');
-    const voucherCode = document.getElementById('confirm-modal-voucher');
-    const statusSpan = document.getElementById('confirm-modal-current-status');
-    const confirmBtn = document.getElementById('btn-execute-confirm-payment');
-
-    if (hiddenId) hiddenId.value = enrollmentId;
-    if (nameSpan) nameSpan.textContent = enrollment.Nombre_Completo || 'PARTICIPANTE';
-    if (dniSpan) dniSpan.textContent = enrollment.DNI || 'S/D';
-    if (codeSpan) codeSpan.textContent = enrollment.Codigo_Consulta || enrollment.Inscripcion_ID;
-    if (certTypeSpan) certTypeSpan.textContent = enrollment.Tipo_Certificado || 'Virtual';
-    if (voucherCode) voucherCode.textContent = enrollment.Referencia_Comprobante || 'Sin registrar';
-    if (statusSpan) {
-      statusSpan.textContent = enrollment.Estado_Pago || 'Pendiente';
-      statusSpan.className = 'badge ' + (enrollment.Estado_Pago === 'Pendiente' ? 'badge-warning' : 'badge-secondary');
-    }
-    if (confirmBtn) {
-      confirmBtn.disabled = false;
-      confirmBtn.innerHTML = '✓ Confirmar Pago';
-    }
-
-    // 3. Apertura inmediata del modal (0ms)
-    this.openModal('modal-confirm-payment');
   },
 
   /**
@@ -1729,84 +1766,93 @@ export const Admin = {
    * Totalmente enriquecido con datos de comprobante, DNI, fechas y modalidad.
    */
   openPaymentModal(enrollmentId, currentStatus = null, participantName = null) {
-    if (!enrollmentId) return;
+    try {
+      if (!enrollmentId) {
+        console.warn('[Admin] openPaymentModal invocado sin enrollmentId válido.');
+        this.showToast('No se especificó un ID de inscripción válido.', 'warning');
+        return;
+      }
 
-    const enrollment = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
-    const resolvedName = enrollment?.Nombre_Completo || participantName || 'Participante';
-    const resolvedStatus = enrollment?.Estado_Pago || currentStatus || 'Pendiente';
-    const resolvedDni = enrollment?.DNI || '-';
-    const resolvedCertType = enrollment?.Tipo_Certificado || 'Virtual';
-    const resolvedVoucher = enrollment?.Referencia_Comprobante || '';
-    const resolvedPaymentDate = enrollment?.Fecha_Pago || '';
+      const enrollment = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+      const resolvedName = enrollment?.Nombre_Completo || participantName || 'Participante';
+      const resolvedStatus = enrollment?.Estado_Pago || currentStatus || 'Pendiente';
+      const resolvedDni = enrollment?.DNI || '-';
+      const resolvedCertType = enrollment?.Tipo_Certificado || 'Virtual';
+      const resolvedVoucher = enrollment?.Referencia_Comprobante || '';
+      const resolvedPaymentDate = enrollment?.Fecha_Pago || '';
 
-    const idInput = document.getElementById('payment-modal-enrollment-id');
-    const nameSpan = document.getElementById('payment-modal-participant-name');
-    const codeSpan = document.getElementById('payment-modal-enrollment-code');
-    const dniSpan = document.getElementById('payment-modal-dni');
-    const certTypeBadge = document.getElementById('payment-modal-cert-type');
-    const voucherCode = document.getElementById('payment-modal-voucher');
-    const copyVoucherBtn = document.getElementById('btn-copy-payment-voucher');
-    const paymentDateSpan = document.getElementById('payment-modal-payment-date');
-    const statusSpan = document.getElementById('payment-modal-current-status');
-    const statusSelect = document.getElementById('payment-modal-new-status');
-    const reasonInput = document.getElementById('payment-modal-reason');
-    const voucherInput = document.getElementById('payment-modal-voucher-edit');
-    const certTypeSelect = document.getElementById('payment-modal-cert-type-select');
+      const idInput = document.getElementById('payment-modal-enrollment-id');
+      const nameSpan = document.getElementById('payment-modal-participant-name');
+      const codeSpan = document.getElementById('payment-modal-enrollment-code');
+      const dniSpan = document.getElementById('payment-modal-dni');
+      const certTypeBadge = document.getElementById('payment-modal-cert-type');
+      const voucherCode = document.getElementById('payment-modal-voucher');
+      const copyVoucherBtn = document.getElementById('btn-copy-payment-voucher');
+      const paymentDateSpan = document.getElementById('payment-modal-payment-date');
+      const statusSpan = document.getElementById('payment-modal-current-status');
+      const statusSelect = document.getElementById('payment-modal-new-status');
+      const reasonInput = document.getElementById('payment-modal-reason');
+      const voucherInput = document.getElementById('payment-modal-voucher-edit');
+      const certTypeSelect = document.getElementById('payment-modal-cert-type-select');
 
-    if (idInput) idInput.value = enrollmentId;
-    if (nameSpan) nameSpan.textContent = resolvedName;
-    if (codeSpan) codeSpan.textContent = enrollmentId;
+      if (idInput) idInput.value = enrollmentId;
+      if (nameSpan) nameSpan.textContent = resolvedName;
+      if (codeSpan) codeSpan.textContent = enrollmentId;
 
-    if (dniSpan) dniSpan.textContent = resolvedDni;
+      if (dniSpan) dniSpan.textContent = resolvedDni;
 
-    if (certTypeBadge) {
-      certTypeBadge.textContent = resolvedCertType;
-      certTypeBadge.className = `badge ${resolvedCertType === 'Fisico' ? 'badge-purple' : 'badge-secondary'}`;
-    }
+      if (certTypeBadge) {
+        certTypeBadge.textContent = resolvedCertType;
+        certTypeBadge.className = `badge ${resolvedCertType === 'Fisico' ? 'badge-purple' : 'badge-secondary'}`;
+      }
 
-    if (voucherCode) {
-      voucherCode.textContent = resolvedVoucher || 'Sin comprobante';
-      voucherCode.style.color = resolvedVoucher ? 'var(--color-primary)' : 'var(--color-text-muted)';
-      voucherCode.style.fontStyle = resolvedVoucher ? 'normal' : 'italic';
-    }
+      if (voucherCode) {
+        voucherCode.textContent = resolvedVoucher || 'Sin comprobante';
+        voucherCode.style.color = resolvedVoucher ? 'var(--color-primary)' : 'var(--color-text-muted)';
+        voucherCode.style.fontStyle = resolvedVoucher ? 'normal' : 'italic';
+      }
 
-    if (copyVoucherBtn) {
-      copyVoucherBtn.style.display = resolvedVoucher ? 'inline-flex' : 'none';
-    }
+      if (copyVoucherBtn) {
+        copyVoucherBtn.style.display = resolvedVoucher ? 'inline-flex' : 'none';
+      }
 
-    if (paymentDateSpan) {
-      paymentDateSpan.textContent = resolvedPaymentDate || '(Pendiente de confirmación)';
-      paymentDateSpan.style.color = resolvedPaymentDate ? 'var(--color-text-main)' : 'var(--color-text-muted)';
-      paymentDateSpan.style.fontStyle = resolvedPaymentDate ? 'normal' : 'italic';
-    }
+      if (paymentDateSpan) {
+        paymentDateSpan.textContent = resolvedPaymentDate || '(Pendiente de confirmación)';
+        paymentDateSpan.style.color = resolvedPaymentDate ? 'var(--color-text-main)' : 'var(--color-text-muted)';
+        paymentDateSpan.style.fontStyle = resolvedPaymentDate ? 'normal' : 'italic';
+      }
 
-    if (voucherInput) {
-      voucherInput.value = resolvedVoucher || '';
-    }
+      if (voucherInput) {
+        voucherInput.value = resolvedVoucher || '';
+      }
 
-    if (certTypeSelect) {
-      certTypeSelect.value = resolvedCertType || 'Virtual';
-    }
+      if (certTypeSelect) {
+        certTypeSelect.value = resolvedCertType || 'Virtual';
+      }
 
-    if (statusSpan) {
-      statusSpan.textContent = `${this.getPaymentStatusIcon(resolvedStatus)} ${resolvedStatus}`;
-      statusSpan.className = `badge ${this.getPaymentBadgeClass(resolvedStatus)}`;
-    }
+      if (statusSpan) {
+        statusSpan.textContent = `${this.getPaymentStatusIcon(resolvedStatus)} ${resolvedStatus}`;
+        statusSpan.className = `badge ${this.getPaymentBadgeClass(resolvedStatus)}`;
+      }
 
-    if (statusSelect) {
-      statusSelect.value = resolvedStatus;
-    }
+      if (statusSelect) {
+        statusSelect.value = resolvedStatus;
+      }
 
-    if (reasonInput) {
-      reasonInput.value = '';
-    }
+      if (reasonInput) {
+        reasonInput.value = '';
+      }
 
-    this.onPaymentStatusSelectChange(resolvedStatus);
-    this.openModal('modal-payment-status');
+      this.onPaymentStatusSelectChange(resolvedStatus);
+      this.openModal('modal-payment-status');
 
-    // Foco ergonómico inmediato en selector de estado
-    if (statusSelect) {
-      setTimeout(() => statusSelect.focus(), 60);
+      // Foco ergonómico inmediato en selector de estado
+      if (statusSelect) {
+        setTimeout(() => statusSelect.focus(), 60);
+      }
+    } catch (err) {
+      console.error('[Admin] Error al abrir Gestionar Pago:', err);
+      this.showToast('Error al abrir Gestionar Pago: ' + (err.message || err), 'danger');
     }
   },
 
@@ -2341,25 +2387,35 @@ export const Admin = {
   // EDICIÓN DE PARTICIPANTES (CORRECCIÓN DE DATOS)
   // --------------------------------------------------------------------------
   openEditParticipantModal(participanteId, dni = null, nombreCompleto = null) {
-    const cachedItem = this.enrollmentsCache.find(e => e.Participante_ID === participanteId);
-    const resolvedDNI = dni || cachedItem?.DNI || '';
-    const resolvedName = nombreCompleto || cachedItem?.Nombre_Completo || '';
+    try {
+      const cachedItem = this.enrollmentsCache.find(e => (participanteId && e.Participante_ID === participanteId) || (dni && e.DNI === dni));
+      const resolvedPartId = participanteId || cachedItem?.Participante_ID || '';
+      const resolvedDNI = dni || cachedItem?.DNI || '';
+      const resolvedName = nombreCompleto || cachedItem?.Nombre_Completo || '';
 
-    const idInput = document.getElementById('part-form-id');
-    const idDisplay = document.getElementById('part-form-id-display');
-    const dniInput = document.getElementById('part-form-dni');
-    const nameInput = document.getElementById('part-form-name');
-    const dniIndicator = document.getElementById('part-form-dni-indicator');
+      const idInput = document.getElementById('part-form-id');
+      const idDisplay = document.getElementById('part-form-id-display');
+      const dniInput = document.getElementById('part-form-dni');
+      const nameInput = document.getElementById('part-form-name');
+      const dniIndicator = document.getElementById('part-form-dni-indicator');
 
-    if (idInput) idInput.value = participanteId || '';
-    if (idDisplay) idDisplay.textContent = participanteId || '-';
-    if (dniInput) dniInput.value = resolvedDNI;
-    if (nameInput) nameInput.value = resolvedName;
-    if (dniIndicator) {
-      dniIndicator.textContent = resolvedDNI.length === 8 ? '8/8 dígitos numéricos ✓' : `${resolvedDNI.length}/8 dígitos numéricos`;
-      dniIndicator.style.color = resolvedDNI.length === 8 ? 'var(--color-success)' : 'var(--color-text-muted)';
+      if (idInput) idInput.value = resolvedPartId;
+      if (idDisplay) idDisplay.textContent = resolvedPartId || '-';
+      if (dniInput) dniInput.value = resolvedDNI;
+      if (nameInput) nameInput.value = resolvedName;
+      if (dniIndicator) {
+        dniIndicator.textContent = resolvedDNI.length === 8 ? '8/8 dígitos numéricos ✓' : `${resolvedDNI.length}/8 dígitos numéricos`;
+        dniIndicator.style.color = resolvedDNI.length === 8 ? 'var(--color-success)' : 'var(--color-text-muted)';
+      }
+      this.openModal('modal-participant');
+
+      if (dniInput) {
+        setTimeout(() => dniInput.focus(), 60);
+      }
+    } catch (err) {
+      console.error('[Admin] Error al abrir Corregir Participante:', err);
+      this.showToast('Error al abrir modal de participante: ' + (err.message || err), 'danger');
     }
-    this.openModal('modal-participant');
   },
 
   async saveParticipant() {

@@ -1830,7 +1830,7 @@ p {
   background-color: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 100;
+  z-index: 1050;
   display: none;
   align-items: center;
   justify-content: center;

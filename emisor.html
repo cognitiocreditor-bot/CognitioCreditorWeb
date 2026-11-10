@@ -777,42 +777,11 @@
   </footer>
 
   <script type="module">
-    import { Admin } from './js/admin.js';
+    import { Admin } from './js/admin.js?v=20261110-v2';
 
-    window.CognitioAdmin = {
-      logout: () => Admin.logout(),
-      loadDashboard: (eventId) => Admin.loadDashboard(eventId),
-      viewEventEnrollments: (eventId) => Admin.viewEventEnrollments(eventId),
-      loadEvents: () => Admin.loadEvents(),
-      openNewEventModal: () => Admin.openNewEventModal(),
-      editEvent: (id) => Admin.editEvent(id),
-      saveEvent: () => Admin.saveEvent(),
-      deleteEvent: (id) => Admin.deleteEvent(id),
-      setEventFilter: (f) => Admin.setEventFilter(f),
-      togglePublish: (id, st) => Admin.togglePublish(id, st),
-      openCertConfigModal: (eventId) => Admin.openCertConfigModal(eventId),
-      saveCertConfig: () => Admin.saveCertConfig(),
-      loadEnrollments: () => Admin.loadEnrollments(),
-      filterEnrollmentsTable: () => Admin.filterEnrollmentsTable(),
-      copyVoucherCode: (text, btnEl) => Admin.copyVoucherCode(text, btnEl),
-      confirmPayment: (id, btnEl) => Admin.confirmPayment(id, btnEl),
-      openPaymentModal: (enrollmentId, currentStatus, participantName) => Admin.openPaymentModal(enrollmentId, currentStatus, participantName),
-      savePaymentStatusChange: () => Admin.savePaymentStatusChange(),
-      onPaymentStatusSelectChange: (st) => Admin.onPaymentStatusSelectChange(st),
-      openEditParticipantModal: (partId, dni, name) => Admin.openEditParticipantModal(partId, dni, name),
-      saveParticipant: () => Admin.saveParticipant(),
-      openRegisterParticipantModal: () => Admin.openRegisterParticipantModal(),
-      saveIndividualParticipant: () => Admin.saveIndividualParticipant(),
-      executeExcelImport: () => Admin.executeExcelImport(),
-      executeBatchPhysicalEmission: () => Admin.executeBatchPhysicalEmission(),
-      loadAuditLogs: () => Admin.loadAuditLogs(),
-      closeModal: (id) => Admin.closeModal(id),
-      loadAdminUsers: () => Admin.loadAdminUsers(),
-      openNewUserModal: () => Admin.openNewUserModal(),
-      openEditUserModal: (userId) => Admin.openEditUserModal(userId),
-      saveAdminUser: () => Admin.saveAdminUser(),
-      revokeAdminUser: (userId, currentStatus) => Admin.revokeAdminUser(userId, currentStatus)
-    };
+    // Exposición directa, canónica y completa de Admin en el ámbito global
+    window.Admin = Admin;
+    window.CognitioAdmin = Admin;
 
     document.addEventListener('DOMContentLoaded', () => {
       Admin.init();
