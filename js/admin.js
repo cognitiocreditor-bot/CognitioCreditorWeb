@@ -1156,7 +1156,7 @@ export const Admin = {
           <td style="padding: 8px;">
             <div class="admin-table-actions">
               ${isPending ? `
-                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${ins.Inscripcion_ID}')" title="Confirmar pago verificado">
+                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${ins.Inscripcion_ID}', this)" title="Confirmar pago verificado">
                   ✓ Confirmar Pago
                 </button>
               ` : ''}
@@ -1207,20 +1207,49 @@ export const Admin = {
   /**
    * Confirmación rápida de pago verificado (atajo para inscripciones pendientes).
    */
-  async confirmPayment(enrollmentId) {
+  /**
+   * Confirmación rápida de pago verificado (atajo para inscripciones pendientes).
+   * Implementa actualización optimista y feedback visual instantáneo.
+   */
+  async confirmPayment(enrollmentId, btnEl) {
     if (!confirm(`¿Confirma que el participante de la inscripción ${enrollmentId} ha completado el pago?`)) return;
 
-    const res = await Api.post('adminUpdatePaymentStatus', {
-      enrollmentId,
-      status: 'Pagado',
-      reason: 'Confirmación directa de pago verificado por directiva'
-    }, this.currentAuthToken);
+    const originalHtml = btnEl ? btnEl.innerHTML : '';
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<span class="spinner-sm"></span> Confirmando...';
+    }
 
-    if (res && res.success) {
-      alert('Pago confirmado y registrado en auditoría.');
-      await this.loadEnrollments();
-    } else {
-      alert('Error: ' + (res?.message || 'Error al confirmar pago'));
+    try {
+      const res = await Api.post('adminUpdatePaymentStatus', {
+        enrollmentId,
+        status: 'Pagado',
+        reason: 'Confirmación directa de pago verificado por directiva'
+      }, this.currentAuthToken);
+
+      if (res && res.success) {
+        // Actualización optimista inmediata en memoria (cero espera por recargas remotas)
+        const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+        if (cachedItem) {
+          cachedItem.Estado_Pago = 'Pagado';
+          cachedItem.Fecha_Pago = new Date().toISOString();
+        }
+        this.renderEnrollmentsTable();
+        this.showToast(`Pago de ${enrollmentId} confirmado exitosamente.`, 'success');
+      } else {
+        alert('Error: ' + (res?.message || 'Error al confirmar pago'));
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.innerHTML = originalHtml || '✓ Confirmar Pago';
+        }
+      }
+    } catch (err) {
+      console.error('[Admin confirmPayment] Error:', err);
+      alert('Error de conexión al confirmar pago.');
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalHtml || '✓ Confirmar Pago';
+      }
     }
   },
 
@@ -1336,9 +1365,20 @@ export const Admin = {
       }, this.currentAuthToken);
 
       if (res && res.success) {
-        alert(`Estado de pago actualizado correctamente a "${newStatus}".`);
         this.closeModal('modal-payment-status');
-        await this.loadEnrollments();
+
+        // Actualización optimista inmediata en memoria (cero espera por recargas remotas)
+        const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+        if (cachedItem) {
+          cachedItem.Estado_Pago = newStatus;
+          if (newStatus === 'Pagado') {
+            cachedItem.Fecha_Pago = new Date().toISOString();
+          } else if (newStatus === 'Pendiente') {
+            cachedItem.Fecha_Pago = '';
+          }
+        }
+        this.renderEnrollmentsTable();
+        this.showToast(`Estado de ${enrollmentId} actualizado a ${newStatus}.`, 'success');
       } else {
         alert('Error al actualizar estado: ' + (res?.message || 'Error no especificado por el servidor.'));
       }
@@ -2158,5 +2198,34 @@ export const Admin = {
         alert('Error al reactivar directivo: ' + err.message);
       }
     }
+  },
+
+  /**
+   * Muestra una notificación visual flotante rápida sin bloquear la pantalla.
+   * @param {string} message
+   * @param {'success'|'error'} type
+   */
+  showToast(message, type = 'success') {
+    let container = document.getElementById('admin-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'admin-toast-container';
+      container.className = 'admin-toast-container';
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `admin-toast admin-toast-${type}`;
+    toast.innerHTML = `
+      <span class="admin-toast-icon">${type === 'success' ? '✓' : 'ℹ'}</span>
+      <span class="admin-toast-message">${Validation.escapeHTML(message)}</span>
+    `;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('admin-toast-visible'));
+    setTimeout(() => {
+      toast.classList.remove('admin-toast-visible');
+      setTimeout(() => toast.remove(), 260);
+    }, 3200);
   }
 };

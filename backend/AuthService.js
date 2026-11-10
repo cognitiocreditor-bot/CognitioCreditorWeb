@@ -39,6 +39,27 @@ const AuthService = {
       throw new Error("Token de autenticación no proporcionado o inválido.");
     }
 
+    // Acelerador de Caché en Google Apps Script (elimina la latencia de UrlFetchApp en peticiones consecutivas)
+    let cacheKey = "";
+    let cache = null;
+    try {
+      if (typeof CacheService !== "undefined" && typeof Utilities !== "undefined") {
+        cache = CacheService.getScriptCache();
+        const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, idToken);
+        cacheKey = "auth_usr_" + Utilities.base64Encode(digest);
+        const cached = cache.get(cacheKey);
+        if (cached) {
+          const cachedUser = JSON.parse(cached);
+          if (requiredRole && !this.hasPermission(cachedUser.role, requiredRole)) {
+            throw new Error(`No cuenta con privilegios de ${requiredRole}. Su rol actual es '${cachedUser.role}'.`);
+          }
+          return cachedUser;
+        }
+      }
+    } catch (cErr) {
+      // Continuar con verificación normal si CacheService no está disponible
+    }
+
     let tokenInfo;
     try {
       const url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken);
@@ -103,22 +124,38 @@ const AuthService = {
       throw new Error(`No cuenta con privilegios de ${requiredRole}. Su rol actual es '${usuario.Rol}'.`);
     }
 
-    // 5. Actualizar marca temporal de Ultimo_Acceso
+    const authResult = {
+      email: email,
+      name: tokenInfo.name || usuario.Nombre_Completo || "",
+      role: usuario.Rol,
+      authorized: true
+    };
+
+    // Guardar en caché por 10 minutos (600s) para máxima aceleración
+    if (cache && cacheKey) {
+      try {
+        cache.put(cacheKey, JSON.stringify(authResult), 600);
+      } catch (e) {}
+    }
+
+    return authResult;
+  },
+
+  /**
+   * Registra la marca temporal de último acceso al iniciar sesión en el panel.
+   * @param {string} email
+   */
+  recordLastAccess(email) {
     try {
-      if (usuario._rowIndex) {
+      const adminUsers = Database.getAll(CONFIG.SHEETS.USUARIOS_ADMIN);
+      const usuario = adminUsers.find(u => String(u.Email || "").toLowerCase().trim() === String(email || "").toLowerCase().trim());
+      if (usuario && usuario._rowIndex) {
         const accessTimestamp = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "yyyy-MM-dd HH:mm:ss");
         Database.updateCell(CONFIG.SHEETS.USUARIOS_ADMIN, usuario._rowIndex, "Ultimo_Acceso", accessTimestamp);
       }
     } catch (e) {
       console.warn("[AuthService] Error actualizando Ultimo_Acceso:", e);
     }
-
-    return {
-      email: email,
-      name: tokenInfo.name || usuario.Nombre_Completo || "",
-      role: usuario.Rol,
-      authorized: true
-    };
   },
 
   /**

@@ -55,6 +55,7 @@ function doPost(e) {
     const adminUser = AuthService.verifyToken(token);
 
     if (action === "adminAuthenticate") {
+      AuthService.recordLastAccess(adminUser.email);
       return jsonResponse({ success: true, data: adminUser });
     }
 
