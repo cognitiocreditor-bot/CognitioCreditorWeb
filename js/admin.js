@@ -712,6 +712,9 @@ export const Admin = {
             </div>
           </div>
 
+          <div class="table-scroll-hint">
+            <span>Desliza horizontalmente para ver todas las métricas</span>
+          </div>
           <div class="table-responsive">
             <table class="admin-table">
               <thead>
