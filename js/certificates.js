@@ -125,12 +125,22 @@ export const Certificates = {
       const isEligible = Boolean(rec.Elegible_Emision);
       const ruleCode = rec.Codigo_Regla || '';
       const ruleMessage = rec.Mensaje_Regla || '';
+      const isPhysical = certType === 'Fisico' || Boolean(rec.entregaFisica);
 
       let statusBadge = '';
       let actionArea = '';
 
+      // Regla E: Evento cancelado
+      if (ruleCode === 'REGLA_E_CANCELADO') {
+        statusBadge = `<span class="badge badge-danger">Evento Cancelado</span>`;
+        actionArea = `
+          <div class="alert alert-danger" style="margin-top: 1.25rem;">
+            Este evento fue cancelado. Comunícate con la directiva para cualquier regularización o devolución.
+          </div>
+        `;
+      }
       // Regla A: Pago pendiente
-      if (paymentStatus === 'Pendiente') {
+      else if (paymentStatus === 'Pendiente' || ruleCode === 'REGLA_A_PAGO_PENDIENTE') {
         statusBadge = `<span class="badge badge-warning">Pago Pendiente</span>`;
         actionArea = `
           <div class="alert alert-warning" style="margin-top: 1.25rem;">
@@ -145,28 +155,71 @@ export const Certificates = {
           </div>
         `;
       }
-      // Regla B: Evento futuro o en curso
-      else if (ruleCode === 'REGLA_B_FUTURO') {
-        statusBadge = `<span class="badge badge-info">En Espera de Cierre</span>`;
-        actionArea = `
-          <div class="alert alert-info" style="margin-top: 1.25rem;">
-            Tu certificado estará disponible para descarga a partir del día siguiente al término del evento.
-          </div>
-        `;
-      }
-      // Regla C: Certificado físico
-      else if (certType === 'Fisico') {
-        statusBadge = `<span class="badge badge-info" style="background: rgba(147, 51, 234, 0.12); color: #7E22CE; border-color: rgba(147, 51, 234, 0.25);">Certificado Físico</span>`;
-        actionArea = `
-          <div class="alert alert-info" style="margin-top: 1.25rem;">
-            <p>Has solicitado emisión de certificado en formato físico impreso. Coordina su recojo o entrega con la directiva.</p>
-            <div style="margin-top: 0.85rem;">
-              <a href="${this._getWhatsAppUrl(eventTitle)}" target="_blank" rel="noopener noreferrer" class="btn btn-success btn-sm">
-                💬 Coordinar Recojo por WhatsApp
-              </a>
+      // Certificado Físico + Digital (Regla C o Regla B para participantes físicos)
+      else if (isPhysical) {
+        statusBadge = `<span class="badge badge-purple">Certificado Físico + Digital</span>`;
+
+        const deliveryData = rec.entregaFisica || {
+          fechas: 'Por coordinar con la directiva',
+          lugar: 'FACEN - UNAP',
+          horario: 'Horario académico'
+        };
+        const safeDates = Validation.escapeHTML(deliveryData.fechas || 'Por coordinar con la directiva');
+        const safePlace = Validation.escapeHTML(deliveryData.lugar || 'FACEN - UNAP');
+        const safeTime = Validation.escapeHTML(deliveryData.horario || 'Horario académico');
+
+        const deliveryCardHtml = `
+          <div class="physical-delivery-card">
+            <div class="physical-delivery-header">
+              <span class="delivery-badge-icon" aria-hidden="true">🏛️</span>
+              <div>
+                <h5 class="delivery-title">Cronograma de Entrega de Certificado Físico</h5>
+                <p class="delivery-subtitle">Modalidad presencial — Presentar documento de identidad (DNI) al momento del recojo.</p>
+              </div>
+            </div>
+            <div class="physical-delivery-grid">
+              <div class="delivery-item">
+                <span class="delivery-item-icon" aria-hidden="true">📦</span>
+                <div class="delivery-item-content">
+                  <span class="delivery-item-label">Fechas de Entrega</span>
+                  <strong class="delivery-item-val">${safeDates}</strong>
+                </div>
+              </div>
+              <div class="delivery-item">
+                <span class="delivery-item-icon" aria-hidden="true">📍</span>
+                <div class="delivery-item-content">
+                  <span class="delivery-item-label">Lugar de Entrega</span>
+                  <strong class="delivery-item-val">${safePlace}</strong>
+                </div>
+              </div>
+              <div class="delivery-item">
+                <span class="delivery-item-icon" aria-hidden="true">⏰</span>
+                <div class="delivery-item-content">
+                  <span class="delivery-item-label">Horario de Atención</span>
+                  <strong class="delivery-item-val">${safeTime}</strong>
+                </div>
+              </div>
             </div>
           </div>
         `;
+
+        if (isEligible) {
+          actionArea = `
+            ${deliveryCardHtml}
+            <div style="margin-top: 1.25rem;">
+              <button type="button" class="btn btn-primary btn-block" id="btn-download-${index}" onclick="window.CognitioPortal.downloadCertificate('${rec.Inscripcion_ID}', ${index})">
+                📥 Descargar Certificado Oficial en PDF (Copia Digital)
+              </button>
+            </div>
+          `;
+        } else {
+          actionArea = `
+            ${deliveryCardHtml}
+            <div class="alert alert-info" style="margin-top: 1.25rem;">
+              Tu certificado estará disponible para descarga a partir del día siguiente al término del evento.
+            </div>
+          `;
+        }
       }
       // Regla D: Certificado virtual elegible para descarga
       else if (isEligible && certType === 'Virtual') {
@@ -179,12 +232,12 @@ export const Certificates = {
           </div>
         `;
       }
-      // Regla E: Evento cancelado
-      else if (ruleCode === 'REGLA_E_CANCELADO') {
-        statusBadge = `<span class="badge badge-danger">Evento Cancelado</span>`;
+      // Regla B: Certificado virtual en espera de cierre
+      else if (ruleCode === 'REGLA_B_FUTURO') {
+        statusBadge = `<span class="badge badge-info">En Espera de Cierre</span>`;
         actionArea = `
-          <div class="alert alert-danger" style="margin-top: 1.25rem;">
-            Este evento fue cancelado. Comunícate con la directiva para cualquier regularización o devolución.
+          <div class="alert alert-info" style="margin-top: 1.25rem;">
+            Tu certificado estará disponible para descarga a partir del día siguiente al término del evento.
           </div>
         `;
       } else {
@@ -222,6 +275,7 @@ export const Certificates = {
    */
   async processDownload(enrollmentId, index) {
     const btn = document.getElementById(`btn-download-${index}`);
+    const originalText = btn ? btn.innerHTML : '📥 Descargar Certificado Oficial en PDF';
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = `<span class="spinner spinner-sm"></span> Generando PDF vectorial de alta resolución...`;
@@ -259,7 +313,7 @@ export const Certificates = {
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = `📥 Descargar Certificado Oficial en PDF`;
+        btn.innerHTML = originalText;
       }
     }
   },

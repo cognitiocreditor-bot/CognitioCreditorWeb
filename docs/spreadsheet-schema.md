@@ -14,6 +14,7 @@ Este documento define la estructura oficial, tipos de datos, restricciones y for
    - `Inscripcion_ID`: Prefijo `INS-` seguido de año y correlativo (ej. `INS-2026-0001`).
    - `Configuracion_Certificado_ID`: Prefijo `CFG-` seguido del ID del evento (ej. `CFG-EVT-2026-001`).
    - `Codigo_Consulta`: Token alfanumérico seguro de 6 a 8 caracteres (ej. `CC-8F4A2B`).
+   - `Usuario_ID`: Prefijo `USR-` seguido de correlativo de 6 dígitos (ej. `USR-000001`).
 
 ---
 
@@ -34,6 +35,9 @@ Este documento define la estructura oficial, tipos de datos, restricciones y for
 | K | `Modalidad` | Texto | Sí | `Virtual`, `Presencial`, `Hibrido` |
 | L | `Fecha_Publicacion` | Fecha-Hora | No | Marca temporal desde la cual es visible al público |
 | M | `Configuracion_Certificado_ID` | Texto | No | FK a `Configuracion_Certificados` |
+| N | `Fecha_Entrega_Fisica` | Texto / Fecha | No | Fecha o rango estimado de entrega de certificados físicos (ej. `2026-04-20`) |
+| O | `Lugar_Entrega_Fisica` | Texto | No | Ubicación o campus para entrega física (ej. `Local Central - Oficina Círculo`) |
+| P | `Horario_Entrega_Fisica` | Texto | No | Rango horario de atención para recojo (ej. `15:00 a 18:00 hrs`) |
 
 ---
 
@@ -94,20 +98,35 @@ Este documento define la estructura oficial, tipos de datos, restricciones y for
 | A | `Log_ID` | Texto | Sí | PK autogenerada |
 | B | `Timestamp` | Fecha-Hora | Sí | Timestamp de la operación en `America/Lima` |
 | C | `Usuario_Admin` | Texto | Sí | Email de Google de la persona que ejecutó la acción |
-| D | `Accion` | Texto | Sí | `CONFIRMAR_PAGO`, `CREAR_EVENTO`, `EDITAR_EVENTO`, `GENERAR_LOTE`, `IMPORTAR_EXCEL` |
-| E | `Entidad_Afectada` | Texto | Sí | ID del registro modificado (ej. `INS-2026-0001`) |
-| F | `Detalle` | Texto | No | Resumen de la acción sin datos sensibles |
+| D | `Accion` | Texto | Sí | `CONFIRMAR_PAGO`, `CAMBIO_ESTADO_PAGO`, `CREAR_EVENTO`, `EDITAR_EVENTO`, `GENERAR_LOTE`, `IMPORTAR_EXCEL`, `REGISTRO_INDIVIDUAL_ADMIN`, `GUARDAR_USUARIO_ADMIN`, `REVOCAR_USUARIO_ADMIN`, `LOGIN_ADMIN` |
+| E | `Entidad_Afectada` | Texto | Sí | ID del registro modificado (ej. `INS-2026-0001`, `USR-000001`) |
+| F | `Detalle` | Texto | No | Resumen estructurado de la acción y motivo sin datos sensibles |
 
 ---
 
-## 7. Gobernanza de Datos y Reglas de Protección Automatizadas
+## 7. Hoja 6: `Usuarios_Admin`
+
+| Columna | Nombre de Cabecera | Tipo de Dato | Obligatorio | Valores Permitidos / Descripción |
+|:---|:---|:---|:---:|:---|
+| A | `Usuario_ID` | Texto | Sí | PK autogenerada. Ej: `USR-000001` |
+| B | `Email` | Texto | Sí | Correo electrónico de Google (minúsculas, único) |
+| C | `Nombre_Completo` | Texto | Sí | Nombre y apellidos del directivo / operador |
+| D | `Rol` | Texto | Sí | `SuperAdmin`, `Admin`, `Operador` |
+| E | `Estado` | Texto | Sí | `Activo`, `Inactivo`, `Revocado` |
+| F | `Fecha_Alta` | Fecha-Hora | Sí | Timestamp de creación del acceso |
+| G | `Creado_Por` | Texto | Sí | Email del administrador que otorgó el acceso |
+| H | `Ultimo_Acceso` | Fecha-Hora | No | Timestamp del inicio de sesión más reciente |
+
+---
+
+## 8. Gobernanza de Datos y Reglas de Protección Automatizadas
 
 Para evitar la corrupción de datos y la pérdida de integridad referencial identificadas en el análisis de riesgos, se aplican las siguientes defensas a través de [`backend/SetupDatabase.js`](file:///c:/Users/USUARIO/PROYECTO%20COGNITIO/backend/SetupDatabase.js):
 
-1. **Blindaje de Cabeceras**: La Fila 1 de las 5 pestañas se encuentra protegida con advertencia (`WarningOnly`) y congelada (`FrozenRows: 1`) para evitar alteraciones de nombres que rompan los mapeos del DAO (`Database.js`).
+1. **Blindaje de Cabeceras**: La Fila 1 de las 6 pestañas se encuentra protegida con advertencia (`WarningOnly`) y congelada (`FrozenRows: 1`) para evitar alteraciones de nombres que rompan los mapeos del DAO (`Database.js`).
 2. **Validación de Integridad de DNI**:
    - Validación nativa por fórmula: `=REGEXMATCH(TO_TEXT(B2), "^\d{8}$")` (Rechaza entradas no numéricas o de longitud distinta a 8).
    - Formateo forzado a `@` (*Plain Text*) en columnas de claves foráneas y DNI.
    - Trigger reactivo `onEdit` que auto-completa con ceros a la izquierda (`padStart(8, "0")`) ante pegados accidentales.
-3. **Listas Desplegables de Estados**: Los campos de estado y modalidad restringen la entrada exclusivamente a los valores canónicos permitidos, previniendo discrepancias por mayúsculas/minúsculas o espacios accidentales.
-
+3. **Listas Desplegables de Estados**: Los campos de estado, modalidad y roles restringen la entrada exclusivamente a los valores canónicos permitidos, previniendo discrepancias por mayúsculas/minúsculas o espacios accidentales.
+4. **Bootstrap Inmutable de SuperAdmins**: En caso de ausencia inicial o vaciado accidental de la hoja `Usuarios_Admin`, el sistema auto-inicializa los 3 SuperAdmins de contingencia declarados en `Config.BOOTSTRAP_SUPERADMIN_EMAILS`, asegurando la continuidad operativa sin riesgo de bloqueo total del sistema.

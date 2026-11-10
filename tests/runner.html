@@ -129,7 +129,7 @@
         if (eventStatus === 'Cancelado') return 'REGLA_E_CANCELADO';
         if (paymentStatus === 'Pendiente') return 'REGLA_A_PAGO_PENDIENTE';
         if (eventDate && todayLima <= eventDate) return 'REGLA_B_FUTURO';
-        if (certType === 'Fisico') return 'REGLA_C_FISICO';
+        if (certType === 'Fisico') return 'REGLA_C_FISICO_Y_DIGITAL';
         if (paymentStatus === 'Pagado' && certType === 'Virtual') return 'REGLA_D_VIRTUAL_LISTO';
         return 'UNKNOWN';
       }
@@ -138,9 +138,388 @@
         { name: 'Regla A: Pago pendiente bloquea emisión', fn: () => checkRule('Finalizado', '2026-10-10', 'Pendiente', 'Virtual') === 'REGLA_A_PAGO_PENDIENTE' },
         { name: 'Regla B: Evento futuro bloquea emisión', fn: () => checkRule('Activo', '2026-10-25', 'Pagado', 'Virtual') === 'REGLA_B_FUTURO' },
         { name: 'Regla B: Evento celebrado hoy bloquea emisión (habilita día siguiente)', fn: () => checkRule('Activo', '2026-10-21', 'Pagado', 'Virtual') === 'REGLA_B_FUTURO' },
-        { name: 'Regla C: Certificado físico no genera PDF individual', fn: () => checkRule('Finalizado', '2026-10-10', 'Pagado', 'Fisico') === 'REGLA_C_FISICO' },
+        { name: 'Regla C: Certificado físico pagado y finalizado habilita descarga digital', fn: () => checkRule('Finalizado', '2026-10-10', 'Pagado', 'Fisico') === 'REGLA_C_FISICO_Y_DIGITAL' },
         { name: 'Regla D: Certificado virtual pagado y finalizado es elegible', fn: () => checkRule('Finalizado', '2026-10-10', 'Pagado', 'Virtual') === 'REGLA_D_VIRTUAL_LISTO' },
         { name: 'Regla E: Evento cancelado bloquea emisión automática', fn: () => checkRule('Cancelado', '2026-10-10', 'Pagado', 'Virtual') === 'REGLA_E_CANCELADO' }
+      ]);
+
+      // Suite 4: Control de Acceso RBAC y Autenticación Dinámica
+      const ROLE_HIERARCHY = { "SuperAdmin": 3, "Admin": 2, "Operador": 1 };
+      function hasPermission(userRole, requiredRole) {
+        if (!userRole) return false;
+        if (!requiredRole) return true;
+        const uLevel = ROLE_HIERARCHY[userRole] || 0;
+        const rLevel = ROLE_HIERARCHY[requiredRole] || 99;
+        return uLevel >= rLevel;
+      }
+
+      function canRevoke(user, allUsers) {
+        if (user.Rol === 'SuperAdmin' && user.Estado === 'Activo') {
+          const actives = allUsers.filter(u => u.Rol === 'SuperAdmin' && u.Estado === 'Activo');
+          if (actives.length <= 1) return false;
+        }
+        return true;
+      }
+
+      renderSuite('4. Control de Acceso Dinámico (RBAC) y Seguridad', [
+        { name: 'SuperAdmin tiene jerarquía 3 (máxima)', fn: () => ROLE_HIERARCHY['SuperAdmin'] === 3 },
+        { name: 'Admin tiene jerarquía 2', fn: () => ROLE_HIERARCHY['Admin'] === 2 },
+        { name: 'Operador tiene jerarquía 1', fn: () => ROLE_HIERARCHY['Operador'] === 1 },
+        { name: 'SuperAdmin hereda permisos de Admin y Operador', fn: () => hasPermission('SuperAdmin', 'Admin') && hasPermission('SuperAdmin', 'Operador') },
+        { name: 'Admin no tiene permisos de SuperAdmin', fn: () => !hasPermission('Admin', 'SuperAdmin') },
+        { name: 'Operador no tiene permisos de Admin ni SuperAdmin', fn: () => !hasPermission('Operador', 'Admin') && !hasPermission('Operador', 'SuperAdmin') },
+        { name: 'Rol nulo o no reconocido es rechazado', fn: () => !hasPermission(null, 'Operador') && !hasPermission('Guest', 'Operador') },
+        { name: 'Regla de Integridad: Bloquea revocación del único SuperAdmin activo', fn: () => !canRevoke({ Rol: 'SuperAdmin', Estado: 'Activo' }, [{ Rol: 'SuperAdmin', Estado: 'Activo' }]) },
+        { name: 'Regla de Integridad: Permite revocación si existen 2 o más SuperAdmins activos', fn: () => canRevoke({ Rol: 'SuperAdmin', Estado: 'Activo' }, [{ Rol: 'SuperAdmin', Estado: 'Activo' }, { Rol: 'SuperAdmin', Estado: 'Activo' }]) }
+      ]);
+
+      // Suite 5: Transiciones Reversibles de Pago y Auditoría (Task 3)
+      const ALLOWED_PAYMENT_STATUSES = ['Pendiente', 'Pagado', 'Anulado', 'Reembolsado'];
+      function processPaymentTransition(record, newStatus, reason, nowLimaStr) {
+        if (!ALLOWED_PAYMENT_STATUSES.includes(newStatus)) throw new Error('Estado no reconocido');
+        const cleanReason = (reason || '').trim();
+        if (newStatus !== 'Pagado' && !cleanReason) throw new Error('Motivo obligatorio');
+        const updated = { ...record, Estado_Pago: newStatus };
+        if (newStatus === 'Pagado') updated.Fecha_Pago = nowLimaStr;
+        else if (newStatus === 'Pendiente') updated.Fecha_Pago = '';
+        else updated.Fecha_Pago = record.Fecha_Pago || '';
+        return updated;
+      }
+
+      renderSuite('5. Transiciones Reversibles de Pago y Auditoría (Task 3)', [
+        {
+          name: 'Transición de Pendiente a Pagado asigna Fecha_Pago',
+          fn: () => {
+            const res = processPaymentTransition({ Inscripcion_ID: 'INS-01', Estado_Pago: 'Pendiente', Fecha_Pago: '' }, 'Pagado', 'Voucher BCP', '2026-11-09 10:00:00');
+            return res.Estado_Pago === 'Pagado' && res.Fecha_Pago === '2026-11-09 10:00:00' && res.Inscripcion_ID === 'INS-01';
+          }
+        },
+        {
+          name: 'Reversión de Pagado a Pendiente vacía Fecha_Pago y preserva inscripción',
+          fn: () => {
+            const res = processPaymentTransition({ Inscripcion_ID: 'INS-01', Estado_Pago: 'Pagado', Fecha_Pago: '2026-11-09 10:00:00' }, 'Pendiente', 'Error en comprobante', '2026-11-09 11:00:00');
+            return res.Estado_Pago === 'Pendiente' && res.Fecha_Pago === '' && res.Inscripcion_ID === 'INS-01';
+          }
+        },
+        {
+          name: 'Transición a Anulado preserva historial de fecha y requiere motivo',
+          fn: () => {
+            const res = processPaymentTransition({ Inscripcion_ID: 'INS-01', Estado_Pago: 'Pagado', Fecha_Pago: '2026-11-09 10:00:00' }, 'Anulado', 'Registro duplicado', '2026-11-09 12:00:00');
+            return res.Estado_Pago === 'Anulado' && res.Fecha_Pago === '2026-11-09 10:00:00';
+          }
+        },
+        {
+          name: 'Transición a Reembolsado preserva historial de fecha y requiere motivo',
+          fn: () => {
+            const res = processPaymentTransition({ Inscripcion_ID: 'INS-01', Estado_Pago: 'Pagado', Fecha_Pago: '2026-11-09 10:00:00' }, 'Reembolsado', 'Solicitud de participante', '2026-11-09 13:00:00');
+            return res.Estado_Pago === 'Reembolsado' && res.Fecha_Pago === '2026-11-09 10:00:00';
+          }
+        },
+        {
+          name: 'Reversión sin motivo es rechazada estrictamente',
+          fn: () => {
+            try {
+              processPaymentTransition({ Inscripcion_ID: 'INS-01', Estado_Pago: 'Pagado', Fecha_Pago: '2026-11-09 10:00:00' }, 'Pendiente', '   ', '2026-11-09 11:00:00');
+              return false;
+            } catch (e) {
+              return true;
+            }
+          }
+        },
+        {
+          name: 'Estado de pago no reconocido es rechazado',
+          fn: () => {
+            try {
+              processPaymentTransition({ Inscripcion_ID: 'INS-01', Estado_Pago: 'Pendiente', Fecha_Pago: '' }, 'Invalido', 'Motivo', '2026-11-09 11:00:00');
+              return false;
+            } catch (e) {
+              return true;
+            }
+          }
+        }
+      ]);
+
+      // Suite 6: Registro Individual Administrativo de Participantes (Task 4)
+      function simulateRegisterIndividual(payload, db, adminEmail = 'admin@cognitio.org') {
+        const eventId = String(payload.eventId || payload.Evento_ID || '').trim();
+        const dniRaw = String(payload.dni || payload.DNI || '').trim();
+        const nameRaw = String(payload.nombreCompleto || payload.Nombre_Completo || '').trim();
+        const certType = payload.tipoCertificado === 'Fisico' ? 'Fisico' : 'Virtual';
+        const status = payload.initialPaymentStatus === 'Pagado' ? 'Pagado' : 'Pendiente';
+        const voucher = payload.referenciaComprobante || (status === 'Pagado' ? 'REGISTRO_ADMIN_PAGADO' : '');
+
+        if (!eventId || !dniRaw || !nameRaw) throw new Error('Campos requeridos faltantes');
+        let cleanDNI = dniRaw.replace(/\D/g, '');
+        if (cleanDNI.length > 0 && cleanDNI.length <= 8) cleanDNI = cleanDNI.padStart(8, '0');
+        if (!/^\d{8}$/.test(cleanDNI)) throw new Error('DNI debe ser de 8 dígitos numéricos');
+
+        const cleanName = nameRaw.replace(/\s+/g, ' ').trim().toUpperCase();
+        if (cleanName.length < 3) throw new Error('Nombre debe tener al menos 3 caracteres');
+
+        const evt = db.events.find(e => e.Evento_ID === eventId);
+        if (!evt) throw new Error('Evento no existe');
+
+        let part = db.participants.find(p => p.DNI === cleanDNI);
+        let partId = part ? part.Participante_ID : `PAR-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+        if (!part) {
+          part = { Participante_ID: partId, DNI: cleanDNI, Nombre_Completo: cleanName, Estado_Registro: 'Activo' };
+          db.participants.push(part);
+        }
+
+        const existing = db.enrollments.find(e => e.Participante_ID === partId && e.Evento_ID === eventId && e.Estado_Inscripcion !== 'Cancelada');
+        if (existing) {
+          return {
+            enrollmentId: existing.Inscripcion_ID,
+            participantId: partId,
+            queryCode: existing.Codigo_Consulta,
+            paymentStatus: existing.Estado_Pago,
+            isExisting: true,
+            message: 'El participante ya se encontraba inscrito en este evento.'
+          };
+        }
+
+        const enrollmentId = `INS-2026-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const queryCode = `CC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const fechaPago = status === 'Pagado' ? '2026-11-09 16:00:00' : '';
+
+        const newEnrollment = {
+          Inscripcion_ID: enrollmentId,
+          Participante_ID: partId,
+          Evento_ID: eventId,
+          Tipo_Certificado: certType,
+          Estado_Pago: status,
+          Fecha_Pago: fechaPago,
+          Referencia_Comprobante: voucher,
+          Codigo_Consulta: queryCode,
+          Estado_Inscripcion: 'Registrada'
+        };
+        db.enrollments.push(newEnrollment);
+
+        db.audits.push({
+          Usuario: adminEmail,
+          Accion: 'REGISTRO_INDIVIDUAL_ADMIN',
+          Entidad_ID: enrollmentId,
+          Detalles: `DNI: ${cleanDNI}, Pago: ${status}`
+        });
+
+        return {
+          enrollmentId,
+          participantId: partId,
+          queryCode,
+          paymentStatus: status,
+          isExisting: false,
+          message: 'Participante registrado exitosamente.'
+        };
+      }
+
+      function setupSuite6Db() {
+        return {
+          events: [
+            { Evento_ID: 'EVT-01', Titulo: 'Congreso Jurídico', Estado: 'Activo' },
+            { Evento_ID: 'EVT-02', Titulo: 'Taller Penal', Estado: 'Activo' }
+          ],
+          participants: [
+            { Participante_ID: 'PAR-001', DNI: '12345678', Nombre_Completo: 'JUAN PÉREZ ROJAS', Estado_Registro: 'Activo' }
+          ],
+          enrollments: [
+            { Inscripcion_ID: 'INS-001', Participante_ID: 'PAR-001', Evento_ID: 'EVT-01', Estado_Pago: 'Pagado', Codigo_Consulta: 'CC-001', Estado_Inscripcion: 'Registrada' }
+          ],
+          audits: []
+        };
+      }
+
+      renderSuite('6. Registro Individual Administrativo (Task 4)', [
+        {
+          name: 'Normalización y padding de DNI con ceros a la izquierda (7 a 8 dígitos)',
+          fn: () => {
+            const db = setupSuite6Db();
+            const res = simulateRegisterIndividual({ eventId: 'EVT-01', dni: '7654321', nombreCompleto: 'Lucía Mendoza' }, db);
+            const part = db.participants.find(p => p.Participante_ID === res.participantId);
+            return part && part.DNI === '07654321' && res.isExisting === false;
+          }
+        },
+        {
+          name: 'Creación de nuevo participante e inscripción con código CC- e INS-',
+          fn: () => {
+            const db = setupSuite6Db();
+            const res = simulateRegisterIndividual({ eventId: 'EVT-01', dni: '87654321', nombreCompleto: 'Mario Vargas Llosa' }, db);
+            return res.isExisting === false && res.enrollmentId.startsWith('INS-2026-') && res.queryCode.startsWith('CC-') && res.participantId.startsWith('PAR-');
+          }
+        },
+        {
+          name: 'Reutilización de participante existente sin duplicar Participante_ID en otro evento',
+          fn: () => {
+            const db = setupSuite6Db();
+            const countPre = db.participants.length;
+            const res = simulateRegisterIndividual({ eventId: 'EVT-02', dni: '12345678', nombreCompleto: 'Juan Pérez Rojas' }, db);
+            return res.participantId === 'PAR-001' && db.participants.length === countPre && res.isExisting === false;
+          }
+        },
+        {
+          name: 'Detección de duplicado exacto para el mismo evento retorna registro previo',
+          fn: () => {
+            const db = setupSuite6Db();
+            const countEnrollsPre = db.enrollments.length;
+            const res = simulateRegisterIndividual({ eventId: 'EVT-01', dni: '12345678', nombreCompleto: 'Juan Pérez Rojas' }, db);
+            return res.isExisting === true && res.enrollmentId === 'INS-001' && res.queryCode === 'CC-001' && db.enrollments.length === countEnrollsPre;
+          }
+        },
+        {
+          name: 'Registro con pago inicial Pagado asigna Fecha_Pago',
+          fn: () => {
+            const db = setupSuite6Db();
+            const res = simulateRegisterIndividual({ eventId: 'EVT-01', dni: '99887766', nombreCompleto: 'Rosa Merino', initialPaymentStatus: 'Pagado' }, db);
+            const enr = db.enrollments.find(e => e.Inscripcion_ID === res.enrollmentId);
+            return res.paymentStatus === 'Pagado' && enr.Estado_Pago === 'Pagado' && enr.Fecha_Pago !== '';
+          }
+        },
+        {
+          name: 'Registro con pago inicial Pendiente deja Fecha_Pago vacía',
+          fn: () => {
+            const db = setupSuite6Db();
+            const res = simulateRegisterIndividual({ eventId: 'EVT-01', dni: '99887755', nombreCompleto: 'Túpac Yupanqui', initialPaymentStatus: 'Pendiente' }, db);
+            const enr = db.enrollments.find(e => e.Inscripcion_ID === res.enrollmentId);
+            return res.paymentStatus === 'Pendiente' && enr.Estado_Pago === 'Pendiente' && enr.Fecha_Pago === '';
+          }
+        },
+        {
+          name: 'Registro de auditoría estricto (REGISTRO_INDIVIDUAL_ADMIN)',
+          fn: () => {
+            const db = setupSuite6Db();
+            simulateRegisterIndividual({ eventId: 'EVT-01', dni: '55667788', nombreCompleto: 'César Vallejo', initialPaymentStatus: 'Pagado' }, db, 'directivo@unap.edu.pe');
+            const lastAudit = db.audits[db.audits.length - 1];
+            return lastAudit && lastAudit.Accion === 'REGISTRO_INDIVIDUAL_ADMIN' && lastAudit.Usuario === 'directivo@unap.edu.pe' && lastAudit.Detalles.includes('DNI: 55667788');
+          }
+        },
+        {
+          name: 'Rechazo de evento inexistente con mensaje explicativo',
+          fn: () => {
+            const db = setupSuite6Db();
+            try {
+              simulateRegisterIndividual({ eventId: 'EVT-FANTASMA', dni: '55667788', nombreCompleto: 'César Vallejo' }, db);
+              return false;
+            } catch (e) {
+              return e.message.includes('Evento no existe');
+            }
+          }
+        }
+      ]);
+
+      // Suite 7: Dashboard Administrativo y Estadísticas del Sistema (Fase E)
+      function simulateDashboardStats(events, enrollments, participants, auditLogs, eventId) {
+        const isGlobal = !eventId || eventId === 'all' || eventId === 'TODOS';
+        const cleanEventId = isGlobal ? '' : String(eventId).trim();
+
+        let selectedEvent = null;
+        let targetEnrollments = enrollments;
+
+        if (!isGlobal) {
+          selectedEvent = events.find(e => e.Evento_ID === cleanEventId);
+          if (!selectedEvent) throw new Error(`El evento con ID '${cleanEventId}' no fue encontrado.`);
+          targetEnrollments = enrollments.filter(e => e.Evento_ID === cleanEventId);
+        }
+
+        const totalEnrollments = targetEnrollments.length;
+        const pagadoCount = targetEnrollments.filter(e => e.Estado_Pago === 'Pagado').length;
+        const anuladoCount = targetEnrollments.filter(e => e.Estado_Pago === 'Anulado').length;
+        const virtualCount = targetEnrollments.filter(e => e.Tipo_Certificado === 'Virtual').length;
+        const fisicoCount = targetEnrollments.filter(e => e.Tipo_Certificado === 'Fisico').length;
+
+        const activeEnrollments = totalEnrollments - anuladoCount;
+        const paymentRate = activeEnrollments > 0 ? Number(((pagadoCount / activeEnrollments) * 100).toFixed(1)) : 0;
+        const virtualRate = totalEnrollments > 0 ? Number(((virtualCount / totalEnrollments) * 100).toFixed(1)) : 0;
+        const fisicoRate = totalEnrollments > 0 ? Number(((fisicoCount / totalEnrollments) * 100).toFixed(1)) : 0;
+
+        const uniqueParticipants = isGlobal
+          ? participants.length
+          : new Set(targetEnrollments.map(e => e.Participante_ID).filter(Boolean)).size;
+
+        return {
+          scope: isGlobal ? 'global' : 'event',
+          selectedEventId: cleanEventId || null,
+          totalEvents: events.length,
+          uniqueParticipants,
+          totalEnrollments,
+          paymentRate,
+          virtualRate,
+          fisicoRate,
+          recentLogs: (auditLogs || []).slice(-5).reverse()
+        };
+      }
+
+      const mockDashEvents = [
+        { Evento_ID: 'EVT-01', Titulo_Evento: 'Congreso Jurídico', Estado: 'Activo' },
+        { Evento_ID: 'EVT-02', Titulo_Evento: 'Taller Penal', Estado: 'Finalizado' },
+        { Evento_ID: 'EVT-03', Titulo_Evento: 'Seminario Vacío', Estado: 'Borrador' }
+      ];
+      const mockDashParticipants = [
+        { Participante_ID: 'P-1', DNI: '71234567' },
+        { Participante_ID: 'P-2', DNI: '72345678' }
+      ];
+      const mockDashEnrollments = [
+        { Inscripcion_ID: 'I-1', Participante_ID: 'P-1', Evento_ID: 'EVT-01', Estado_Pago: 'Pagado', Tipo_Certificado: 'Virtual' },
+        { Inscripcion_ID: 'I-2', Participante_ID: 'P-2', Evento_ID: 'EVT-01', Estado_Pago: 'Pendiente', Tipo_Certificado: 'Fisico' },
+        { Inscripcion_ID: 'I-3', Participante_ID: 'P-1', Evento_ID: 'EVT-02', Estado_Pago: 'Anulado', Tipo_Certificado: 'Virtual' }
+      ];
+      const mockDashAudits = [
+        { Log_ID: 'L-1', Timestamp: '2026-11-01 10:00:00' },
+        { Log_ID: 'L-2', Timestamp: '2026-11-02 12:00:00' }
+      ];
+
+      renderSuite('7. Dashboard Administrativo y Estadísticas (Fase E)', [
+        {
+          name: 'Estadísticas globales agregan participantes, inscripciones y eventos',
+          fn: () => {
+            const stats = simulateDashboardStats(mockDashEvents, mockDashEnrollments, mockDashParticipants, mockDashAudits, 'all');
+            return stats.scope === 'global' && stats.totalEvents === 3 && stats.totalEnrollments === 3 && stats.uniqueParticipants === 2;
+          }
+        },
+        {
+          name: 'Cálculo de tasa de conciliación excluye anulados: 1 pagado / (3 - 1 anulado) = 50.0%',
+          fn: () => {
+            const stats = simulateDashboardStats(mockDashEvents, mockDashEnrollments, mockDashParticipants, mockDashAudits, 'all');
+            return stats.paymentRate === 50.0;
+          }
+        },
+        {
+          name: 'Distribución por modalidad suma correctamente (66.7% virtual, 33.3% físico)',
+          fn: () => {
+            const stats = simulateDashboardStats(mockDashEvents, mockDashEnrollments, mockDashParticipants, mockDashAudits, 'all');
+            return stats.virtualRate === 66.7 && stats.fisicoRate === 33.3;
+          }
+        },
+        {
+          name: 'Filtrado por evento aisla inscripciones y participantes de EVT-01',
+          fn: () => {
+            const stats = simulateDashboardStats(mockDashEvents, mockDashEnrollments, mockDashParticipants, mockDashAudits, 'EVT-01');
+            return stats.scope === 'event' && stats.totalEnrollments === 2 && stats.paymentRate === 50.0;
+          }
+        },
+        {
+          name: 'Evento sin inscripciones retorna 0 en tasas sin NaN ni Infinity',
+          fn: () => {
+            const stats = simulateDashboardStats(mockDashEvents, mockDashEnrollments, mockDashParticipants, mockDashAudits, 'EVT-03');
+            return stats.totalEnrollments === 0 && stats.paymentRate === 0 && !isNaN(stats.paymentRate) && isFinite(stats.paymentRate) && stats.virtualRate === 0;
+          }
+        },
+        {
+          name: 'Rechazo descriptivo ante evento inexistente',
+          fn: () => {
+            try {
+              simulateDashboardStats(mockDashEvents, mockDashEnrollments, mockDashParticipants, mockDashAudits, 'EVT-FANTASMA');
+              return false;
+            } catch (e) {
+              return e.message.includes('no fue encontrado');
+            }
+          }
+        },
+        {
+          name: 'Auditoría reciente ordenada de forma descendente (el más reciente primero)',
+          fn: () => {
+            const stats = simulateDashboardStats(mockDashEvents, mockDashEnrollments, mockDashParticipants, mockDashAudits, 'all');
+            return stats.recentLogs.length === 2 && stats.recentLogs[0].Log_ID === 'L-2';
+          }
+        }
       ]);
 
       // Mostrar resumen

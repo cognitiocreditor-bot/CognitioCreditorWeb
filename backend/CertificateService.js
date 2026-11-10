@@ -74,6 +74,15 @@ const CertificateService = {
       let elegibleEmision = false;
       let codigoRegla = "";
       let mensajeRegla = "";
+      let entregaFisica = null;
+
+      if (ins.Tipo_Certificado === "Fisico") {
+        entregaFisica = {
+          fechas: evt ? (evt.Fecha_Entrega_Fisica || "Por coordinar con la directiva") : "Por coordinar",
+          lugar: evt ? (evt.Lugar_Entrega_Fisica || "FACEN - UNAP") : "FACEN - UNAP",
+          horario: evt ? (evt.Horario_Entrega_Fisica || "Horario académico") : "Horario académico"
+        };
+      }
 
       // REGLA E: Evento cancelado
       if (eventStatus === "Cancelado") {
@@ -85,24 +94,32 @@ const CertificateService = {
         codigoRegla = "REGLA_A_PAGO_PENDIENTE";
         mensajeRegla = "Tu inscripción está registrada, pero el pago está pendiente de confirmación. Si ya realizaste el pago, comunícate con la directiva por WhatsApp.";
       }
-      // REGLA B: Evento futuro o en curso (Fecha de Perú <= Fecha_Evento)
-      else if (eventDate && todayLimaStr <= eventDate) {
-        codigoRegla = "REGLA_B_FUTURO";
-        mensajeRegla = "Tu certificado estará disponible a partir del día siguiente al evento.";
-      }
-      // REGLA C: Certificado físico
-      else if (ins.Tipo_Certificado === "Fisico") {
-        codigoRegla = "REGLA_C_FISICO";
-        mensajeRegla = "Tu certificado es físico. Coordina su entrega o recojo con la directiva del círculo.";
-      }
-      // REGLA D: Certificado virtual elegible
-      else if (ins.Estado_Pago === "Pagado" && ins.Tipo_Certificado === "Virtual") {
-        elegibleEmision = true;
-        codigoRegla = "REGLA_D_VIRTUAL_LISTO";
-        mensajeRegla = "Certificado listo para generar y descargar.";
+      // Si el pago fue confirmado
+      else if (ins.Estado_Pago === "Pagado") {
+        // REGLA B: Evento futuro o en curso (todayLimaStr <= eventDate)
+        if (eventDate && todayLimaStr <= eventDate) {
+          elegibleEmision = false;
+          codigoRegla = "REGLA_B_FUTURO";
+          mensajeRegla = "Tu certificado estará disponible para descarga a partir del día siguiente al término del evento.";
+        } else {
+          // Evento ya culminó (todayLimaStr > eventDate) -> Elegible tanto para Virtual como Físico
+          elegibleEmision = true;
+          if (ins.Tipo_Certificado === "Fisico") {
+            codigoRegla = "REGLA_C_FISICO_Y_DIGITAL";
+            mensajeRegla = "Certificado digital listo para descargar. Además, revisa el cronograma de entrega física de tu certificado impreso.";
+          } else {
+            codigoRegla = "REGLA_D_VIRTUAL_LISTO";
+            mensajeRegla = "Certificado listo para generar y descargar.";
+          }
+        }
+      } else {
+        // En caso de que el estado de pago no sea Pagado ni Pendiente (ej. Anulado o Reembolsado)
+        elegibleEmision = false;
+        codigoRegla = "REGLA_A_PAGO_PENDIENTE";
+        mensajeRegla = "Estado de pago no confirmado. Comunícate con la directiva.";
       }
 
-      return {
+      const record = {
         Inscripcion_ID: ins.Inscripcion_ID,
         Evento_ID: ins.Evento_ID,
         Titulo_Evento: eventTitle,
@@ -113,6 +130,12 @@ const CertificateService = {
         Codigo_Regla: codigoRegla,
         Mensaje_Regla: mensajeRegla
       };
+
+      if (entregaFisica) {
+        record.entregaFisica = entregaFisica;
+      }
+
+      return record;
     });
 
     return {

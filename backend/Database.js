@@ -58,6 +58,34 @@ const Database = {
   },
 
   /**
+   * Sanitiza valores de celda para prevenir inyección de fórmulas (CSV / Formula Injection en Sheets/Excel).
+   * Si un texto comienza con '=', '+', '@', o '-' no numérico, antepone un apóstrofe para que Google Sheets
+   * lo interprete exclusivamente como texto literal plano.
+   * También asegura que DNI se conserve siempre en formato texto preservando ceros iniciales.
+   * @param {*} val - Valor a escribir
+   * @param {string} header - Nombre de la columna
+   * @returns {*} Valor seguro
+   */
+  sanitizeCellValue(val, header) {
+    if (val === null || val === undefined) return "";
+
+    // Forzar formato de texto para DNI anteponiendo apóstrofe si es string numérico
+    if (header === "DNI" && typeof val === "string") {
+      return val.startsWith("'") ? val : "'" + val;
+    }
+
+    // Sanitización activa contra Formula Injection
+    if (typeof val === "string" && val.length > 0) {
+      const firstChar = val.charAt(0);
+      if (firstChar === "=" || firstChar === "+" || firstChar === "@" || (firstChar === "-" && isNaN(Number(val)))) {
+        return val.startsWith("'") ? val : "'" + val;
+      }
+    }
+
+    return val;
+  },
+
+  /**
    * Inserta una fila en la hoja especificada respetando el orden de encabezados.
    * @param {string} sheetName
    * @param {Object} rowData
@@ -70,13 +98,7 @@ const Database = {
     for (let j = 0; j < headers.length; j++) {
       const header = headers[j];
       let val = rowData[header] !== undefined ? rowData[header] : "";
-
-      // Forzar formato de texto para DNI anteponiendo apóstrofe si es string numérico
-      if (header === "DNI" && typeof val === "string") {
-        newRow.push("'" + val);
-      } else {
-        newRow.push(val);
-      }
+      newRow.push(this.sanitizeCellValue(val, header));
     }
 
     sheet.appendRow(newRow);
@@ -95,7 +117,8 @@ const Database = {
       throw new Error(`La columna '${columnName}' no existe en '${sheetName}'.`);
     }
 
-    sheet.getRange(rowIndex, colIndex).setValue(newValue);
+    const safeValue = this.sanitizeCellValue(newValue, columnName);
+    sheet.getRange(rowIndex, colIndex).setValue(safeValue);
   },
 
   /**
@@ -133,12 +156,7 @@ const Database = {
     for (let j = 0; j < headers.length; j++) {
       const header = headers[j];
       if (rowData[header] !== undefined) {
-        let val = rowData[header];
-        if (header === "DNI" && typeof val === "string") {
-          currentRowValues[j] = "'" + val;
-        } else {
-          currentRowValues[j] = val;
-        }
+        currentRowValues[j] = this.sanitizeCellValue(rowData[header], header);
       }
     }
 
@@ -164,11 +182,7 @@ const Database = {
       for (let j = 0; j < headers.length; j++) {
         const header = headers[j];
         let val = rowData[header] !== undefined ? rowData[header] : "";
-        if (header === "DNI" && typeof val === "string") {
-          row.push("'" + val);
-        } else {
-          row.push(val);
-        }
+        row.push(this.sanitizeCellValue(val, header));
       }
       return row;
     });

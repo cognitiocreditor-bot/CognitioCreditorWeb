@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Administrativo y Emisión — Círculo de Estudios Cognitio Creditor | UNAP</title>
+  <title>Panel Administrativo y Emisión | Círculo de Estudios Cognitio Creditor | UNAP</title>
 
   <!-- Google Fonts: Inter de alta fidelidad -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=9">
+  <link rel="stylesheet" href="css/styles.css?v=10">
   <link rel="icon" href="assets/images/logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="assets/images/logo.jpg">
 
@@ -78,15 +78,49 @@
 
         <!-- Pestañas de Navegación del Panel con Scroll Táctil -->
         <nav class="admin-nav" aria-label="Secciones del panel de administración">
-          <button class="admin-tab-btn active" data-target="tab-events">1. Eventos</button>
+          <button class="admin-tab-btn active" data-target="tab-dashboard">Dashboard</button>
+          <button class="admin-tab-btn" data-target="tab-events">1. Eventos</button>
           <button class="admin-tab-btn" data-target="tab-enrollments">2. Inscripciones y Pagos</button>
           <button class="admin-tab-btn" data-target="tab-excel">3. Importación Excel</button>
           <button class="admin-tab-btn" data-target="tab-batch">4. Lote Certificados Físicos</button>
           <button class="admin-tab-btn" data-target="tab-audit">5. Auditoría</button>
+          <button class="admin-tab-btn" id="tab-btn-users" data-target="tab-users" style="display: none;">6. Directiva y Permisos</button>
         </nav>
 
+        <!-- PESTAÑA DASHBOARD: Métricas y Resumen Operativo -->
+        <div id="tab-dashboard" class="admin-tab-content">
+          <div class="admin-card">
+            <div class="admin-card-header dashboard-header">
+              <div>
+                <h2 style="color: var(--color-primary); font-size: 1.35rem; margin: 0;">
+                  Resumen Operativo y Métricas Clave
+                </h2>
+                <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                  Monitoreo en tiempo real de inscripciones, conciliación financiera y emisión de certificados.
+                </p>
+              </div>
+              <div class="admin-toolbar dashboard-toolbar">
+                <div class="admin-filter-row">
+                  <label for="dashboard-event-filter" style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0; white-space: nowrap;">Filtrar Evento:</label>
+                  <select id="dashboard-event-filter" class="form-control" style="padding: 0.35rem 0.65rem; font-size: 0.85rem; min-width: 220px;" onchange="window.CognitioAdmin.loadDashboard(this.value)">
+                    <option value="all" selected>Todos los Eventos (Vista Global)</option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.CognitioAdmin.loadDashboard()">↻ Actualizar Métricas</button>
+                <div class="dashboard-last-updated-wrap" style="font-size: 0.78rem; color: var(--color-text-muted); white-space: nowrap;">
+                  Última actualización: <strong id="dashboard-last-updated">Cargando...</strong>
+                </div>
+              </div>
+            </div>
+
+            <div id="dashboard-content-area" aria-live="polite">
+              <!-- Renderizado dinámico de KPIs, gráficos de distribución, tabla y actividad reciente -->
+            </div>
+          </div>
+        </div>
+
         <!-- PESTAÑA 1: Eventos -->
-        <div id="tab-events" class="admin-tab-content">
+        <div id="tab-events" class="admin-tab-content" style="display: none;">
           <div class="admin-card">
             <div class="admin-card-header">
               <h2 style="color: var(--color-primary); font-size: 1.35rem; margin: 0;">Catálogo General de Eventos</h2>
@@ -112,7 +146,17 @@
         <!-- PESTAÑA 2: Inscripciones y Pagos -->
         <div id="tab-enrollments" class="admin-tab-content" style="display: none;">
           <div class="admin-card">
-            <h2 style="color: var(--color-primary); font-size: 1.35rem; margin-bottom: 1rem;">Conciliación de Pagos e Inscripciones</h2>
+            <div class="admin-card-header">
+              <div>
+                <h2 style="color: var(--color-primary); font-size: 1.35rem; margin: 0;">Conciliación de Pagos e Inscripciones</h2>
+                <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                  Consulte participantes inscritos, gestione estados de pago o registre participantes de forma directa.
+                </p>
+              </div>
+              <div class="admin-toolbar">
+                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openRegisterParticipantModal()">+ Registrar Participante Individual</button>
+              </div>
+            </div>
             
             <div class="admin-enrollments-filter">
               <div class="form-group-grow">
@@ -196,6 +240,28 @@
           </div>
         </div>
 
+        <!-- PESTAÑA 6: Directiva y Permisos (Solo SuperAdmin) -->
+        <div id="tab-users" class="admin-tab-content" style="display: none;">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h2 style="color: var(--color-primary); font-size: 1.35rem; margin: 0;">Gestión de la Directiva y Permisos de Acceso</h2>
+                <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                  Administre los integrantes de la directiva institucional con cuentas de Google autorizadas y sus niveles de acceso (RBAC).
+                </p>
+              </div>
+              <div class="admin-toolbar">
+                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openNewUserModal()">+ Registrar Directivo</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.CognitioAdmin.loadAdminUsers()">↻ Actualizar Lista</button>
+              </div>
+            </div>
+
+            <div id="admin-users-list" class="admin-table-container">
+              <p style="color: var(--color-text-muted); padding: 0.5rem 0;">Haga clic en 'Actualizar Lista' para consultar la directiva.</p>
+            </div>
+          </div>
+        </div>
+
       </section>
 
     </div>
@@ -271,6 +337,32 @@
           <label for="event-form-desc" class="form-label">Descripción Académica *</label>
           <textarea id="event-form-desc" class="form-control" rows="3" required placeholder="Detalle temático del evento..."></textarea>
         </div>
+
+        <!-- Sección: Entrega de Certificados Físicos -->
+        <fieldset class="admin-form-section" style="margin-top: 1.25rem; margin-bottom: 1.25rem; padding: 1.15rem; background: var(--color-bg-alt); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+          <legend style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 700; color: var(--color-primary); padding: 0 0.5rem;">
+            <span aria-hidden="true">📦</span> Entrega de Certificados Físicos (Opcional)
+          </legend>
+          <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.85rem; line-height: 1.4;">
+            Configure las fechas, lugar y horario de atención presencial para los participantes que adquirieron certificado físico impreso.
+          </p>
+
+          <div class="form-group">
+            <label for="event-form-physical-dates" class="form-label">Fechas de Entrega</label>
+            <input type="text" id="event-form-physical-dates" class="form-control" placeholder="Ej. Del 25 al 28 de Noviembre de 2026">
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="event-form-physical-place" class="form-label">Lugar de Entrega</label>
+              <input type="text" id="event-form-physical-place" class="form-control" placeholder="Ej. Oficina FACEN - UNAP, 2do Piso">
+            </div>
+            <div class="form-group">
+              <label for="event-form-physical-time" class="form-label">Horario de Atención</label>
+              <input type="text" id="event-form-physical-time" class="form-control" placeholder="Ej. 09:00 a 13:00 y 15:00 a 18:00 hrs">
+            </div>
+          </div>
+        </fieldset>
 
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-event')">Cancelar</button>
@@ -396,11 +488,200 @@
     </div>
   </div>
 
+  <!-- MODAL: Gestionar Estado de Pago de Inscripción (Reversibilidad y Auditoría) -->
+  <div id="modal-payment-status" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-payment-status-title">
+    <div class="modal-box" style="max-width: 530px;">
+      <div class="modal-header">
+        <h3 id="modal-payment-status-title">Gestionar Estado de Pago de Inscripción</h3>
+        <button class="modal-close-btn" onclick="window.CognitioAdmin.closeModal('modal-payment-status')" aria-label="Cerrar modal">&times;</button>
+      </div>
+      <form id="form-payment-status" onsubmit="event.preventDefault(); window.CognitioAdmin.savePaymentStatusChange();">
+        <input type="hidden" id="payment-modal-enrollment-id">
+
+        <!-- Detalles de solo lectura del participante e inscripción -->
+        <div class="payment-modal-summary">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+            <div>
+              <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); font-weight: 700;">Participante</span>
+              <strong id="payment-modal-participant-name" style="font-size: 1rem; color: var(--color-text-main); display: block; margin-top: 2px;">-</strong>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); font-weight: 700;">Inscripción</span>
+              <div><code id="payment-modal-enrollment-code" style="font-size: 0.85rem; font-weight: 600; background: var(--color-surface); padding: 2px 6px; border-radius: var(--radius-xs); border: 1px solid var(--color-border);">-</code></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--color-border); padding-top: 0.65rem; margin-top: 0.35rem;">
+            <span style="font-size: 0.82rem; color: var(--color-text-muted);">Estado Actual Registrado:</span>
+            <span id="payment-modal-current-status" class="badge badge-secondary">-</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="payment-modal-new-status" class="form-label">Nuevo Estado de Pago *</label>
+          <select id="payment-modal-new-status" class="form-control" required onchange="window.CognitioAdmin.onPaymentStatusSelectChange(this.value)">
+            <option value="Pagado">Pagado (Confirmar o mantener pago)</option>
+            <option value="Pendiente">Pendiente (Revertir a pago pendiente)</option>
+            <option value="Anulado">Anulado (Operación anulada)</option>
+            <option value="Reembolsado">Reembolsado (Abono devuelto al participante)</option>
+          </select>
+          <small style="color: var(--color-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+            El cambio actualizará el acceso a constancias y diplomas de forma reversible y auditable.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="payment-modal-reason" class="form-label">
+            Motivo de la Corrección o Justificación
+            <span id="payment-modal-reason-req" style="color: var(--color-danger); font-size: 0.8rem; font-weight: 600;">*</span>
+          </label>
+          <textarea id="payment-modal-reason" class="form-control" rows="3" placeholder="Indique detalladamente el motivo de la corrección o cambio de estado (ej: Voucher digitado por error, Reembolso solicitado por participante, etc.)"></textarea>
+          <small id="payment-modal-reason-help" style="color: var(--color-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+            Obligatorio al revertir a Pendiente, Anular o Reembolsar. Queda registrado en la bitácora de auditoría inmutable.
+          </small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-payment-status')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-payment-status">Guardar Cambio de Estado</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Registrar / Modificar Directivo -->
+  <div id="modal-admin-user" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="modal-admin-user-title">Registrar Nuevo Directivo</h3>
+        <button class="modal-close-btn" onclick="window.CognitioAdmin.closeModal('modal-admin-user')" aria-label="Cerrar modal">&times;</button>
+      </div>
+      <form id="form-admin-user" onsubmit="event.preventDefault(); window.CognitioAdmin.saveAdminUser();">
+        <input type="hidden" id="admin-user-form-id">
+
+        <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 1rem;">
+          Ingrese la cuenta institucional de Google con la que el integrante de la directiva accederá al panel administrativo.
+        </p>
+
+        <div class="form-group">
+          <label for="admin-user-form-email" class="form-label">Correo de Google Institucional *</label>
+          <input type="email" id="admin-user-form-email" class="form-control" required placeholder="directivo@unap.edu.pe o @gmail.com" autocomplete="email">
+          <small style="color: var(--color-text-muted); font-size: 0.75rem;">
+            Debe coincidir con la cuenta de Google utilizada al iniciar sesión.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="admin-user-form-name" class="form-label">Nombre Completo del Directivo *</label>
+          <input type="text" id="admin-user-form-name" class="form-control" required placeholder="Ej. Dr. Juan Carlos Mendoza">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="admin-user-form-role" class="form-label">Nivel de Rol (RBAC) *</label>
+            <select id="admin-user-form-role" class="form-control" required>
+              <option value="Operador">Operador (Conciliador y Consultas)</option>
+              <option value="Admin" selected>Admin (Gestor de Eventos y Emisión)</option>
+              <option value="SuperAdmin">SuperAdmin (Control Total de la Directiva)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="admin-user-form-status" class="form-label">Estado de Acceso *</label>
+            <select id="admin-user-form-status" class="form-control" required>
+              <option value="Activo" selected>Activo (Habilitado)</option>
+              <option value="Inactivo">Inactivo (Revocado)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-admin-user')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-admin-user">Guardar Directivo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Registrar Participante Individual Administrativamente -->
+  <div id="modal-admin-register-participant" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-admin-register-title">
+    <div class="modal-box" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 id="modal-admin-register-title">Registrar Participante Individual</h3>
+        <button type="button" class="modal-close-btn" onclick="window.CognitioAdmin.closeModal('modal-admin-register-participant')" aria-label="Cerrar modal">&times;</button>
+      </div>
+      <form id="form-admin-register-participant" onsubmit="event.preventDefault(); window.CognitioAdmin.saveIndividualParticipant();">
+        <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 1.25rem;">
+          Inscriba directamente a un participante en el evento seleccionado. Si el DNI ya fue registrado en eventos anteriores, se reutilizarán sus datos sin duplicar participantes.
+        </p>
+
+        <div class="form-group">
+          <label for="admin-reg-event-select" class="form-label">Evento de Destino *</label>
+          <select id="admin-reg-event-select" class="form-control" required></select>
+          <small style="color: var(--color-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+            Seleccione el evento académico al que se inscribirá el participante.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="admin-reg-dni" class="form-label">DNI del Participante (8 dígitos) *</label>
+          <div class="input-with-icon">
+            <svg class="input-prefix-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+              <line x1="2" x2="22" y1="10" y2="10"></line>
+            </svg>
+            <input type="text" id="admin-reg-dni" class="form-control form-control-dni" maxlength="8" required pattern="\d{8}" inputmode="numeric" placeholder="71234567" autocomplete="off">
+            <span class="dni-status-indicator" id="admin-reg-dni-indicator" aria-live="polite">0/8</span>
+          </div>
+          <small style="color: var(--color-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+            Debe contener exactamente 8 dígitos numéricos.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="admin-reg-name" class="form-label">Nombre Completo Formal *</label>
+          <input type="text" id="admin-reg-name" class="form-control" required placeholder="Nombres y apellidos completos (tal como figurará en certificado)">
+          <small style="color: var(--color-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+            Mínimo 3 caracteres. Se normalizará a mayúsculas institucionales.
+          </small>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="admin-reg-cert-type" class="form-label">Tipo de Certificado *</label>
+            <select id="admin-reg-cert-type" class="form-control">
+              <option value="Virtual">Virtual (PDF descargable)</option>
+              <option value="Fisico">Físico (Entrega presencial)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="admin-reg-payment-status" class="form-label">Estado Inicial de Pago *</label>
+            <select id="admin-reg-payment-status" class="form-control">
+              <option value="Pendiente">Pendiente de Pago</option>
+              <option value="Pagado">Pagado (Confirmado en el acto)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="admin-reg-voucher" class="form-label">Referencia / Comprobante (Opcional)</label>
+          <input type="text" id="admin-reg-voucher" class="form-control" placeholder="Ej. OP-123456, EFECTIVO o YAPE">
+          <small style="color: var(--color-text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+            Número de operación bancaria, voucher o recibo físico.
+          </small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-admin-register-participant')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-admin-register">Completar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Pie de Página Institucional -->
   <footer class="site-footer">
     <div class="container footer-bottom">
-      <p>&copy; Círculo de Estudios Cognitio Creditor — Panel Administrativo Oficial &bull; UNAP</p>
-      <p><a href="index.html" class="footer-link">← Ir al Portal Público</a></p>
+      <p>&copy; Círculo de Estudios Cognitio Creditor &bull; Panel Administrativo Oficial &bull; UNAP</p>
+      <p><a href="index.html" class="footer-link">Ir al Portal Público</a></p>
     </div>
   </footer>
 
@@ -409,6 +690,8 @@
 
     window.CognitioAdmin = {
       logout: () => Admin.logout(),
+      loadDashboard: (eventId) => Admin.loadDashboard(eventId),
+      viewEventEnrollments: (eventId) => Admin.viewEventEnrollments(eventId),
       loadEvents: () => Admin.loadEvents(),
       openNewEventModal: () => Admin.openNewEventModal(),
       editEvent: (id) => Admin.editEvent(id),
@@ -420,12 +703,22 @@
       saveCertConfig: () => Admin.saveCertConfig(),
       loadEnrollments: () => Admin.loadEnrollments(),
       confirmPayment: (id) => Admin.confirmPayment(id),
+      openPaymentModal: (enrollmentId, currentStatus, participantName) => Admin.openPaymentModal(enrollmentId, currentStatus, participantName),
+      savePaymentStatusChange: () => Admin.savePaymentStatusChange(),
+      onPaymentStatusSelectChange: (st) => Admin.onPaymentStatusSelectChange(st),
       openEditParticipantModal: (partId, dni, name) => Admin.openEditParticipantModal(partId, dni, name),
       saveParticipant: () => Admin.saveParticipant(),
+      openRegisterParticipantModal: () => Admin.openRegisterParticipantModal(),
+      saveIndividualParticipant: () => Admin.saveIndividualParticipant(),
       executeExcelImport: () => Admin.executeExcelImport(),
       executeBatchPhysicalEmission: () => Admin.executeBatchPhysicalEmission(),
       loadAuditLogs: () => Admin.loadAuditLogs(),
-      closeModal: (id) => Admin.closeModal(id)
+      closeModal: (id) => Admin.closeModal(id),
+      loadAdminUsers: () => Admin.loadAdminUsers(),
+      openNewUserModal: () => Admin.openNewUserModal(),
+      openEditUserModal: (userId) => Admin.openEditUserModal(userId),
+      saveAdminUser: () => Admin.saveAdminUser(),
+      revokeAdminUser: (userId, currentStatus) => Admin.revokeAdminUser(userId, currentStatus)
     };
 
     document.addEventListener('DOMContentLoaded', () => {

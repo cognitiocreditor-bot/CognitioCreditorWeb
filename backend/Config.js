@@ -13,10 +13,25 @@ const CONFIG = {
     PARTICIPANTES: "Participantes",
     INSCRIPCIONES: "Inscripciones",
     CONFIG_CERT: "Configuracion_Certificados",
-    AUDITORIA: "Logs_Auditoria"
+    AUDITORIA: "Logs_Auditoria",
+    USUARIOS_ADMIN: "Usuarios_Admin"
   },
 
-  // Lista blanca de correos de Google autorizados para operar el panel administrativo
+  // SuperAdmins con privilegios bootstrap de rescate e inicialización
+  BOOTSTRAP_SUPERADMINS: [
+    "valentinbabiloniarodriguez@gmail.com",
+    "danielgarciaisern6c@gmail.com",
+    "cognitiocreditor@gmail.com"
+  ],
+
+  // Definición de Roles del sistema de Control de Acceso Basado en Roles (RBAC)
+  ROLES: {
+    SUPERADMIN: "SuperAdmin",
+    ADMIN: "Admin",
+    OPERADOR: "Operador"
+  },
+
+  // Lista blanca de correos de respaldo para compatibilidad histórica
   ADMIN_EMAILS: [
     "valentinbabiloniarodriguez@gmail.com",
     "danielgarciaisern6c@gmail.com",

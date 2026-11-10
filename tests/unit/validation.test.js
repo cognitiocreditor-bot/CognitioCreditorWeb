@@ -42,12 +42,21 @@ assert(Validation.isValidFullName('María de los Ángeles Peña') === true, 'Nom
 assert(Validation.isValidFullName('Al') === false, 'Nombre menor a 3 caracteres es inválido');
 assert(Validation.isValidFullName('Juan <script>alert(1)</script>') === false, 'Inyección de script rechazada');
 
-// 4. Sanitización XSS
-console.log('\n[4] Sanitización contra XSS:');
+// 4. Sanitización XSS y Formula Injection
+console.log('\n[4] Sanitización contra XSS y Formula Injection:');
 const dangerousString = '<img src=x onerror="alert(\'xss\')">';
 const escaped = Validation.escapeHTML(dangerousString);
 assert(!escaped.includes('<') && !escaped.includes('>'), 'Caracteres < y > correctamente escapados');
 assert(escaped.includes('&lt;') && escaped.includes('&gt;'), 'Entidades HTML generadas');
+
+// Formula injection
+assert(Validation.sanitizeFormula('=cmd|/c calc') === "'=cmd|/c calc", 'Fórmula que inicia con = es neutralizada con apóstrofe');
+assert(Validation.sanitizeFormula('+cmd|/c calc') === "'+cmd|/c calc", 'Fórmula que inicia con + es neutralizada con apóstrofe');
+assert(Validation.sanitizeFormula('@SUM(A1:B10)') === "'@SUM(A1:B10)", 'Fórmula que inicia con @ es neutralizada con apóstrofe');
+assert(Validation.sanitizeFormula('-cmd') === "'-cmd", 'Texto que inicia con - no numérico es neutralizado con apóstrofe');
+assert(Validation.sanitizeFormula('-125.50') === '-125.50', 'Número negativo válido no es alterado');
+assert(Validation.sanitizeFormula("'=ya_seguro") === "'=ya_seguro", 'Cadena que ya cuenta con apóstrofe no lo duplica');
+assert(Validation.sanitizeFormula('Juan Perez') === 'Juan Perez', 'Texto normal permanece inalterado');
 
 // 5. Normalización de Nombre
 console.log('\n[5] Normalización de Nombres:');

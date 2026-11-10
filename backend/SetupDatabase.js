@@ -21,9 +21,10 @@ function setupCognitioDatabase() {
         "Evento_ID", "Titulo_Evento", "Descripcion", "Fecha_Evento",
         "Hora_Evento", "Expositor", "Imagen_URL", "Link_Formulario",
         "Link_Plantilla", "Estado", "Modalidad", "Fecha_Publicacion",
-        "Configuracion_Certificado_ID"
+        "Configuracion_Certificado_ID", "Fecha_Entrega_Fisica",
+        "Lugar_Entrega_Fisica", "Horario_Entrega_Fisica"
       ],
-      textColumns: [1, 9, 13], // A, I, M
+      textColumns: [1, 9, 13, 14, 15, 16], // A, I, M, N, O, P
       validations: [
         {
           column: 10, // J: Estado
@@ -99,6 +100,25 @@ function setupCognitioDatabase() {
       ]
     },
     {
+      name: "Usuarios_Admin",
+      headers: [
+        "Usuario_ID", "Email", "Nombre_Completo", "Rol", "Estado", "Fecha_Alta", "Creado_Por", "Ultimo_Acceso"
+      ],
+      textColumns: [1, 2, 4], // A: Usuario_ID, B: Email, D: Rol
+      validations: [
+        {
+          column: 4, // D: Rol
+          type: "list",
+          values: ["SuperAdmin", "Admin", "Operador"]
+        },
+        {
+          column: 5, // E: Estado
+          type: "list",
+          values: ["Activo", "Inactivo"]
+        }
+      ]
+    },
+    {
       name: "Logs_Auditoria",
       headers: [
         "Log_ID", "Timestamp", "Usuario_Admin", "Accion", "Entidad_Afectada", "Detalle"
@@ -108,7 +128,13 @@ function setupCognitioDatabase() {
         {
           column: 4, // D: Accion
           type: "list",
-          values: ["CONFIRMAR_PAGO", "CREAR_EVENTO", "EDITAR_EVENTO", "GENERAR_LOTE_FISICO", "IMPORTAR_EXCEL", "LOGIN_ADMIN"]
+          allowInvalid: true,
+          values: [
+            "CAMBIO_ESTADO_PAGO", "REGISTRO_INDIVIDUAL_ADMIN", "CONFIRMAR_PAGO",
+            "CREAR_EVENTO", "EDITAR_EVENTO", "ELIMINAR_EVENTO", "TOGGLE_EVENTO",
+            "CONFIGURAR_CERTIFICADO", "EDITAR_PARTICIPANTE", "GENERAR_LOTE_FISICO",
+            "IMPORTAR_EXCEL", "LOGIN_ADMIN", "GUARDAR_USUARIO_ADMIN", "REVOCAR_USUARIO_ADMIN"
+          ]
         }
       ]
     }
@@ -160,10 +186,11 @@ function setupCognitioDatabase() {
     if (def.validations) {
       def.validations.forEach(val => {
         const targetRange = sheet.getRange(2, val.column, numRows, 1);
+        const allowInvalid = val.allowInvalid === true;
         const rule = SpreadsheetApp.newDataValidation()
           .requireValueInList(val.values, true)
-          .setAllowInvalid(false)
-          .setHelpText(`Seleccione uno de los valores permitidos: ${val.values.join(", ")}`)
+          .setAllowInvalid(allowInvalid)
+          .setHelpText(`Valores recomendados: ${val.values.join(", ")}`)
           .build();
         targetRange.setDataValidation(rule);
       });

@@ -32,7 +32,10 @@ const EventService = {
       Imagen_URL: evt.Imagen_URL,
       Link_Formulario: evt.Link_Formulario,
       Modalidad: evt.Modalidad,
-      Estado: evt.Estado
+      Estado: evt.Estado,
+      Fecha_Entrega_Fisica: evt.Fecha_Entrega_Fisica || "",
+      Lugar_Entrega_Fisica: evt.Lugar_Entrega_Fisica || "",
+      Horario_Entrega_Fisica: evt.Horario_Entrega_Fisica || ""
     }));
 
     try {
@@ -58,7 +61,12 @@ const EventService = {
    * Obtiene todos los eventos (uso administrativo).
    */
   getAllEventsAdmin() {
-    return Database.getAll(CONFIG.SHEETS.EVENTOS);
+    return Database.getAll(CONFIG.SHEETS.EVENTOS).map(evt => ({
+      ...evt,
+      Fecha_Entrega_Fisica: evt.Fecha_Entrega_Fisica || "",
+      Lugar_Entrega_Fisica: evt.Lugar_Entrega_Fisica || "",
+      Horario_Entrega_Fisica: evt.Horario_Entrega_Fisica || ""
+    }));
   },
 
   /**
@@ -119,7 +127,10 @@ const EventService = {
         Estado: String(eventData.Estado || "Activo").trim(),
         Modalidad: String(eventData.Modalidad || "Virtual").trim(),
         Fecha_Publicacion: target && target.Fecha_Publicacion ? target.Fecha_Publicacion : todayLimaStr,
-        Configuracion_Certificado_ID: target && target.Configuracion_Certificado_ID ? target.Configuracion_Certificado_ID : "CFG-" + eventId
+        Configuracion_Certificado_ID: target && target.Configuracion_Certificado_ID ? target.Configuracion_Certificado_ID : "CFG-" + eventId,
+        Fecha_Entrega_Fisica: String(eventData.Fecha_Entrega_Fisica !== undefined ? eventData.Fecha_Entrega_Fisica : (target ? target.Fecha_Entrega_Fisica : "") || "").trim(),
+        Lugar_Entrega_Fisica: String(eventData.Lugar_Entrega_Fisica !== undefined ? eventData.Lugar_Entrega_Fisica : (target ? target.Lugar_Entrega_Fisica : "") || "").trim(),
+        Horario_Entrega_Fisica: String(eventData.Horario_Entrega_Fisica !== undefined ? eventData.Horario_Entrega_Fisica : (target ? target.Horario_Entrega_Fisica : "") || "").trim()
       };
 
       if (isEdit && target) {

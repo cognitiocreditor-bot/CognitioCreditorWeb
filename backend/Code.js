@@ -58,22 +58,55 @@ function doPost(e) {
       return jsonResponse({ success: true, data: adminUser });
     }
 
+    if (action === "adminGetUsers") {
+      if (!AuthService.hasPermission(adminUser.role, "SuperAdmin")) {
+        throw new Error("No cuenta con privilegios de SuperAdmin.");
+      }
+      const users = AdminService.getAdminUsers();
+      return jsonResponse({ success: true, data: users });
+    }
+
+    if (action === "adminSaveUser") {
+      if (!AuthService.hasPermission(adminUser.role, "SuperAdmin")) {
+        throw new Error("No cuenta con privilegios de SuperAdmin.");
+      }
+      const res = AdminService.saveAdminUser(payload, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
+    if (action === "adminRevokeUser") {
+      if (!AuthService.hasPermission(adminUser.role, "SuperAdmin")) {
+        throw new Error("No cuenta con privilegios de SuperAdmin.");
+      }
+      const res = AdminService.revokeAdminUser(payload.userId, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
     if (action === "adminGetEvents") {
       const events = EventService.getAllEventsAdmin();
       return jsonResponse({ success: true, data: events });
     }
 
     if (action === "adminSaveEvent") {
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para crear o editar eventos.");
+      }
       const res = EventService.saveEvent(payload, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
 
     if (action === "adminDeleteEvent") {
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para eliminar eventos.");
+      }
       const res = EventService.deleteEvent(payload.eventId, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
 
     if (action === "adminToggleEventStatus") {
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para modificar el estado del evento.");
+      }
       const res = EventService.toggleEventStatus(payload.eventId, payload.nextStatus, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
@@ -84,6 +117,9 @@ function doPost(e) {
     }
 
     if (action === "adminSaveCertConfig") {
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para configurar plantillas.");
+      }
       const res = AdminService.saveCertConfig(payload, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
@@ -94,16 +130,33 @@ function doPost(e) {
     }
 
     if (action === "adminUpdatePaymentStatus") {
-      const res = AdminService.updatePaymentStatus(payload.enrollmentId, payload.status, adminUser.email);
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para modificar estados de pago.");
+      }
+      const res = AdminService.updatePaymentStatus(payload.enrollmentId, payload.status, payload.reason, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
 
     if (action === "adminUpdateParticipant") {
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para modificar datos de participantes.");
+      }
       const res = AdminService.updateParticipant(payload, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
 
+    if (action === "adminRegisterParticipant") {
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para registrar participantes.");
+      }
+      const res = AdminService.registerIndividualParticipant(payload, adminUser.email);
+      return jsonResponse({ success: true, data: res });
+    }
+
     if (action === "adminBatchImport") {
+      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
+        throw new Error("No cuenta con privilegios de Administrador para realizar importaciones masivas.");
+      }
       const res = AdminService.batchImport(payload.eventId, payload.records, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
@@ -115,6 +168,12 @@ function doPost(e) {
 
     if (action === "adminGetAuditLogs") {
       const res = AdminService.getAuditLogs(payload ? payload.limit : 100);
+      return jsonResponse({ success: true, data: res });
+    }
+
+    if (action === "adminGetDashboardStats") {
+      const eventId = payload ? payload.eventId : null;
+      const res = AdminService.getDashboardStats(eventId, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }
 

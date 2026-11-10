@@ -75,6 +75,22 @@ export const Validation = {
   },
 
   /**
+   * Neutraliza inyecciones de fórmulas (CSV / Formula Injection).
+   * Si una cadena de texto comienza con '=', '+', '@', o '-' no numérico,
+   * antepone un apóstrofe para evitar ejecución de comandos en hojas de cálculo.
+   * @param {string} val
+   * @returns {string}
+   */
+  sanitizeFormula(val) {
+    if (typeof val !== "string" || val.length === 0) return val;
+    const firstChar = val.charAt(0);
+    if (firstChar === "=" || firstChar === "+" || firstChar === "@" || (firstChar === "-" && isNaN(Number(val)))) {
+      return val.startsWith("'") ? val : "'" + val;
+    }
+    return val;
+  },
+
+  /**
    * Normaliza un nombre en mayúsculas sin espacios redundantes.
    * @param {string} name
    * @returns {string}
