@@ -4,11 +4,28 @@
  */
 
 const Database = {
+  _cachedSpreadsheet: null,
+
   getSpreadsheet() {
-    if (CONFIG.SPREADSHEET_ID && !CONFIG.SPREADSHEET_ID.includes("TU_SPREADSHEET_ID")) {
-      return SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    if (this && this._cachedSpreadsheet) {
+      return this._cachedSpreadsheet;
     }
-    return SpreadsheetApp.getActiveSpreadsheet();
+    if (Database._cachedSpreadsheet) {
+      return Database._cachedSpreadsheet;
+    }
+
+    let ss = null;
+    if (CONFIG.SPREADSHEET_ID && !CONFIG.SPREADSHEET_ID.includes("TU_SPREADSHEET_ID")) {
+      ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    } else {
+      ss = SpreadsheetApp.getActiveSpreadsheet();
+    }
+
+    if (this) {
+      this._cachedSpreadsheet = ss;
+    }
+    Database._cachedSpreadsheet = ss;
+    return ss;
   },
 
   getSheet(sheetName) {

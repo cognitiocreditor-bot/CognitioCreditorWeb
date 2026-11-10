@@ -4,9 +4,10 @@
   "type": "module",
   "description": "Sistema de Emisión, Validación y Gestión de Certificados Académicos - Círculo de Estudios Cognitio Creditor",
   "scripts": {
-    "test": "node tests/unit/business-rules.test.js && node tests/unit/rbac-auth.test.js && node tests/unit/validation.test.js && node tests/unit/payment-transitions.test.js && node tests/unit/individual-registration.test.js && node tests/unit/dashboard-stats.test.js",
+    "test": "node tests/unit/business-rules.test.js && node tests/unit/rbac-auth.test.js && node tests/unit/validation.test.js && node tests/unit/payment-transitions.test.js && node tests/unit/individual-registration.test.js && node tests/unit/dashboard-stats.test.js && node tests/unit/admin-performance-dashboard.test.js",
     "test:payments": "node tests/unit/payment-transitions.test.js",
     "test:individual": "node tests/unit/individual-registration.test.js",
-    "test:dashboard": "node tests/unit/dashboard-stats.test.js"
+    "test:dashboard": "node tests/unit/dashboard-stats.test.js",
+    "test:admin": "node tests/unit/admin-performance-dashboard.test.js"
   }
 }

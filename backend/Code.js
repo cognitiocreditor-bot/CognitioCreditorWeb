@@ -131,8 +131,8 @@ function doPost(e) {
     }
 
     if (action === "adminUpdatePaymentStatus") {
-      if (!AuthService.hasPermission(adminUser.role, "Admin")) {
-        throw new Error("No cuenta con privilegios de Administrador para modificar estados de pago.");
+      if (!AuthService.hasPermission(adminUser.role, "Operador")) {
+        throw new Error("No cuenta con privilegios de Operador para modificar estados de pago.");
       }
       const res = AdminService.updatePaymentStatus(payload.enrollmentId, payload.status, payload.reason, adminUser.email);
       return jsonResponse({ success: true, data: res });
@@ -173,7 +173,7 @@ function doPost(e) {
     }
 
     if (action === "adminGetDashboardStats") {
-      const eventId = payload ? payload.eventId : null;
+      const eventId = (payload && typeof payload === "object") ? (payload.eventId || null) : (typeof payload === "string" ? payload : null);
       const res = AdminService.getDashboardStats(eventId, adminUser.email);
       return jsonResponse({ success: true, data: res });
     }

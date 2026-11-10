@@ -17,6 +17,9 @@ export const Admin = {
   enrollmentsCache: [],
   usersCache: [],
   eventFilter: 'active',
+  dashboardDirty: false,
+  isRefreshingDashboard: false,
+  isUpdatingPayment: false,
 
   /**
    * Inicializa el entorno administrativo.
@@ -25,6 +28,7 @@ export const Admin = {
     this.setupAuth();
     this.setupTabs();
     this.setupDNIIndicators();
+    this.setupModalDismissals();
     await this.restoreSession();
   },
 
@@ -237,7 +241,10 @@ export const Admin = {
         if (targetContent) targetContent.style.display = 'block';
 
         if (targetId === 'tab-dashboard') {
-          this.loadDashboard();
+          if (this.dashboardDirty || !document.querySelector('.dashboard-kpi-card')) {
+            this.loadDashboard();
+            this.dashboardDirty = false;
+          }
         }
         if (targetId === 'tab-events') {
           this.loadEvents();
@@ -247,6 +254,30 @@ export const Admin = {
         }
         if (targetId === 'tab-users') {
           this.loadAdminUsers();
+        }
+      });
+    });
+  },
+
+  /**
+   * Configura listeners ergonómicos para cierre de modales con tecla ESC y clics en el backdrop.
+   */
+  setupModalDismissals() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        const openBackdrops = document.querySelectorAll('.modal-backdrop');
+        openBackdrops.forEach(backdrop => {
+          if (backdrop.style.display === 'flex' && backdrop.id) {
+            this.closeModal(backdrop.id);
+          }
+        });
+      }
+    });
+
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop && backdrop.id) {
+          this.closeModal(backdrop.id);
         }
       });
     });
@@ -300,12 +331,17 @@ export const Admin = {
   /**
    * Carga y renderiza el Dashboard Administrativo con KPIs, barras semánticas,
    * tabla resumen por evento y auditoría en vivo.
-   * Consume la acción 'adminGetDashboardStats' del backend.
+   * Consume la acción 'adminGetDashboardStats' del backend con soporte de recarga silenciosa.
    * @param {string|null} [eventId=null] - ID del evento a filtrar o 'all' para consolidado
+   * @param {Object} [options={}] - { silent: boolean } para actualizar sin skeleton parpadeante
    */
-  async loadDashboard(eventId = null) {
+  async loadDashboard(eventId = null, options = {}) {
+    const { silent = false } = options;
     const contentArea = document.getElementById('dashboard-content-area');
     if (!contentArea) return;
+
+    if (this.isRefreshingDashboard) return;
+    this.isRefreshingDashboard = true;
 
     const filterSelect = document.getElementById('dashboard-event-filter');
     const selectedEventId = eventId !== null ? eventId : (filterSelect?.value || 'all');
@@ -313,19 +349,23 @@ export const Admin = {
       filterSelect.value = selectedEventId;
     }
 
-    // 1. Estado de Carga Visual (Skeleton Shimmer de Alta Precisión)
-    contentArea.innerHTML = `
-      <div class="dashboard-skeleton-grid" aria-busy="true" aria-label="Cargando métricas analíticas...">
-        <div class="dashboard-skeleton-kpi"></div>
-        <div class="dashboard-skeleton-kpi"></div>
-        <div class="dashboard-skeleton-kpi"></div>
-        <div class="dashboard-skeleton-kpi"></div>
-      </div>
-      <div class="dashboard-sections-flow">
-        <div class="dashboard-skeleton-block"></div>
-        <div class="dashboard-skeleton-block"></div>
-      </div>
-    `;
+    const hasExistingContent = contentArea.querySelector('.dashboard-kpi-card');
+
+    // 1. Estado de Carga Visual (Solo si no es recarga silenciosa o si aún no hay contenido)
+    if (!silent || !hasExistingContent) {
+      contentArea.innerHTML = `
+        <div class="dashboard-skeleton-grid" aria-busy="true" aria-label="Cargando métricas analíticas...">
+          <div class="dashboard-skeleton-kpi"></div>
+          <div class="dashboard-skeleton-kpi"></div>
+          <div class="dashboard-skeleton-kpi"></div>
+          <div class="dashboard-skeleton-kpi"></div>
+        </div>
+        <div class="dashboard-sections-flow">
+          <div class="dashboard-skeleton-block"></div>
+          <div class="dashboard-skeleton-block"></div>
+        </div>
+      `;
+    }
 
     try {
       // Asegurar que eventsCache esté disponible para nombres de eventos y filtros
@@ -351,6 +391,7 @@ export const Admin = {
 
       // 3. Renderizar componentes analíticos
       this.renderDashboardView(stats, selectedEventId);
+      this.dashboardDirty = false;
 
       // 4. Actualizar timestamp accesible de sincronización
       const lastUpdatedEl = document.getElementById('dashboard-last-updated');
@@ -362,14 +403,35 @@ export const Admin = {
       }
     } catch (err) {
       console.error('[Admin Dashboard] Error en loadDashboard:', err);
-      contentArea.innerHTML = `
-        <div class="alert alert-danger" style="margin-top: 1rem;">
-          <strong>No fue posible sincronizar el Dashboard:</strong> ${Validation.escapeHTML(err.message || 'Error de red o comunicación con Google Apps Script.')}
-          <div style="margin-top: 0.75rem;">
-            <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.loadDashboard('${selectedEventId}')">↻ Reintentar</button>
+      if (!silent || !hasExistingContent) {
+        contentArea.innerHTML = `
+          <div class="alert alert-danger" style="margin-top: 1rem;">
+            <strong>No fue posible sincronizar el Dashboard:</strong> ${Validation.escapeHTML(err.message || 'Error de red o comunicación con Google Apps Script.')}
+            <div style="margin-top: 0.75rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.loadDashboard('${selectedEventId}')">↻ Reintentar</button>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
+    } finally {
+      this.isRefreshingDashboard = false;
+    }
+  },
+
+  /**
+   * Notifica cambios en los datos del sistema (pagos, eventos, participantes, importaciones)
+   * para mantener el Dashboard analítico sincronizado de forma reactiva y eficiente.
+   * @param {string} changeType - Tipo de mutación ('payment', 'event', 'participant', 'excelImport')
+   * @param {Object} [detail={}] - Detalles de la entidad afectada
+   */
+  notifyDataChanged(changeType, detail = {}) {
+    this.dashboardDirty = true;
+    const dashboardTab = document.getElementById('tab-dashboard');
+    const isDashboardVisible = dashboardTab && dashboardTab.style.display !== 'none';
+
+    // Si el usuario está observando activamente el Dashboard, recargamos en segundo plano sin parpadeos
+    if (isDashboardVisible && !this.isRefreshingDashboard) {
+      this.loadDashboard(null, { silent: true });
     }
   },
 
@@ -393,61 +455,138 @@ export const Admin = {
     }
 
     let eventsList = this.eventsCache.map(e => ({
-      eventoId: e.Evento_ID,
-      titulo: e.Titulo_Evento,
-      fecha: e.Fecha_Evento,
+      eventId: e.Evento_ID,
+      title: e.Titulo_Evento,
+      date: e.Fecha_Evento,
       modalidad: e.Modalidad || 'Virtual',
-      totalInscritos: 0,
-      pagados: 0,
-      pendientes: 0,
-      fisicos: 0,
-      tasaConciliacion: 0
+      totalEnrollments: 0,
+      paidCount: 0,
+      pendingCount: 0,
+      physicalCount: 0,
+      virtualCount: 0,
+      paymentRate: 0
     }));
 
     if (selectedEventId !== 'all') {
-      eventsList = eventsList.filter(e => e.eventoId === selectedEventId);
+      eventsList = eventsList.filter(e => e.eventId === selectedEventId);
     }
 
     return {
-      totalInscritos: 0,
-      pagados: 0,
-      pendientes: 0,
-      anulados: 0,
-      virtuales: 0,
-      fisicos: 0,
-      participantesUnicos: 0,
-      eventosActivos: activeEvents.length,
-      totalEventos: totalEventsCount,
-      tasaConciliacion: 0,
-      eventos: eventsList,
-      actividadReciente: recentLogs
+      scope: selectedEventId === 'all' ? 'global' : 'event',
+      selectedEventId: selectedEventId === 'all' ? null : selectedEventId,
+      events: {
+        total: totalEventsCount,
+        active: activeEvents.length,
+        finished: 0,
+        draft: 0
+      },
+      participants: {
+        totalUnique: 0
+      },
+      enrollments: {
+        total: 0,
+        byPaymentStatus: {
+          pagado: 0,
+          pendiente: 0,
+          anulado: 0,
+          reembolsado: 0
+        },
+        paymentRate: 0,
+        byCertType: {
+          virtual: 0,
+          fisico: 0,
+          virtualRate: 0,
+          fisicoRate: 0
+        }
+      },
+      eventBreakdown: eventsList,
+      recentActivity: recentLogs
     };
   },
 
   /**
    * Renderiza el contenido visual completo del Dashboard Administrativo.
+   * Soporta tanto el contrato canónico anidado del backend como propiedades planas de respaldo.
    */
   renderDashboardView(stats, selectedEventId) {
     const contentArea = document.getElementById('dashboard-content-area');
     if (!contentArea) return;
 
-    // Normalización de métricas cuantitativas
-    const totalInscritos = Number(stats.totalInscritos ?? stats.totalInscripciones ?? stats.totalEnrollments ?? 0) || 0;
-    const pagados = Number(stats.pagados ?? stats.totalPagados ?? stats.paidCount ?? 0) || 0;
-    const pendientes = Number(stats.pendientes ?? stats.totalPendientes ?? stats.pendingCount ?? 0) || 0;
-    const anulados = Number(stats.anulados ?? stats.reembolsados ?? stats.totalAnulados ?? 0) || 0;
+    // Normalización de métricas cuantitativas (Tolerancia canónica anidada + plana)
+    const totalInscritos = Number(
+      stats.enrollments?.total ?? 
+      stats.totalInscritos ?? 
+      stats.totalInscripciones ?? 
+      stats.totalEnrollments ?? 
+      0
+    ) || 0;
 
-    const virtuales = Number(stats.virtuales ?? stats.certificadosVirtuales ?? stats.virtualCount ?? 0) || 0;
-    const fisicos = Number(stats.fisicos ?? stats.certificadosFisicos ?? stats.fisicoCount ?? 0) || 0;
+    const pagados = Number(
+      stats.enrollments?.byPaymentStatus?.pagado ?? 
+      stats.pagados ?? 
+      stats.totalPagados ?? 
+      stats.paidCount ?? 
+      0
+    ) || 0;
 
-    const participantesUnicos = Number(stats.participantesUnicos ?? stats.totalParticipantes ?? stats.uniqueParticipants ?? (totalInscritos > 0 ? totalInscritos : 0)) || 0;
-    const eventosActivos = Number(stats.eventosActivos ?? this.eventsCache.filter(e => e.Estado === 'Activo').length) || 0;
-    const totalEventos = Number(stats.totalEventos ?? this.eventsCache.length) || 0;
+    const pendientes = Number(
+      stats.enrollments?.byPaymentStatus?.pendiente ?? 
+      stats.pendientes ?? 
+      stats.totalPendientes ?? 
+      stats.pendingCount ?? 
+      0
+    ) || 0;
+
+    const anulados = Number(
+      stats.enrollments?.byPaymentStatus?.anulado ?? 
+      stats.anulados ?? 
+      stats.reembolsados ?? 
+      stats.totalAnulados ?? 
+      0
+    ) || 0;
+
+    const virtuales = Number(
+      stats.enrollments?.byCertType?.virtual ?? 
+      stats.virtuales ?? 
+      stats.certificadosVirtuales ?? 
+      stats.virtualCount ?? 
+      0
+    ) || 0;
+
+    const fisicos = Number(
+      stats.enrollments?.byCertType?.fisico ?? 
+      stats.fisicos ?? 
+      stats.certificadosFisicos ?? 
+      stats.fisicoCount ?? 
+      0
+    ) || 0;
+
+    const participantesUnicos = Number(
+      stats.participants?.totalUnique ?? 
+      stats.participantesUnicos ?? 
+      stats.totalParticipantes ?? 
+      stats.uniqueParticipants ?? 
+      (totalInscritos > 0 ? totalInscritos : 0)
+    ) || 0;
+
+    const eventosActivos = Number(
+      stats.events?.active ?? 
+      stats.eventosActivos ?? 
+      this.eventsCache.filter(e => e.Estado === 'Activo').length
+    ) || 0;
+
+    const totalEventos = Number(
+      stats.events?.total ?? 
+      stats.totalEventos ?? 
+      this.eventsCache.length
+    ) || 0;
 
     // Tasas porcentuales calculadas
-    const tasaConciliacion = stats.tasaConciliacion !== undefined 
-      ? Number(stats.tasaConciliacion)
-      : (totalInscritos > 0 ? Math.round((pagados / totalInscritos) * 100) : 0);
+    const tasaConciliacion = stats.enrollments?.paymentRate !== undefined
+      ? Number(stats.enrollments.paymentRate)
+      : (stats.tasaConciliacion !== undefined 
+          ? Number(stats.tasaConciliacion) 
+          : (totalInscritos > 0 ? Math.round((pagados / totalInscritos) * 100) : 0));
 
     const pctPagado = totalInscritos > 0 ? ((pagados / totalInscritos) * 100).toFixed(1) : '0.0';
     const pctPendiente = totalInscritos > 0 ? ((pendientes / totalInscritos) * 100).toFixed(1) : '0.0';
@@ -457,20 +596,22 @@ export const Admin = {
     const pctVirtual = sumModalidad > 0 ? ((virtuales / sumModalidad) * 100).toFixed(1) : (totalInscritos > 0 ? '100.0' : '0.0');
     const pctFisico = sumModalidad > 0 ? ((fisicos / sumModalidad) * 100).toFixed(1) : '0.0';
 
-    // Lista de eventos para tabla de rendimiento
-    const rawEvents = stats.eventos || stats.eventosResumen || stats.eventsSummary || [];
+    // Lista de eventos para tabla de rendimiento (Soporta eventBreakdown del backend y eventosResumen)
+    const rawEvents = stats.eventBreakdown || stats.eventos || stats.eventosResumen || stats.eventsSummary || [];
     let eventsList = rawEvents.map(e => {
-      const id = e.Evento_ID || e.eventoId || e.id || '';
-      const titulo = e.Titulo_Evento || e.titulo || e.nombre || 'Evento';
-      const fecha = e.Fecha_Evento || e.fecha || '-';
-      const modalidad = e.Modalidad || e.modalidad || 'Virtual';
-      const totalInc = Number(e.Total_Inscritos ?? e.totalInscritos ?? e.inscritos ?? 0) || 0;
-      const pag = Number(e.Pagados ?? e.pagados ?? 0) || 0;
-      const pend = Number(e.Pendientes ?? e.pendientes ?? 0) || 0;
-      const fis = Number(e.Fisicos ?? e.fisicos ?? e.certificadosFisicos ?? 0) || 0;
-      const tc = e.Tasa_Conciliacion !== undefined 
-        ? Number(e.Tasa_Conciliacion) 
-        : (totalInc > 0 ? Math.round((pag / totalInc) * 100) : 0);
+      const id = e.eventId || e.Evento_ID || e.eventoId || e.id || '';
+      const titulo = e.title || e.Titulo_Evento || e.titulo || e.nombre || 'Evento';
+      const fecha = e.date || e.Fecha_Evento || e.fecha || '-';
+      const modalidad = e.modalidad || e.Modalidad || 'Virtual';
+      const totalInc = Number(e.totalEnrollments ?? e.Total_Inscritos ?? e.totalInscritos ?? e.inscritos ?? 0) || 0;
+      const pag = Number(e.paidCount ?? e.Pagados ?? e.pagados ?? 0) || 0;
+      const pend = Number(e.pendingCount ?? e.Pendientes ?? e.pendientes ?? 0) || 0;
+      const fis = Number(e.physicalCount ?? e.Fisicos ?? e.fisicos ?? e.certificadosFisicos ?? 0) || 0;
+      const tc = e.paymentRate !== undefined 
+        ? Number(e.paymentRate) 
+        : (e.Tasa_Conciliacion !== undefined 
+            ? Number(e.Tasa_Conciliacion) 
+            : (totalInc > 0 ? Math.round((pag / totalInc) * 100) : 0));
       return { id, titulo, fecha, modalidad, totalInscritos: totalInc, pagados: pag, pendientes: pend, fisicos: fis, tasaConciliacion: tc };
     });
 
@@ -492,8 +633,8 @@ export const Admin = {
       eventsList = eventsList.filter(e => e.id === selectedEventId);
     }
 
-    // Actividad reciente (Auditoría en vivo)
-    const rawActivity = stats.actividadReciente || stats.actividad || stats.logs || stats.recentActivity || [];
+    // Actividad reciente (Auditoría en vivo - mapea recentActivity, actividadReciente, logs)
+    const rawActivity = stats.recentActivity || stats.actividadReciente || stats.actividad || stats.logs || [];
     const recentActivity = Array.isArray(rawActivity) ? rawActivity.slice(0, 8) : [];
 
     // Filas de la tabla de rendimiento
@@ -547,7 +688,7 @@ export const Admin = {
 
     // Ítems del feed de actividad reciente
     const activityItems = recentActivity.length > 0 ? recentActivity.map(log => {
-      const action = String(log.Accion || log.accion || 'ACCION').toUpperCase();
+      const action = String(log.action || log.Accion || log.accion || 'ACCION').toUpperCase();
       let badgeClass = 'badge-primary';
       let actionLabel = action;
 
@@ -563,8 +704,8 @@ export const Admin = {
         badgeClass = 'badge-danger';
       }
 
-      const userDisplay = log.Usuario_Admin || log.usuarioAdmin || log.admin || 'Directiva';
-      const timestampRaw = log.Timestamp || log.timestamp || log.fecha || '';
+      const userDisplay = log.adminUser || log.Usuario_Admin || log.usuarioAdmin || log.admin || 'Directiva';
+      const timestampRaw = log.timestamp || log.Timestamp || log.fecha || '';
       let formattedTime = timestampRaw;
       if (timestampRaw) {
         try {
@@ -575,7 +716,7 @@ export const Admin = {
         } catch (e) {}
       }
 
-      const detail = log.Detalle || log.detalle || log.actionDetails || '';
+      const detail = log.detail || log.Detalle || log.detalle || log.actionDetails || '';
 
       return `
         <article class="activity-feed-card">
@@ -909,6 +1050,7 @@ export const Admin = {
         Api.clearCache('getPublicEvents');
         alert(res.message || `Evento ${eventId} eliminado correctamente.`);
         this.loadEvents();
+        this.notifyDataChanged('deleteEvent', { eventId });
       } else {
         alert(res.message || 'No fue posible eliminar el evento.');
       }
@@ -1018,6 +1160,7 @@ export const Admin = {
         alert(eventId ? 'Evento actualizado exitosamente.' : `¡Evento creado exitosamente con código ${res.data?.Evento_ID || ''}!`);
         this.closeModal('modal-event');
         this.loadEvents();
+        this.notifyDataChanged('saveEvent', { eventId });
       } else {
         alert('Error al guardar evento: ' + res.message);
       }
@@ -1061,6 +1204,7 @@ export const Admin = {
       Api.clearCache('getPublicEvents');
       alert('Estado actualizado correctamente.');
       this.loadEvents();
+      this.notifyDataChanged('toggleEvent', { eventId });
     } else {
       alert('Error: ' + res.message);
     }
@@ -1142,21 +1286,21 @@ export const Admin = {
       const icon = this.getPaymentStatusIcon(status);
 
       return `
-        <tr>
+        <tr data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}">
           <td style="padding: 8px;"><code>${Validation.escapeHTML(ins.Inscripcion_ID)}</code></td>
           <td style="padding: 8px;">${Validation.escapeHTML(ins.DNI)}</td>
           <td style="padding: 8px;">${Validation.escapeHTML(ins.Nombre_Completo)}</td>
           <td style="padding: 8px;">${Validation.escapeHTML(ins.Tipo_Certificado)}</td>
-          <td style="padding: 8px;">
+          <td style="padding: 8px;" class="col-payment-status">
             <span class="badge ${badgeClass}">
               ${icon} ${Validation.escapeHTML(status)}
             </span>
           </td>
           <td style="padding: 8px;"><code>${Validation.escapeHTML(ins.Codigo_Consulta)}</code></td>
-          <td style="padding: 8px;">
+          <td style="padding: 8px;" class="col-payment-actions">
             <div class="admin-table-actions">
               ${isPending ? `
-                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${ins.Inscripcion_ID}', this)" title="Confirmar pago verificado">
+                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${Validation.escapeHTML(ins.Inscripcion_ID)}', this)" title="Confirmar pago verificado">
                   ✓ Confirmar Pago
                 </button>
               ` : ''}
@@ -1169,10 +1313,10 @@ export const Admin = {
               ${isRefunded ? `
                 <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">↩ Reembolsado</span>
               ` : ''}
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.CognitioAdmin.openPaymentModal('${ins.Inscripcion_ID}', '${Validation.escapeHTML(status)}', '${Validation.escapeHTML(ins.Nombre_Completo).replace(/'/g, "\\'")}')" title="Gestionar y cambiar estado de pago">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Gestionar y cambiar estado de pago">
                 ⚙ Gestionar Pago
               </button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.openEditParticipantModal('${ins.Participante_ID}', '${ins.DNI}', '${Validation.escapeHTML(ins.Nombre_Completo).replace(/'/g, "\\'")}')" title="Corregir datos de participante">
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(ins.Participante_ID)}', '${Validation.escapeHTML(ins.DNI)}')" title="Corregir datos de participante">
                 ✎ Corregir
               </button>
             </div>
@@ -1205,10 +1349,77 @@ export const Admin = {
   },
 
   /**
+   * Actualiza quirúrgicamente una fila específica de inscripción en el DOM (0ms).
+   * Evita el re-renderizado destructivo de toda la tabla y conserva el foco y scroll.
+   * @param {string} enrollmentId
+   * @param {string} newStatus
+   */
+  updateEnrollmentRowInPlace(enrollmentId, newStatus) {
+    const row = document.querySelector(`tr[data-enrollment-id="${enrollmentId}"]`);
+    if (!row) {
+      this.renderEnrollmentsTable();
+      return;
+    }
+
+    const badgeClass = this.getPaymentBadgeClass(newStatus);
+    const icon = this.getPaymentStatusIcon(newStatus);
+    const statusTd = row.querySelector('.col-payment-status');
+    if (statusTd) {
+      statusTd.innerHTML = `
+        <span class="badge ${badgeClass}">
+          ${icon} ${Validation.escapeHTML(newStatus)}
+        </span>
+      `;
+    }
+
+    const actionsTd = row.querySelector('.col-payment-actions');
+    if (actionsTd) {
+      const isPending = newStatus === 'Pendiente';
+      const isPaid = newStatus === 'Pagado';
+      const isCancelled = newStatus === 'Anulado';
+      const isRefunded = newStatus === 'Reembolsado';
+
+      const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+      const partId = cachedItem?.Participante_ID || '';
+      const dni = cachedItem?.DNI || '';
+
+      actionsTd.innerHTML = `
+        <div class="admin-table-actions">
+          ${isPending ? `
+            <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${Validation.escapeHTML(enrollmentId)}', this)" title="Confirmar pago verificado">
+              ✓ Confirmar Pago
+            </button>
+          ` : ''}
+          ${isPaid ? `
+            <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;">✓ Pagado</span>
+          ` : ''}
+          ${isCancelled ? `
+            <span class="badge badge-danger" style="font-size: 0.72rem; padding: 2px 7px;">✕ Anulado</span>
+          ` : ''}
+          ${isRefunded ? `
+            <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">↩ Reembolsado</span>
+          ` : ''}
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(enrollmentId)}')" title="Gestionar y cambiar estado de pago">
+            ⚙ Gestionar Pago
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(partId)}', '${Validation.escapeHTML(dni)}')" title="Corregir datos de participante">
+            ✎ Corregir
+          </button>
+        </div>
+      `;
+    }
+  },
+
+  /**
    * Confirmación rápida de pago verificado (atajo para inscripciones pendientes).
    * Implementa feedback visual instantáneo (0ms) y actualización optimista sin popups bloqueantes.
    */
   async confirmPayment(enrollmentId, btnEl = null) {
+    if (!enrollmentId) return;
+
+    if (this.isUpdatingPayment) return;
+    this.isUpdatingPayment = true;
+
     const targetBtn = btnEl || (typeof event !== 'undefined' && event?.target?.closest ? event.target.closest('button') : null);
     const originalHtml = targetBtn ? targetBtn.innerHTML : '';
 
@@ -1216,6 +1427,18 @@ export const Admin = {
       targetBtn.disabled = true;
       targetBtn.innerHTML = '<span class="spinner-sm"></span> Confirmando...';
     }
+
+    // Actualización optimista inmediata en memoria y DOM (0ms de latencia percibida)
+    const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+    const previousStatus = cachedItem?.Estado_Pago || 'Pendiente';
+    const previousDate = cachedItem?.Fecha_Pago || '';
+
+    if (cachedItem) {
+      cachedItem.Estado_Pago = 'Pagado';
+      cachedItem.Fecha_Pago = new Date().toISOString();
+    }
+    this.updateEnrollmentRowInPlace(enrollmentId, 'Pagado');
+    this.notifyDataChanged('payment', { enrollmentId, status: 'Pagado' });
 
     try {
       const res = await Api.post('adminUpdatePaymentStatus', {
@@ -1225,15 +1448,15 @@ export const Admin = {
       }, this.currentAuthToken);
 
       if (res && res.success) {
-        // Actualización optimista inmediata en memoria (cero espera por recargas remotas)
-        const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
-        if (cachedItem) {
-          cachedItem.Estado_Pago = 'Pagado';
-          cachedItem.Fecha_Pago = new Date().toISOString();
-        }
-        this.renderEnrollmentsTable();
         this.showToast(`Pago de ${enrollmentId} confirmado exitosamente.`, 'success');
       } else {
+        // Rollback automático en caso de error
+        if (cachedItem) {
+          cachedItem.Estado_Pago = previousStatus;
+          cachedItem.Fecha_Pago = previousDate;
+        }
+        this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
+        this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
         alert('Error: ' + (res?.message || 'Error al confirmar pago'));
         if (targetBtn) {
           targetBtn.disabled = false;
@@ -1242,18 +1465,30 @@ export const Admin = {
       }
     } catch (err) {
       console.error('[Admin confirmPayment] Error:', err);
+      // Rollback ante excepción de red
+      if (cachedItem) {
+        cachedItem.Estado_Pago = previousStatus;
+        cachedItem.Fecha_Pago = previousDate;
+      }
+      this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
+      this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
       alert('Error de conexión al confirmar pago.');
       if (targetBtn) {
         targetBtn.disabled = false;
         targetBtn.innerHTML = originalHtml || '✓ Confirmar Pago';
       }
+    } finally {
+      this.isUpdatingPayment = false;
     }
   },
 
   /**
    * Abre el modal para gestionar flexiblemente el estado de pago de una inscripción.
+   * Totalmente protegido contra inyecciones y caracteres especiales en nombres.
    */
-  openPaymentModal(enrollmentId, currentStatus, participantName) {
+  openPaymentModal(enrollmentId, currentStatus = null, participantName = null) {
+    if (!enrollmentId) return;
+
     const enrollment = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
     const resolvedName = enrollment?.Nombre_Completo || participantName || 'Participante';
     const resolvedStatus = enrollment?.Estado_Pago || currentStatus || 'Pendiente';
@@ -1284,6 +1519,11 @@ export const Admin = {
 
     this.onPaymentStatusSelectChange(resolvedStatus);
     this.openModal('modal-payment-status');
+
+    // Foco ergonómico inmediato en selector de estado
+    if (statusSelect) {
+      setTimeout(() => statusSelect.focus(), 60);
+    }
   },
 
   /**
@@ -1322,7 +1562,8 @@ export const Admin = {
   },
 
   /**
-   * Guarda el cambio de estado de pago en el backend garantizando auditoría inmutable.
+   * Guarda el cambio de estado de pago con actualización optimista inmediata (0ms),
+   * cierre instantáneo del modal y sincronización reactiva del Dashboard.
    */
   async savePaymentStatusChange() {
     const enrollmentId = document.getElementById('payment-modal-enrollment-id')?.value?.trim();
@@ -1347,6 +1588,9 @@ export const Admin = {
       return;
     }
 
+    if (this.isUpdatingPayment) return;
+    this.isUpdatingPayment = true;
+
     const saveBtn = document.getElementById('btn-save-payment-status');
     const originalText = saveBtn ? saveBtn.textContent : 'Guardar Cambio de Estado';
     if (saveBtn) {
@@ -1354,6 +1598,26 @@ export const Admin = {
       saveBtn.textContent = 'Guardando cambio...';
     }
 
+    // 1. Cierre inmediato del modal para fluidez operativa instantánea (0ms)
+    this.closeModal('modal-payment-status');
+
+    // 2. Actualización optimista en memoria y en fila de tabla
+    const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+    const previousStatus = cachedItem?.Estado_Pago || 'Pendiente';
+    const previousDate = cachedItem?.Fecha_Pago || '';
+
+    if (cachedItem) {
+      cachedItem.Estado_Pago = newStatus;
+      if (newStatus === 'Pagado') {
+        cachedItem.Fecha_Pago = new Date().toISOString();
+      } else if (newStatus === 'Pendiente') {
+        cachedItem.Fecha_Pago = '';
+      }
+    }
+    this.updateEnrollmentRowInPlace(enrollmentId, newStatus);
+    this.notifyDataChanged('payment', { enrollmentId, status: newStatus });
+
+    // 3. Persistencia asíncrona en el servidor
     try {
       const res = await Api.post('adminUpdatePaymentStatus', {
         enrollmentId,
@@ -1362,31 +1626,33 @@ export const Admin = {
       }, this.currentAuthToken);
 
       if (res && res.success) {
-        this.closeModal('modal-payment-status');
-
-        // Actualización optimista inmediata en memoria (cero espera por recargas remotas)
-        const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
-        if (cachedItem) {
-          cachedItem.Estado_Pago = newStatus;
-          if (newStatus === 'Pagado') {
-            cachedItem.Fecha_Pago = new Date().toISOString();
-          } else if (newStatus === 'Pendiente') {
-            cachedItem.Fecha_Pago = '';
-          }
-        }
-        this.renderEnrollmentsTable();
         this.showToast(`Estado de ${enrollmentId} actualizado a ${newStatus}.`, 'success');
       } else {
+        // Rollback ante rechazo del backend
+        if (cachedItem) {
+          cachedItem.Estado_Pago = previousStatus;
+          cachedItem.Fecha_Pago = previousDate;
+        }
+        this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
+        this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
         alert('Error al actualizar estado: ' + (res?.message || 'Error no especificado por el servidor.'));
       }
     } catch (err) {
       console.error('[Admin savePaymentStatusChange] Error:', err);
+      // Rollback ante falla de red
+      if (cachedItem) {
+        cachedItem.Estado_Pago = previousStatus;
+        cachedItem.Fecha_Pago = previousDate;
+      }
+      this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
+      this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
       alert('Error de conexión al guardar el nuevo estado de pago.');
     } finally {
       if (saveBtn) {
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
       }
+      this.isUpdatingPayment = false;
     }
   },
 
@@ -1516,6 +1782,7 @@ export const Admin = {
         filterSelect.value = eventId;
       }
       await this.loadEnrollments();
+      this.notifyDataChanged('individualRegistration', { eventId });
     } catch (err) {
       console.error('[Admin saveIndividualParticipant] Error:', err);
       alert('Error de conexión al procesar el registro del participante: ' + (err.message || 'Error desconocido'));
@@ -1653,6 +1920,7 @@ export const Admin = {
       document.getElementById('excel-file-input').value = '';
       document.getElementById('excel-preview-container').innerHTML = '';
       saveBtn.disabled = true;
+      this.notifyDataChanged('excelImport', { eventId });
     } else {
       alert('Error en la importación: ' + res.message);
     }
@@ -1740,10 +2008,14 @@ export const Admin = {
   // --------------------------------------------------------------------------
   // EDICIÓN DE PARTICIPANTES (CORRECCIÓN DE DATOS)
   // --------------------------------------------------------------------------
-  openEditParticipantModal(participanteId, dni, nombreCompleto) {
+  openEditParticipantModal(participanteId, dni = null, nombreCompleto = null) {
+    const cachedItem = this.enrollmentsCache.find(e => e.Participante_ID === participanteId);
+    const resolvedDNI = dni || cachedItem?.DNI || '';
+    const resolvedName = nombreCompleto || cachedItem?.Nombre_Completo || '';
+
     document.getElementById('part-form-id').value = participanteId || '';
-    document.getElementById('part-form-dni').value = dni || '';
-    document.getElementById('part-form-name').value = nombreCompleto || '';
+    document.getElementById('part-form-dni').value = resolvedDNI;
+    document.getElementById('part-form-name').value = resolvedName;
     this.openModal('modal-participant');
   },
 
@@ -1776,6 +2048,7 @@ export const Admin = {
         alert('Datos del participante actualizados correctamente.');
         this.closeModal('modal-participant');
         this.loadEnrollments();
+        this.notifyDataChanged('participantUpdate', { participanteId });
       } else {
         alert('Error: ' + res.message);
       }
