@@ -321,7 +321,7 @@ export const Admin = {
         <div class="dashboard-skeleton-kpi"></div>
         <div class="dashboard-skeleton-kpi"></div>
       </div>
-      <div class="dashboard-details-grid">
+      <div class="dashboard-sections-flow">
         <div class="dashboard-skeleton-block"></div>
         <div class="dashboard-skeleton-block"></div>
       </div>
@@ -548,24 +548,19 @@ export const Admin = {
     // Ítems del feed de actividad reciente
     const activityItems = recentActivity.length > 0 ? recentActivity.map(log => {
       const action = String(log.Accion || log.accion || 'ACCION').toUpperCase();
-      let icon = '📝';
-      let badgeStyle = 'background-color: #EFF6FF; color: #1E40AF; border-color: #BFDBFE;';
+      let badgeClass = 'badge-primary';
+      let actionLabel = action;
 
       if (action.includes('PAGO') || action.includes('CONFIRMAR')) {
-        icon = '💳';
-        badgeStyle = 'background-color: #ECFDF5; color: #065F46; border-color: #A7F3D0;';
+        badgeClass = 'badge-success';
       } else if (action.includes('EVENTO')) {
-        icon = '📅';
-        badgeStyle = 'background-color: #EFF6FF; color: #1E40AF; border-color: #BFDBFE;';
+        badgeClass = 'badge-info';
       } else if (action.includes('CERTIFICADO') || action.includes('EMISION')) {
-        icon = '🎓';
-        badgeStyle = 'background-color: #FAF5FF; color: #6B21A8; border-color: #DDD6FE;';
+        badgeClass = 'badge-purple';
       } else if (action.includes('EXCEL') || action.includes('IMPORT')) {
-        icon = '📊';
-        badgeStyle = 'background-color: #FFFBEB; color: #92400E; border-color: #FDE68A;';
+        badgeClass = 'badge-warning';
       } else if (action.includes('USUARIO') || action.includes('ROL') || action.includes('REVOCAR')) {
-        icon = '👤';
-        badgeStyle = 'background-color: #FEF2F2; color: #991B1B; border-color: #FECACA;';
+        badgeClass = 'badge-danger';
       }
 
       const userDisplay = log.Usuario_Admin || log.usuarioAdmin || log.admin || 'Directiva';
@@ -583,26 +578,26 @@ export const Admin = {
       const detail = log.Detalle || log.detalle || log.actionDetails || '';
 
       return `
-        <div class="activity-feed-item">
-          <div class="activity-feed-icon" aria-hidden="true">${icon}</div>
-          <div class="activity-feed-content">
-            <div class="activity-feed-top">
-              <span class="activity-feed-user">${Validation.escapeHTML(userDisplay)}</span>
-              <span class="activity-feed-time">${Validation.escapeHTML(formattedTime)}</span>
-            </div>
-            <div>
-              <span class="activity-feed-badge" style="${badgeStyle}">
-                ${Validation.escapeHTML(action)}
-              </span>
-            </div>
-            <div class="activity-feed-desc">${Validation.escapeHTML(detail)}</div>
+        <article class="activity-feed-card">
+          <div class="activity-feed-card-header">
+            <span class="badge ${badgeClass}">${Validation.escapeHTML(actionLabel)}</span>
+            <span class="activity-feed-time">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              ${Validation.escapeHTML(formattedTime)}
+            </span>
           </div>
-        </div>
+          <div class="activity-feed-user-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span class="activity-feed-user" title="${Validation.escapeHTML(userDisplay)}">${Validation.escapeHTML(userDisplay)}</span>
+          </div>
+          <div class="activity-feed-desc">${Validation.escapeHTML(detail)}</div>
+        </article>
       `;
     }).join('') : `
-      <p style="color: var(--color-text-muted); font-size: 0.88rem; text-align: center; padding: 2.5rem 1rem;">
-        No hay operaciones registradas en el feed de auditoría en vivo aún.
-      </p>
+      <div class="activity-feed-empty">
+        <p class="empty-title">Sin registros recientes de auditoría</p>
+        <p class="empty-desc">Las operaciones de la directiva y cambios de pago se mostrarán aquí en tiempo real.</p>
+      </div>
     `;
 
     // Ensamblar la vista completa
@@ -614,7 +609,9 @@ export const Admin = {
         <article class="dashboard-kpi-card kpi-accent">
           <div class="kpi-top">
             <span class="kpi-label">Inscripciones Totales</span>
-            <div class="kpi-icon-wrap bg-accent-soft" aria-hidden="true">📋</div>
+            <div class="kpi-icon-wrap bg-accent-soft" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            </div>
           </div>
           <div class="kpi-value-row">
             <span class="kpi-value">${totalInscritos}</span>
@@ -631,7 +628,9 @@ export const Admin = {
         <article class="dashboard-kpi-card kpi-success">
           <div class="kpi-top">
             <span class="kpi-label">Conciliación de Pagos</span>
-            <div class="kpi-icon-wrap bg-success-soft" aria-hidden="true">💳</div>
+            <div class="kpi-icon-wrap bg-success-soft" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            </div>
           </div>
           <div class="kpi-value-row">
             <span class="kpi-value">${pagados}</span>
@@ -655,7 +654,9 @@ export const Admin = {
         <article class="dashboard-kpi-card kpi-purple">
           <div class="kpi-top">
             <span class="kpi-label">Modalidad Certificados</span>
-            <div class="kpi-icon-wrap bg-purple-soft" aria-hidden="true">🎓</div>
+            <div class="kpi-icon-wrap bg-purple-soft" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            </div>
           </div>
           <div class="kpi-value-row">
             <span class="kpi-value">${virtuales} <span style="font-size: 1.1rem; font-weight: 500; color: var(--color-text-muted);">/ ${fisicos}</span></span>
@@ -677,7 +678,9 @@ export const Admin = {
         <article class="dashboard-kpi-card kpi-info">
           <div class="kpi-top">
             <span class="kpi-label">Participantes y Cobertura</span>
-            <div class="kpi-icon-wrap bg-info-soft" aria-hidden="true">👥</div>
+            <div class="kpi-icon-wrap bg-info-soft" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
           </div>
           <div class="kpi-value-row">
             <span class="kpi-value">${participantesUnicos}</span>
@@ -690,21 +693,25 @@ export const Admin = {
 
       </section>
 
-      <!-- SECCIÓN INFERIOR: TABLA DE RENDIMIENTO Y AUDITORÍA EN VIVO -->
-      <section class="dashboard-details-grid">
+      <!-- SECCIÓN INFERIOR: RENDIMIENTO POR EVENTO Y AUDITORÍA (FLUJO VERTICAL INTEGRADO) -->
+      <div class="dashboard-sections-flow">
         
-        <!-- COLUMNA 1: Rendimiento por Evento -->
-        <div class="dashboard-panel-card">
+        <!-- PANEL 1: Rendimiento por Evento (Ancho Completo) -->
+        <section class="dashboard-panel-card" aria-label="Rendimiento Operativo por Evento">
           <div class="dashboard-panel-header">
-            <h3 class="dashboard-panel-title">
-              Rendimiento Operativo por Evento
-            </h3>
-            <span class="badge badge-secondary">${eventsList.length} evento${eventsList.length === 1 ? '' : 's'}</span>
+            <div>
+              <h3 class="dashboard-panel-title">
+                Rendimiento Operativo por Evento
+              </h3>
+              <p class="dashboard-panel-subtitle">
+                Balance de inscripciones, conciliación de pagos y modalidades registradas.
+              </p>
+            </div>
+            <div class="dashboard-panel-actions">
+              <span class="badge badge-secondary">${eventsList.length} evento${eventsList.length === 1 ? '' : 's'}</span>
+            </div>
           </div>
 
-          <div class="table-scroll-hint">
-            <span>↔ Desliza horizontalmente para ver el balance de inscripciones</span>
-          </div>
           <div class="table-responsive">
             <table class="admin-table">
               <thead>
@@ -724,29 +731,33 @@ export const Admin = {
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
-        <!-- COLUMNA 2: Panel de Actividad Reciente (Auditoría en Vivo) -->
-        <div class="dashboard-panel-card">
+        <!-- PANEL 2: Actividad Reciente de la Directiva (Ancho Completo con Cuadrícula) -->
+        <section class="dashboard-panel-card" aria-label="Actividad Reciente y Trazabilidad">
           <div class="dashboard-panel-header">
-            <h3 class="dashboard-panel-title">
-              Actividad Reciente de la Directiva
-            </h3>
-            <span class="badge badge-active" title="Monitoreo inmutable">En vivo</span>
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <h3 class="dashboard-panel-title">Actividad Reciente de la Directiva</h3>
+                <span class="badge badge-success" style="font-size: 0.7rem;">En vivo</span>
+              </div>
+              <p class="dashboard-panel-subtitle">
+                Últimas operaciones administrativas registradas en la auditoría inmutable.
+              </p>
+            </div>
+            <div class="dashboard-panel-actions">
+              <button type="button" class="btn btn-outline btn-sm" onclick="document.querySelector('.admin-tab-btn[data-target=\\'tab-audit\\']').click()">
+                Ver Historial Completo en Auditoría &rarr;
+              </button>
+            </div>
           </div>
 
-          <div class="activity-feed-list" role="feed" aria-label="Historial reciente de operaciones directivas">
+          <div class="activity-feed-grid" role="feed" aria-label="Historial reciente de operaciones directivas">
             ${activityItems}
           </div>
+        </section>
 
-          <div class="dashboard-footer-action">
-            <button type="button" onclick="document.querySelector('.admin-tab-btn[data-target=\\'tab-audit\\']').click()">
-              Ver historial de auditoría completo
-            </button>
-          </div>
-        </div>
-
-      </section>
+      </div>
     `;
   },
 
