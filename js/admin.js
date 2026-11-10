@@ -20,6 +20,8 @@ export const Admin = {
   dashboardDirty: false,
   isRefreshingDashboard: false,
   isUpdatingPayment: false,
+  updatingPaymentIds: new Set(),
+  isUpdatingParticipant: false,
 
   /**
    * Inicializa el entorno administrativo.
@@ -300,6 +302,20 @@ export const Admin = {
         } else {
           dniIndicator.textContent = `${len}/8`;
           dniIndicator.classList.remove('ready');
+        }
+      });
+    }
+
+    const partDniInput = document.getElementById('part-form-dni');
+    const partDniIndicator = document.getElementById('part-form-dni-indicator');
+    if (partDniInput) {
+      partDniInput.addEventListener('input', () => {
+        const val = partDniInput.value.replace(/\D/g, '').slice(0, 8);
+        partDniInput.value = val;
+        if (partDniIndicator) {
+          const len = val.length;
+          partDniIndicator.textContent = len === 8 ? '8/8 dígitos numéricos ✓' : `${len}/8 dígitos numéricos`;
+          partDniIndicator.style.color = len === 8 ? 'var(--color-success)' : 'var(--color-text-muted)';
         }
       });
     }
@@ -1230,6 +1246,76 @@ export const Admin = {
   },
 
   /**
+   * Filtra las inscripciones en memoria según el término de búsqueda y estado seleccionado (0ms).
+   * Totalmente reactivo sin peticiones remotas al servidor.
+   */
+  filterEnrollmentsTable() {
+    const searchInput = document.getElementById('filter-enrollments-search');
+    const statusSelect = document.getElementById('filter-enrollments-status');
+    const searchVal = (searchInput?.value || '').trim().toLowerCase();
+    const statusVal = statusSelect?.value || 'all';
+
+    let filtered = this.enrollmentsCache;
+
+    if (statusVal && statusVal !== 'all') {
+      filtered = filtered.filter(ins => (ins.Estado_Pago || 'Pendiente') === statusVal);
+    }
+
+    if (searchVal) {
+      filtered = filtered.filter(ins => {
+        const dni = String(ins.DNI || '').toLowerCase();
+        const name = String(ins.Nombre_Completo || '').toLowerCase();
+        const id = String(ins.Inscripcion_ID || '').toLowerCase();
+        const code = String(ins.Codigo_Consulta || '').toLowerCase();
+        const voucher = String(ins.Referencia_Comprobante || '').toLowerCase();
+        return dni.includes(searchVal) || name.includes(searchVal) || id.includes(searchVal) || code.includes(searchVal) || voucher.includes(searchVal);
+      });
+    }
+
+    this.renderEnrollmentsTable(filtered);
+  },
+
+  /**
+   * Actualiza el indicador reactivo de conteo y desglose de inscripciones.
+   */
+  updateEnrollmentsCount(renderedCount = null) {
+    const countEl = document.getElementById('admin-enrollments-count');
+    if (!countEl) return;
+    if (!this.enrollmentsCache || this.enrollmentsCache.length === 0) {
+      countEl.innerHTML = '';
+      return;
+    }
+    const total = this.enrollmentsCache.length;
+    const showing = renderedCount !== null ? renderedCount : total;
+    const pagados = this.enrollmentsCache.filter(e => e.Estado_Pago === 'Pagado').length;
+    const pendientes = this.enrollmentsCache.filter(e => (e.Estado_Pago || 'Pendiente') === 'Pendiente').length;
+    countEl.innerHTML = `Mostrando <strong>${showing}</strong> de <strong>${total}</strong> inscripciones &bull; <span style="color: #059669; font-weight: 600;">${pagados} Pagados</span> &bull; <span style="color: #D97706; font-weight: 600;">${pendientes} Pendientes</span>`;
+  },
+
+  /**
+   * Copia el número de comprobante o voucher bancario al portapapeles.
+   */
+  async copyVoucherCode(text, btnEl = null) {
+    if (!text || text === '-' || text.includes('Sin comprobante')) {
+      this.showToast('No hay código de comprobante para copiar.', 'warning');
+      return;
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      }
+      this.showToast(`Comprobante ${text} copiado al portapapeles.`, 'info');
+      if (btnEl) {
+        const oldHtml = btnEl.innerHTML;
+        btnEl.textContent = '✓ Copiado';
+        setTimeout(() => { btnEl.innerHTML = oldHtml; }, 1500);
+      }
+    } catch (e) {
+      this.showToast(`Comprobante: ${text}`, 'info');
+    }
+  },
+
+  /**
    * Determina la clase CSS del badge según el estado canónico de pago.
    */
   getPaymentBadgeClass(status) {
@@ -1267,15 +1353,35 @@ export const Admin = {
 
   /**
    * Renderiza la tabla de inscripciones con soporte de gestión de pagos reversible.
+   * Admite filtrado reactivo en memoria (0ms) preservando datos canónicos.
+   * @param {Array<Object>|null} [list=null] - Subconjunto filtrado o null para todos
    */
-  renderEnrollmentsTable() {
+  renderEnrollmentsTable(list = null) {
     const container = document.getElementById('admin-enrollments-list');
+    const items = list !== null ? list : this.enrollmentsCache;
+
+    this.updateEnrollmentsCount(items ? items.length : 0);
+
+    if (!container) return;
+
     if (this.enrollmentsCache.length === 0) {
       container.innerHTML = `<p style="color: var(--color-text-muted);">No hay inscripciones registradas para este evento.</p>`;
       return;
     }
 
-    const rows = this.enrollmentsCache.map(ins => {
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 2.5rem 1rem; color: var(--color-text-muted);">
+          <p style="margin-bottom: 0.75rem;">No se encontraron inscripciones que coincidan con la búsqueda o filtro actual.</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="const s = document.getElementById('filter-enrollments-search'); if (s) s.value = ''; const st = document.getElementById('filter-enrollments-status'); if (st) st.value = 'all'; window.CognitioAdmin.filterEnrollmentsTable();">
+            Restablecer búsqueda y filtros
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const rows = items.map(ins => {
       const status = ins.Estado_Pago || 'Pendiente';
       const isPaid = status === 'Pagado';
       const isPending = status === 'Pendiente';
@@ -1286,21 +1392,26 @@ export const Admin = {
       const icon = this.getPaymentStatusIcon(status);
 
       return `
-        <tr data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}">
+        <tr data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}" data-participant-id="${Validation.escapeHTML(ins.Participante_ID)}">
           <td style="padding: 8px;"><code>${Validation.escapeHTML(ins.Inscripcion_ID)}</code></td>
-          <td style="padding: 8px;">${Validation.escapeHTML(ins.DNI)}</td>
-          <td style="padding: 8px;">${Validation.escapeHTML(ins.Nombre_Completo)}</td>
-          <td style="padding: 8px;">${Validation.escapeHTML(ins.Tipo_Certificado)}</td>
+          <td style="padding: 8px;" class="col-dni">${Validation.escapeHTML(ins.DNI)}</td>
+          <td style="padding: 8px;" class="col-participant-name">${Validation.escapeHTML(ins.Nombre_Completo)}</td>
+          <td style="padding: 8px;" class="col-cert-type">${Validation.escapeHTML(ins.Tipo_Certificado)}</td>
           <td style="padding: 8px;" class="col-payment-status">
             <span class="badge ${badgeClass}">
               ${icon} ${Validation.escapeHTML(status)}
             </span>
+            ${ins.Referencia_Comprobante ? `
+              <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 3px;" title="Voucher / N° Operación bancaria">
+                Voucher: <code style="background: var(--color-surface); padding: 1px 4px; border-radius: var(--radius-xs); border: 1px solid var(--color-border); font-size: 0.75rem;">${Validation.escapeHTML(ins.Referencia_Comprobante)}</code>
+              </div>
+            ` : ''}
           </td>
           <td style="padding: 8px;"><code>${Validation.escapeHTML(ins.Codigo_Consulta)}</code></td>
           <td style="padding: 8px;" class="col-payment-actions">
             <div class="admin-table-actions">
               ${isPending ? `
-                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${Validation.escapeHTML(ins.Inscripcion_ID)}', this)" title="Confirmar pago verificado">
+                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Confirmar pago verificado">
                   ✓ Confirmar Pago
                 </button>
               ` : ''}
@@ -1361,6 +1472,7 @@ export const Admin = {
       return;
     }
 
+    const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
     const badgeClass = this.getPaymentBadgeClass(newStatus);
     const icon = this.getPaymentStatusIcon(newStatus);
     const statusTd = row.querySelector('.col-payment-status');
@@ -1369,7 +1481,17 @@ export const Admin = {
         <span class="badge ${badgeClass}">
           ${icon} ${Validation.escapeHTML(newStatus)}
         </span>
+        ${cachedItem?.Referencia_Comprobante ? `
+          <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 3px;" title="Voucher / N° Operación bancaria">
+            Voucher: <code style="background: var(--color-surface); padding: 1px 4px; border-radius: var(--radius-xs); border: 1px solid var(--color-border); font-size: 0.75rem;">${Validation.escapeHTML(cachedItem.Referencia_Comprobante)}</code>
+          </div>
+        ` : ''}
       `;
+    }
+
+    const certTd = row.querySelector('.col-cert-type');
+    if (certTd && cachedItem?.Tipo_Certificado) {
+      certTd.textContent = cachedItem.Tipo_Certificado;
     }
 
     const actionsTd = row.querySelector('.col-payment-actions');
@@ -1379,14 +1501,13 @@ export const Admin = {
       const isCancelled = newStatus === 'Anulado';
       const isRefunded = newStatus === 'Reembolsado';
 
-      const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
       const partId = cachedItem?.Participante_ID || '';
       const dni = cachedItem?.DNI || '';
 
       actionsTd.innerHTML = `
         <div class="admin-table-actions">
           ${isPending ? `
-            <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.confirmPayment('${Validation.escapeHTML(enrollmentId)}', this)" title="Confirmar pago verificado">
+            <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(enrollmentId)}')" title="Confirmar pago verificado">
               ✓ Confirmar Pago
             </button>
           ` : ''}
@@ -1408,17 +1529,129 @@ export const Admin = {
         </div>
       `;
     }
+
+    this.updateEnrollmentsCount();
   },
 
   /**
-   * Confirmación rápida de pago verificado (atajo para inscripciones pendientes).
-   * Implementa feedback visual instantáneo (0ms) y actualización optimista sin popups bloqueantes.
+   * Actualiza quirúrgicamente los datos de un participante en el DOM (0ms) sin recargar por red.
+   */
+  updateParticipantRowsInPlace(participanteId, newDni, newName) {
+    if (!participanteId) return;
+    const rows = document.querySelectorAll(`tr[data-participant-id="${participanteId}"]`);
+    rows.forEach(row => {
+      const dniTd = row.querySelector('.col-dni');
+      const nameTd = row.querySelector('.col-participant-name');
+      if (dniTd && newDni) dniTd.textContent = newDni;
+      if (nameTd && newName) nameTd.textContent = newName;
+    });
+  },
+
+  /**
+   * Abre el modal de confirmación rápida con visualización detallada del participante y pago.
+   * Brinda protección contra confirmaciones accidentales y verifica el estado actual en 0ms.
+   * @param {string} enrollmentId - ID de la inscripción
+   */
+  openConfirmPaymentModal(enrollmentId) {
+    if (!enrollmentId) return;
+
+    const enrollment = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+    if (!enrollment) {
+      const msg = 'Error: Inscripción no encontrada en la lista actual.';
+      this.showToast(msg, 'danger');
+      if (typeof alert === 'function') alert(msg);
+      return;
+    }
+
+    // 1. Verificación previa de estado
+    if (enrollment.Estado_Pago === 'Pagado') {
+      const msg = 'La inscripción ya se encuentra registrada como Pagada.';
+      this.showToast(msg, 'info');
+      if (typeof alert === 'function') alert(msg);
+      return;
+    }
+
+    if (enrollment.Estado_Pago === 'Anulado') {
+      const msg = 'No se puede confirmar una inscripción anulada. Debe reactivarla desde Gestionar Pago.';
+      this.showToast(msg, 'warning');
+      if (typeof alert === 'function') alert(msg);
+      return;
+    }
+
+    // 2. Poblar campos de confirmación
+    const hiddenId = document.getElementById('confirm-modal-enrollment-id');
+    const nameSpan = document.getElementById('confirm-modal-participant-name');
+    const dniSpan = document.getElementById('confirm-modal-dni');
+    const codeSpan = document.getElementById('confirm-modal-code');
+    const certTypeSpan = document.getElementById('confirm-modal-cert-type');
+    const voucherCode = document.getElementById('confirm-modal-voucher');
+    const statusSpan = document.getElementById('confirm-modal-current-status');
+    const confirmBtn = document.getElementById('btn-execute-confirm-payment');
+
+    if (hiddenId) hiddenId.value = enrollmentId;
+    if (nameSpan) nameSpan.textContent = enrollment.Nombre_Completo || 'PARTICIPANTE';
+    if (dniSpan) dniSpan.textContent = enrollment.DNI || 'S/D';
+    if (codeSpan) codeSpan.textContent = enrollment.Codigo_Consulta || enrollment.Inscripcion_ID;
+    if (certTypeSpan) certTypeSpan.textContent = enrollment.Tipo_Certificado || 'Virtual';
+    if (voucherCode) voucherCode.textContent = enrollment.Referencia_Comprobante || 'Sin registrar';
+    if (statusSpan) {
+      statusSpan.textContent = enrollment.Estado_Pago || 'Pendiente';
+      statusSpan.className = 'badge ' + (enrollment.Estado_Pago === 'Pendiente' ? 'badge-warning' : 'badge-secondary');
+    }
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '✓ Confirmar Pago';
+    }
+
+    // 3. Apertura inmediata del modal (0ms)
+    this.openModal('modal-confirm-payment');
+  },
+
+  /**
+   * Ejecuta la confirmación del pago desde el modal de confirmación rápida.
+   */
+  async executeConfirmedPayment() {
+    const enrollmentId = document.getElementById('confirm-modal-enrollment-id')?.value?.trim();
+    if (!enrollmentId) return;
+    const confirmBtn = document.getElementById('btn-execute-confirm-payment');
+    await this.confirmPayment(enrollmentId, confirmBtn);
+  },
+
+  /**
+   * Confirmación de pago verificado con validación de estado, protección anti-doble clic,
+   * actualización optimista en memoria y DOM (0ms) y rollback automático ante error.
    */
   async confirmPayment(enrollmentId, btnEl = null) {
     if (!enrollmentId) return;
 
-    if (this.isUpdatingPayment) return;
-    this.isUpdatingPayment = true;
+    // 1. Verificación del estado actual antes de confirmar
+    const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+    if (cachedItem && cachedItem.Estado_Pago === 'Pagado') {
+      const msg = 'La inscripción ya se encuentra registrada como Pagada.';
+      this.showToast(msg, 'info');
+      if (typeof alert === 'function') alert(msg);
+      this.closeModal('modal-confirm-payment');
+      return;
+    }
+
+    if (cachedItem && cachedItem.Estado_Pago === 'Anulado') {
+      const msg = 'No se puede confirmar un pago anulado sin reactivarlo previamente.';
+      this.showToast(msg, 'warning');
+      if (typeof alert === 'function') alert(msg);
+      this.closeModal('modal-confirm-payment');
+      return;
+    }
+
+    // 2. Prevención de confirmaciones duplicadas y control anti-doble clic
+    if (this.updatingPaymentIds.has(enrollmentId)) {
+      this.showToast('Esta inscripción ya se encuentra procesando su confirmación...', 'warning');
+      return;
+    }
+    this.updatingPaymentIds.add(enrollmentId);
+    this.isUpdatingPayment = this.updatingPaymentIds.size > 0;
+
+    // 3. Cierre inmediato del modal de confirmación (0ms)
+    this.closeModal('modal-confirm-payment');
 
     const targetBtn = btnEl || (typeof event !== 'undefined' && event?.target?.closest ? event.target.closest('button') : null);
     const originalHtml = targetBtn ? targetBtn.innerHTML : '';
@@ -1428,8 +1661,7 @@ export const Admin = {
       targetBtn.innerHTML = '<span class="spinner-sm"></span> Confirmando...';
     }
 
-    // Actualización optimista inmediata en memoria y DOM (0ms de latencia percibida)
-    const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
+    // 4. Actualización optimista inmediata en memoria y DOM (0ms de latencia percibida)
     const previousStatus = cachedItem?.Estado_Pago || 'Pendiente';
     const previousDate = cachedItem?.Fecha_Pago || '';
 
@@ -1440,6 +1672,7 @@ export const Admin = {
     this.updateEnrollmentRowInPlace(enrollmentId, 'Pagado');
     this.notifyDataChanged('payment', { enrollmentId, status: 'Pagado' });
 
+    // 5. Persistencia asíncrona en el servidor
     try {
       const res = await Api.post('adminUpdatePaymentStatus', {
         enrollmentId,
@@ -1448,6 +1681,10 @@ export const Admin = {
       }, this.currentAuthToken);
 
       if (res && res.success) {
+        if (cachedItem && res.data?.fechaPago) {
+          cachedItem.Fecha_Pago = res.data.fechaPago;
+        }
+        this.updateEnrollmentRowInPlace(enrollmentId, 'Pagado');
         this.showToast(`Pago de ${enrollmentId} confirmado exitosamente.`, 'success');
       } else {
         // Rollback automático en caso de error
@@ -1457,7 +1694,9 @@ export const Admin = {
         }
         this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
         this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
-        alert('Error: ' + (res?.message || 'Error al confirmar pago'));
+        const errMsg = 'Error: ' + (res?.message || 'Error al confirmar pago');
+        this.showToast(errMsg, 'danger');
+        if (typeof alert === 'function') alert(errMsg);
         if (targetBtn) {
           targetBtn.disabled = false;
           targetBtn.innerHTML = originalHtml || '✓ Confirmar Pago';
@@ -1472,19 +1711,22 @@ export const Admin = {
       }
       this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
       this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
-      alert('Error de conexión al confirmar pago.');
+      const errMsg = 'Error de conexión al confirmar pago.';
+      this.showToast(errMsg, 'danger');
+      if (typeof alert === 'function') alert(errMsg);
       if (targetBtn) {
         targetBtn.disabled = false;
         targetBtn.innerHTML = originalHtml || '✓ Confirmar Pago';
       }
     } finally {
-      this.isUpdatingPayment = false;
+      this.updatingPaymentIds.delete(enrollmentId);
+      this.isUpdatingPayment = this.updatingPaymentIds.size > 0;
     }
   },
 
   /**
    * Abre el modal para gestionar flexiblemente el estado de pago de una inscripción.
-   * Totalmente protegido contra inyecciones y caracteres especiales en nombres.
+   * Totalmente enriquecido con datos de comprobante, DNI, fechas y modalidad.
    */
   openPaymentModal(enrollmentId, currentStatus = null, participantName = null) {
     if (!enrollmentId) return;
@@ -1492,17 +1734,59 @@ export const Admin = {
     const enrollment = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
     const resolvedName = enrollment?.Nombre_Completo || participantName || 'Participante';
     const resolvedStatus = enrollment?.Estado_Pago || currentStatus || 'Pendiente';
+    const resolvedDni = enrollment?.DNI || '-';
+    const resolvedCertType = enrollment?.Tipo_Certificado || 'Virtual';
+    const resolvedVoucher = enrollment?.Referencia_Comprobante || '';
+    const resolvedPaymentDate = enrollment?.Fecha_Pago || '';
 
     const idInput = document.getElementById('payment-modal-enrollment-id');
     const nameSpan = document.getElementById('payment-modal-participant-name');
     const codeSpan = document.getElementById('payment-modal-enrollment-code');
+    const dniSpan = document.getElementById('payment-modal-dni');
+    const certTypeBadge = document.getElementById('payment-modal-cert-type');
+    const voucherCode = document.getElementById('payment-modal-voucher');
+    const copyVoucherBtn = document.getElementById('btn-copy-payment-voucher');
+    const paymentDateSpan = document.getElementById('payment-modal-payment-date');
     const statusSpan = document.getElementById('payment-modal-current-status');
     const statusSelect = document.getElementById('payment-modal-new-status');
     const reasonInput = document.getElementById('payment-modal-reason');
+    const voucherInput = document.getElementById('payment-modal-voucher-edit');
+    const certTypeSelect = document.getElementById('payment-modal-cert-type-select');
 
     if (idInput) idInput.value = enrollmentId;
     if (nameSpan) nameSpan.textContent = resolvedName;
     if (codeSpan) codeSpan.textContent = enrollmentId;
+
+    if (dniSpan) dniSpan.textContent = resolvedDni;
+
+    if (certTypeBadge) {
+      certTypeBadge.textContent = resolvedCertType;
+      certTypeBadge.className = `badge ${resolvedCertType === 'Fisico' ? 'badge-purple' : 'badge-secondary'}`;
+    }
+
+    if (voucherCode) {
+      voucherCode.textContent = resolvedVoucher || 'Sin comprobante';
+      voucherCode.style.color = resolvedVoucher ? 'var(--color-primary)' : 'var(--color-text-muted)';
+      voucherCode.style.fontStyle = resolvedVoucher ? 'normal' : 'italic';
+    }
+
+    if (copyVoucherBtn) {
+      copyVoucherBtn.style.display = resolvedVoucher ? 'inline-flex' : 'none';
+    }
+
+    if (paymentDateSpan) {
+      paymentDateSpan.textContent = resolvedPaymentDate || '(Pendiente de confirmación)';
+      paymentDateSpan.style.color = resolvedPaymentDate ? 'var(--color-text-main)' : 'var(--color-text-muted)';
+      paymentDateSpan.style.fontStyle = resolvedPaymentDate ? 'normal' : 'italic';
+    }
+
+    if (voucherInput) {
+      voucherInput.value = resolvedVoucher || '';
+    }
+
+    if (certTypeSelect) {
+      certTypeSelect.value = resolvedCertType || 'Virtual';
+    }
 
     if (statusSpan) {
       statusSpan.textContent = `${this.getPaymentStatusIcon(resolvedStatus)} ${resolvedStatus}`;
@@ -1563,33 +1847,46 @@ export const Admin = {
 
   /**
    * Guarda el cambio de estado de pago con actualización optimista inmediata (0ms),
-   * cierre instantáneo del modal y sincronización reactiva del Dashboard.
+   * soporte de corrección de comprobante y modalidad, cierre instantáneo y sincronización.
    */
   async savePaymentStatusChange() {
     const enrollmentId = document.getElementById('payment-modal-enrollment-id')?.value?.trim();
     const newStatus = document.getElementById('payment-modal-new-status')?.value?.trim();
     const reasonInput = document.getElementById('payment-modal-reason');
     const reason = (reasonInput?.value || '').trim();
+    const voucherEdit = document.getElementById('payment-modal-voucher-edit')?.value?.trim();
+    const certTypeEdit = document.getElementById('payment-modal-cert-type-select')?.value?.trim();
 
     if (!enrollmentId) {
-      alert('Error: No se ha seleccionado una inscripción válida.');
+      const msg = 'Error: No se ha seleccionado una inscripción válida.';
+      this.showToast(msg, 'danger');
+      if (typeof alert === 'function') alert(msg);
       return;
     }
 
     const validStatuses = ['Pagado', 'Pendiente', 'Anulado', 'Reembolsado'];
     if (!validStatuses.includes(newStatus)) {
-      alert('Error: El estado seleccionado no es válido. Debe ser Pagado, Pendiente, Anulado o Reembolsado.');
+      const msg = 'Error: El estado seleccionado no es válido. Debe ser Pagado, Pendiente, Anulado o Reembolsado.';
+      this.showToast(msg, 'danger');
+      if (typeof alert === 'function') alert(msg);
       return;
     }
 
     if (newStatus !== 'Pagado' && !reason) {
-      alert('Debe especificar el motivo de la corrección o cambio de estado de pago.');
+      const msg = 'Debe especificar el motivo de la corrección o cambio de estado de pago.';
+      this.showToast(msg, 'warning');
+      if (typeof alert === 'function') alert(msg);
       if (reasonInput) reasonInput.focus();
       return;
     }
 
-    if (this.isUpdatingPayment) return;
-    this.isUpdatingPayment = true;
+    // Prevención de operaciones duplicadas por inscripción en vuelo
+    if (this.updatingPaymentIds.has(enrollmentId)) {
+      this.showToast('Esta inscripción ya se encuentra procesando un cambio de estado...', 'warning');
+      return;
+    }
+    this.updatingPaymentIds.add(enrollmentId);
+    this.isUpdatingPayment = this.updatingPaymentIds.size > 0;
 
     const saveBtn = document.getElementById('btn-save-payment-status');
     const originalText = saveBtn ? saveBtn.textContent : 'Guardar Cambio de Estado';
@@ -1605,6 +1902,8 @@ export const Admin = {
     const cachedItem = this.enrollmentsCache.find(e => e.Inscripcion_ID === enrollmentId);
     const previousStatus = cachedItem?.Estado_Pago || 'Pendiente';
     const previousDate = cachedItem?.Fecha_Pago || '';
+    const previousVoucher = cachedItem?.Referencia_Comprobante || '';
+    const previousCertType = cachedItem?.Tipo_Certificado || 'Virtual';
 
     if (cachedItem) {
       cachedItem.Estado_Pago = newStatus;
@@ -1613,29 +1912,57 @@ export const Admin = {
       } else if (newStatus === 'Pendiente') {
         cachedItem.Fecha_Pago = '';
       }
+      if (voucherEdit !== undefined) {
+        cachedItem.Referencia_Comprobante = voucherEdit;
+      }
+      if (certTypeEdit && (certTypeEdit === 'Fisico' || certTypeEdit === 'Virtual')) {
+        cachedItem.Tipo_Certificado = certTypeEdit;
+      }
     }
     this.updateEnrollmentRowInPlace(enrollmentId, newStatus);
     this.notifyDataChanged('payment', { enrollmentId, status: newStatus });
 
     // 3. Persistencia asíncrona en el servidor
     try {
-      const res = await Api.post('adminUpdatePaymentStatus', {
+      const payload = {
         enrollmentId,
         status: newStatus,
         reason: reason || (newStatus === 'Pagado' ? 'Confirmación de pago verificado' : '')
-      }, this.currentAuthToken);
+      };
+      if (voucherEdit !== undefined) {
+        payload.referenciaComprobante = voucherEdit;
+      }
+      if (certTypeEdit && (certTypeEdit === 'Fisico' || certTypeEdit === 'Virtual')) {
+        payload.tipoCertificado = certTypeEdit;
+      }
+
+      const res = await Api.post('adminUpdatePaymentStatus', payload, this.currentAuthToken);
 
       if (res && res.success) {
+        if (cachedItem && res.data?.fechaPago) {
+          cachedItem.Fecha_Pago = res.data.fechaPago;
+        }
+        if (cachedItem && res.data?.referenciaComprobante !== undefined) {
+          cachedItem.Referencia_Comprobante = res.data.referenciaComprobante;
+        }
+        if (cachedItem && res.data?.tipoCertificado) {
+          cachedItem.Tipo_Certificado = res.data.tipoCertificado;
+        }
+        this.updateEnrollmentRowInPlace(enrollmentId, newStatus);
         this.showToast(`Estado de ${enrollmentId} actualizado a ${newStatus}.`, 'success');
       } else {
         // Rollback ante rechazo del backend
         if (cachedItem) {
           cachedItem.Estado_Pago = previousStatus;
           cachedItem.Fecha_Pago = previousDate;
+          cachedItem.Referencia_Comprobante = previousVoucher;
+          cachedItem.Tipo_Certificado = previousCertType;
         }
         this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
         this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
-        alert('Error al actualizar estado: ' + (res?.message || 'Error no especificado por el servidor.'));
+        const errMsg = 'Error al actualizar estado: ' + (res?.message || 'Error no especificado por el servidor.');
+        this.showToast(errMsg, 'danger');
+        if (typeof alert === 'function') alert(errMsg);
       }
     } catch (err) {
       console.error('[Admin savePaymentStatusChange] Error:', err);
@@ -1643,16 +1970,21 @@ export const Admin = {
       if (cachedItem) {
         cachedItem.Estado_Pago = previousStatus;
         cachedItem.Fecha_Pago = previousDate;
+        cachedItem.Referencia_Comprobante = previousVoucher;
+        cachedItem.Tipo_Certificado = previousCertType;
       }
       this.updateEnrollmentRowInPlace(enrollmentId, previousStatus);
       this.notifyDataChanged('payment', { enrollmentId, status: previousStatus });
-      alert('Error de conexión al guardar el nuevo estado de pago.');
+      const errMsg = 'Error de conexión al guardar el nuevo estado de pago.';
+      this.showToast(errMsg, 'danger');
+      if (typeof alert === 'function') alert(errMsg);
     } finally {
       if (saveBtn) {
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
       }
-      this.isUpdatingPayment = false;
+      this.updatingPaymentIds.delete(enrollmentId);
+      this.isUpdatingPayment = this.updatingPaymentIds.size > 0;
     }
   },
 
@@ -2013,51 +2345,119 @@ export const Admin = {
     const resolvedDNI = dni || cachedItem?.DNI || '';
     const resolvedName = nombreCompleto || cachedItem?.Nombre_Completo || '';
 
-    document.getElementById('part-form-id').value = participanteId || '';
-    document.getElementById('part-form-dni').value = resolvedDNI;
-    document.getElementById('part-form-name').value = resolvedName;
+    const idInput = document.getElementById('part-form-id');
+    const idDisplay = document.getElementById('part-form-id-display');
+    const dniInput = document.getElementById('part-form-dni');
+    const nameInput = document.getElementById('part-form-name');
+    const dniIndicator = document.getElementById('part-form-dni-indicator');
+
+    if (idInput) idInput.value = participanteId || '';
+    if (idDisplay) idDisplay.textContent = participanteId || '-';
+    if (dniInput) dniInput.value = resolvedDNI;
+    if (nameInput) nameInput.value = resolvedName;
+    if (dniIndicator) {
+      dniIndicator.textContent = resolvedDNI.length === 8 ? '8/8 dígitos numéricos ✓' : `${resolvedDNI.length}/8 dígitos numéricos`;
+      dniIndicator.style.color = resolvedDNI.length === 8 ? 'var(--color-success)' : 'var(--color-text-muted)';
+    }
     this.openModal('modal-participant');
   },
 
   async saveParticipant() {
-    const participanteId = document.getElementById('part-form-id').value.trim();
-    const dni = document.getElementById('part-form-dni').value.trim();
-    const nombreCompleto = document.getElementById('part-form-name').value.trim();
+    const participanteId = document.getElementById('part-form-id')?.value?.trim();
+    const dni = document.getElementById('part-form-dni')?.value?.trim();
+    const nombreCompleto = document.getElementById('part-form-name')?.value?.trim();
+
+    if (!participanteId) {
+      const msg = 'Error: No se ha seleccionado un participante válido.';
+      this.showToast(msg, 'danger');
+      if (typeof alert === 'function') alert(msg);
+      return;
+    }
 
     if (!Validation.isValidDNI(dni)) {
-      alert('El DNI debe tener exactamente 8 dígitos.');
+      const msg = 'El DNI debe tener exactamente 8 dígitos.';
+      this.showToast(msg, 'warning');
+      if (typeof alert === 'function') alert(msg);
       return;
     }
     if (!Validation.isValidFullName(nombreCompleto)) {
-      alert('Ingrese un nombre y apellidos válidos.');
+      const msg = 'Ingrese un nombre y apellidos válidos.';
+      this.showToast(msg, 'warning');
+      if (typeof alert === 'function') alert(msg);
       return;
     }
 
+    if (this.isUpdatingParticipant) return;
+    this.isUpdatingParticipant = true;
+
     const saveBtn = document.getElementById('btn-save-part');
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Guardando...';
+    const originalText = saveBtn ? saveBtn.textContent : 'Guardar Cambios';
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando...';
+    }
+
+    // 1. Cierre inmediato del modal (0ms de latencia percibida)
+    this.closeModal('modal-participant');
+
+    // 2. Guardar estado anterior y actualizar quirúrgicamente en memoria y DOM
+    const normalizedName = Validation.normalizeName(nombreCompleto);
+    const affectedItems = this.enrollmentsCache.filter(e => e.Participante_ID === participanteId);
+    const previousValues = affectedItems.map(item => ({ item, dni: item.DNI, name: item.Nombre_Completo }));
+
+    affectedItems.forEach(item => {
+      item.DNI = dni;
+      item.Nombre_Completo = normalizedName;
+    });
+    this.updateParticipantRowsInPlace(participanteId, dni, normalizedName);
+    this.notifyDataChanged('participantUpdate', { participanteId, dni, nombreCompleto: normalizedName });
 
     try {
       const res = await Api.post('adminUpdateParticipant', {
         participanteId,
         dni,
-        nombreCompleto: Validation.normalizeName(nombreCompleto)
+        nombreCompleto: normalizedName
       }, this.currentAuthToken);
 
-      if (res.success) {
-        alert('Datos del participante actualizados correctamente.');
-        this.closeModal('modal-participant');
-        this.loadEnrollments();
-        this.notifyDataChanged('participantUpdate', { participanteId });
+      if (res && res.success) {
+        this.showToast('Datos del participante actualizados correctamente.', 'success');
+        if (typeof alert === 'function') alert('Datos del participante actualizados correctamente.');
       } else {
-        alert('Error: ' + res.message);
+        // Rollback ante rechazo del backend (ej: DNI colisiona con otro participante)
+        previousValues.forEach(pv => {
+          pv.item.DNI = pv.dni;
+          pv.item.Nombre_Completo = pv.name;
+        });
+        const firstPrev = previousValues[0];
+        if (firstPrev) {
+          this.updateParticipantRowsInPlace(participanteId, firstPrev.dni, firstPrev.name);
+        }
+        this.notifyDataChanged('participantUpdate', { participanteId });
+        const errMsg = 'Error: ' + (res?.message || 'Error no especificado por el servidor.');
+        this.showToast(errMsg, 'danger');
+        if (typeof alert === 'function') alert(errMsg);
       }
     } catch (err) {
       console.error('[Admin saveParticipant] Error:', err);
-      alert('Error de conexión al actualizar datos.');
+      // Rollback ante falla de red
+      previousValues.forEach(pv => {
+        pv.item.DNI = pv.dni;
+        pv.item.Nombre_Completo = pv.name;
+      });
+      const firstPrev = previousValues[0];
+      if (firstPrev) {
+        this.updateParticipantRowsInPlace(participanteId, firstPrev.dni, firstPrev.name);
+      }
+      this.notifyDataChanged('participantUpdate', { participanteId });
+      const errMsg = 'Error de conexión al actualizar datos.';
+      this.showToast(errMsg, 'danger');
+      if (typeof alert === 'function') alert(errMsg);
     } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Guardar Cambios';
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+      this.isUpdatingParticipant = false;
     }
   },
 

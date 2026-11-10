@@ -134,7 +134,7 @@ function doPost(e) {
       if (!AuthService.hasPermission(adminUser.role, "Operador")) {
         throw new Error("No cuenta con privilegios de Operador para modificar estados de pago.");
       }
-      const res = AdminService.updatePaymentStatus(payload.enrollmentId, payload.status, payload.reason, adminUser.email);
+      const res = AdminService.updatePaymentStatus(payload.enrollmentId, payload.status, payload.reason, adminUser.email, payload);
       return jsonResponse({ success: true, data: res });
     }
 

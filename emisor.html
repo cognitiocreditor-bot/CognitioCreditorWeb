@@ -158,13 +158,28 @@
               </div>
             </div>
             
-            <div class="admin-enrollments-filter">
-              <div class="form-group-grow">
+            <div class="admin-enrollments-filter" style="display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group-grow" style="min-width: 200px;">
                 <label for="filter-event-select" class="form-label">Filtrar por Evento:</label>
-                <select id="filter-event-select" class="form-control"></select>
+                <select id="filter-event-select" class="form-control" onchange="window.CognitioAdmin.loadEnrollments()"></select>
               </div>
-              <button class="btn btn-primary" onclick="window.CognitioAdmin.loadEnrollments()">Ver Inscripciones</button>
+              <div style="flex: 1; min-width: 180px;">
+                <label for="filter-enrollments-search" class="form-label">Buscar Participante:</label>
+                <input type="text" id="filter-enrollments-search" class="form-control" placeholder="DNI, nombre o código..." oninput="window.CognitioAdmin.filterEnrollmentsTable()" autocomplete="off">
+              </div>
+              <div style="min-width: 140px;">
+                <label for="filter-enrollments-status" class="form-label">Estado:</label>
+                <select id="filter-enrollments-status" class="form-control" onchange="window.CognitioAdmin.filterEnrollmentsTable()">
+                  <option value="all">Todos los estados</option>
+                  <option value="Pendiente">Solo Pendientes</option>
+                  <option value="Pagado">Solo Pagados</option>
+                  <option value="Anulado">Anulados</option>
+                  <option value="Reembolsado">Reembolsados</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" onclick="window.CognitioAdmin.loadEnrollments()" title="Recargar inscripciones del servidor">Ver Inscripciones</button>
             </div>
+            <div id="admin-enrollments-count" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-text-muted);"></div>
 
             <div id="admin-enrollments-list" class="admin-table-container">
               <p style="color: var(--color-text-muted); padding: 0.5rem 0;">Seleccione un evento y presione 'Ver Inscripciones'.</p>
@@ -479,10 +494,14 @@
       </div>
       <form id="form-participant" onsubmit="event.preventDefault(); window.CognitioAdmin.saveParticipant();">
         <input type="hidden" id="part-form-id">
+        <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+          ID de Participante: <code id="part-form-id-display" style="background: var(--color-surface); padding: 2px 6px; border-radius: var(--radius-xs); border: 1px solid var(--color-border); font-weight: 600;">-</code>
+        </div>
 
         <div class="form-group">
           <label for="part-form-dni" class="form-label">DNI (8 dígitos) *</label>
-          <input type="text" id="part-form-dni" class="form-control" maxlength="8" required pattern="\d{8}">
+          <input type="text" id="part-form-dni" class="form-control" maxlength="8" required pattern="\d{8}" autocomplete="off">
+          <small id="part-form-dni-indicator" style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-top: 3px;">8 dígitos numéricos</small>
         </div>
 
         <div class="form-group">
@@ -514,13 +533,26 @@
             <div>
               <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); font-weight: 700;">Participante</span>
               <strong id="payment-modal-participant-name" style="font-size: 1rem; color: var(--color-text-main); display: block; margin-top: 2px;">-</strong>
+              <div style="font-size: 0.78rem; color: var(--color-text-muted); margin-top: 1px;">DNI: <strong id="payment-modal-dni" style="color: var(--color-text-main);">-</strong></div>
             </div>
             <div style="text-align: right;">
               <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); font-weight: 700;">Inscripción</span>
               <div><code id="payment-modal-enrollment-code" style="font-size: 0.85rem; font-weight: 600; background: var(--color-surface); padding: 2px 6px; border-radius: var(--radius-xs); border: 1px solid var(--color-border);">-</code></div>
+              <div style="margin-top: 4px;"><span id="payment-modal-cert-type" class="badge badge-secondary" style="font-size: 0.72rem; padding: 2px 6px;">Virtual</span></div>
             </div>
           </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--color-border); padding-top: 0.65rem; margin-top: 0.35rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--color-border); padding-top: 0.5rem; margin-top: 0.35rem; font-size: 0.82rem;">
+            <span style="color: var(--color-text-muted);">Comprobante / Voucher:</span>
+            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <code id="payment-modal-voucher" style="font-size: 0.85rem; font-weight: 600; background: var(--color-surface); padding: 2px 6px; border-radius: var(--radius-xs); border: 1px solid var(--color-border);">-</code>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-copy-payment-voucher" style="padding: 1px 6px; font-size: 0.72rem;" onclick="window.CognitioAdmin.copyVoucherCode(document.getElementById('payment-modal-voucher').textContent, this)" title="Copiar código de comprobante">📋 Copiar</button>
+            </span>
+          </div>
+          <div id="payment-modal-date-row" style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--color-border); padding-top: 0.5rem; margin-top: 0.35rem; font-size: 0.82rem;">
+            <span style="color: var(--color-text-muted);">Fecha de Pago Registrada:</span>
+            <span id="payment-modal-payment-date" style="font-weight: 500; color: var(--color-text-main);">-</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--color-border); padding-top: 0.5rem; margin-top: 0.35rem;">
             <span style="font-size: 0.82rem; color: var(--color-text-muted);">Estado Actual Registrado:</span>
             <span id="payment-modal-current-status" class="badge badge-secondary">-</span>
           </div>
@@ -539,6 +571,20 @@
           </small>
         </div>
 
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="payment-modal-voucher-edit" class="form-label">Comprobante / N° Voucher</label>
+            <input type="text" id="payment-modal-voucher-edit" class="form-control" placeholder="Ej: OP-987654, YAPE-1234">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="payment-modal-cert-type-select" class="form-label">Modalidad Certificado</label>
+            <select id="payment-modal-cert-type-select" class="form-control">
+              <option value="Virtual">Virtual</option>
+              <option value="Fisico">Físico</option>
+            </select>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="payment-modal-reason" class="form-label">
             Motivo de la Corrección o Justificación
@@ -555,6 +601,41 @@
           <button type="submit" class="btn btn-primary" id="btn-save-payment-status">Guardar Cambio de Estado</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirmar Pago Verificado (Protección frente a confirmaciones accidentales) -->
+  <div id="modal-confirm-payment" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-payment-title">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="modal-confirm-payment-title">Confirmar Pago Verificado</h3>
+        <button type="button" class="modal-close-btn" onclick="window.CognitioAdmin.closeModal('modal-confirm-payment')" aria-label="Cerrar modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 16px 20px;">
+        <input type="hidden" id="confirm-modal-enrollment-id">
+        <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 14px;">
+          Por favor verifique la información del participante antes de confirmar el pago. Esta acción validará su derecho a certificación:
+        </p>
+
+        <div style="background: var(--color-bg-secondary, #f8fafc); border: 1px solid var(--color-border, #e2e8f0); border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 0.88rem; line-height: 1.6;">
+          <div><strong>Participante:</strong> <span id="confirm-modal-participant-name">-</span></div>
+          <div><strong>DNI:</strong> <span id="confirm-modal-dni" class="font-mono">-</span></div>
+          <div><strong>Código Consulta:</strong> <code id="confirm-modal-code" class="font-mono">-</code></div>
+          <div><strong>Modalidad Certificado:</strong> <span id="confirm-modal-cert-type">-</span></div>
+          <div><strong>Comprobante / Voucher:</strong> <code id="confirm-modal-voucher">-</code></div>
+          <div><strong>Estado Actual:</strong> <span id="confirm-modal-current-status" class="badge badge-warning">Pendiente</span></div>
+        </div>
+
+        <div class="alert alert-info" style="font-size: 0.82rem; margin-bottom: 0;">
+          ℹ️ Al confirmar el pago, la fecha y hora de la transacción se registrarán automáticamente en Google Sheets y en la bitácora de auditoría.
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 12px 20px;">
+        <button type="button" class="btn btn-outline" onclick="window.CognitioAdmin.closeModal('modal-confirm-payment')">Cancelar</button>
+        <button type="button" class="btn btn-success" id="btn-execute-confirm-payment" onclick="window.CognitioAdmin.executeConfirmedPayment()">
+          ✓ Confirmar Pago
+        </button>
+      </div>
     </div>
   </div>
 
@@ -712,6 +793,8 @@
       openCertConfigModal: (eventId) => Admin.openCertConfigModal(eventId),
       saveCertConfig: () => Admin.saveCertConfig(),
       loadEnrollments: () => Admin.loadEnrollments(),
+      filterEnrollmentsTable: () => Admin.filterEnrollmentsTable(),
+      copyVoucherCode: (text, btnEl) => Admin.copyVoucherCode(text, btnEl),
       confirmPayment: (id, btnEl) => Admin.confirmPayment(id, btnEl),
       openPaymentModal: (enrollmentId, currentStatus, participantName) => Admin.openPaymentModal(enrollmentId, currentStatus, participantName),
       savePaymentStatusChange: () => Admin.savePaymentStatusChange(),

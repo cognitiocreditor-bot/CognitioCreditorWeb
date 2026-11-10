@@ -31,6 +31,7 @@ const AdminService = {
         Evento_ID: e.Evento_ID,
         Tipo_Certificado: e.Tipo_Certificado,
         Estado_Pago: e.Estado_Pago,
+        Fecha_Pago: e.Fecha_Pago || "",
         Referencia_Comprobante: e.Referencia_Comprobante,
         Codigo_Consulta: e.Codigo_Consulta,
         Estado_Inscripcion: e.Estado_Inscripcion
@@ -48,7 +49,7 @@ const AdminService = {
    * @param {string} adminEmail - Correo del directivo autenticado que realiza la acción
    * @returns {{ enrollmentId: string, status: string, previousStatus: string }}
    */
-  updatePaymentStatus(enrollmentId, status, reason, adminEmail) {
+  updatePaymentStatus(enrollmentId, status, reason, adminEmail, extraFields = {}) {
     // Compatibilidad hacia atrás si se invoca con 3 argumentos: (enrollmentId, status, adminEmail)
     if (adminEmail === undefined && typeof reason === "string" && reason.includes("@")) {
       adminEmail = reason;
@@ -73,12 +74,24 @@ const AdminService = {
         throw new Error("Inscripción no encontrada.");
       }
 
+      // Validación de regla de negocio: no confirmar pago si ya está Pagado (a menos que se corrijan campos extra de voucher o modalidad)
+      const isModifyingExtra = extraFields && (extraFields.referenciaComprobante !== undefined || extraFields.tipoCertificado !== undefined);
+      if (status === "Pagado" && target.Estado_Pago === "Pagado" && !isModifyingExtra) {
+        throw new Error("La inscripción ya se encuentra registrada como Pagada.");
+      }
+
+      // Si la inscripción está anulada, exigir motivo explícito para reactivarla a Pagado
+      if (status === "Pagado" && target.Estado_Pago === "Anulado" && !cleanReason) {
+        throw new Error("No se puede confirmar directamente un pago anulado sin especificar el motivo de reactivación.");
+      }
+
       const updateData = {
         Estado_Pago: status
       };
 
       if (status === "Pagado") {
-        updateData.Fecha_Pago = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "yyyy-MM-dd HH:mm:ss");
+        // Preservar la Fecha_Pago histórica existente si ya existía; de lo contrario, estampar la fecha actual
+        updateData.Fecha_Pago = target.Fecha_Pago || Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "yyyy-MM-dd HH:mm:ss");
       } else if (status === "Pendiente") {
         updateData.Fecha_Pago = "";
       } else {
@@ -86,17 +99,35 @@ const AdminService = {
         updateData.Fecha_Pago = target.Fecha_Pago || "";
       }
 
+      // Corrección de comprobante / voucher si se suministra
+      if (extraFields && extraFields.referenciaComprobante !== undefined) {
+        updateData.Referencia_Comprobante = String(extraFields.referenciaComprobante).trim();
+      }
+
+      // Corrección de modalidad de certificado si se suministra
+      if (extraFields && extraFields.tipoCertificado !== undefined) {
+        const certType = String(extraFields.tipoCertificado).trim();
+        if (certType === "Fisico" || certType === "Virtual") {
+          updateData.Tipo_Certificado = certType;
+        }
+      }
+
       // Actualizar únicamente campos de pago de la fila existente; IDs permanecen inmutables
       Database.updateRow(CONFIG.SHEETS.INSCRIPCIONES, target._rowIndex, updateData);
 
       const previousStatus = target.Estado_Pago || "Sin estado";
-      const auditDetail = 'De ' + previousStatus + ' a ' + status + '. Motivo: ' + (cleanReason || 'No especificado');
+      const voucherDetail = updateData.Referencia_Comprobante !== undefined ? ` [Voucher: ${updateData.Referencia_Comprobante}]` : "";
+      const certDetail = updateData.Tipo_Certificado !== undefined ? ` [Modalidad: ${updateData.Tipo_Certificado}]` : "";
+      const auditDetail = 'De ' + previousStatus + ' a ' + status + voucherDetail + certDetail + '. Motivo: ' + (cleanReason || 'No especificado');
       AuthService.logAudit(adminEmail, "CAMBIO_ESTADO_PAGO", enrollmentId, auditDetail);
 
       return {
         enrollmentId: enrollmentId,
         status: status,
-        previousStatus: target.Estado_Pago
+        previousStatus: target.Estado_Pago,
+        fechaPago: updateData.Fecha_Pago || "",
+        referenciaComprobante: updateData.Referencia_Comprobante !== undefined ? updateData.Referencia_Comprobante : (target.Referencia_Comprobante || ""),
+        tipoCertificado: updateData.Tipo_Certificado || target.Tipo_Certificado || "Virtual"
       };
     }, 20000);
   },
@@ -489,9 +520,13 @@ const AdminService = {
   },
 
   /**
-   * Actualiza los datos de un participante (corrección ortográfica o de DNI) con cerrojo atómico.
+   * Actualiza los datos de un participante (corrección ortográfica o de DNI) con cerrojo atómico,
+   * validación estricta de 8 dígitos y prevención de colisión de DNI con otros participantes.
    */
   updateParticipant(payload, adminEmail) {
+    if (!payload || typeof payload !== "object") {
+      throw new Error("Datos de participante requeridos.");
+    }
     const { participanteId, dni, nombreCompleto } = payload;
     if (!participanteId) throw new Error("ID de participante requerido.");
 
@@ -500,8 +535,22 @@ const AdminService = {
       const target = participants.find(p => p.Participante_ID === participanteId);
       if (!target) throw new Error("Participante no encontrado.");
 
-      const cleanDni = String(dni || target.DNI).trim();
-      const cleanName = String(nombreCompleto || target.Nombre_Completo).trim();
+      const rawDni = String(dni !== undefined ? dni : target.DNI).trim();
+      if (!/^\d{1,8}$/.test(rawDni)) {
+        throw new Error("El formato del DNI debe ser exactamente de 8 dígitos numéricos.");
+      }
+      const cleanDni = rawDni.padStart(8, "0");
+
+      // Prevención de colisión: no permitir que el DNI pertenezca a otro participante registrado
+      const collision = participants.find(p => p.Participante_ID !== participanteId && String(p.DNI).trim() === cleanDni);
+      if (collision) {
+        throw new Error(`El DNI ${cleanDni} ya se encuentra registrado para otro participante (${collision.Nombre_Completo}).`);
+      }
+
+      const cleanName = String(nombreCompleto !== undefined ? nombreCompleto : target.Nombre_Completo).trim().replace(/\s+/g, " ").toUpperCase();
+      if (cleanName.length < 3) {
+        throw new Error("El nombre completo debe tener al menos 3 caracteres.");
+      }
 
       Database.updateRow(CONFIG.SHEETS.PARTICIPANTES, target._rowIndex, {
         DNI: cleanDni,
