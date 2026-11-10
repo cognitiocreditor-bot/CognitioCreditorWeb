@@ -176,9 +176,19 @@
         <div id="tab-excel" class="admin-tab-content" style="display: none;">
           <div class="admin-card">
             <h2 style="color: var(--color-primary); font-size: 1.35rem; margin-bottom: 0.5rem;">Importación Masiva de Participantes desde Excel</h2>
-            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
               Cargue un archivo <code>.xlsx</code> o <code>.xls</code>. Las columnas requeridas son: <strong>DNI</strong>, <strong>Nombre_Completo</strong>, y opcionalmente <strong>Tipo_Certificado</strong> y <strong>Referencia_Comprobante</strong>.
             </p>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap;">
+              <a href="docs/plantilla_importacion_participantes.xlsx" download="plantilla_importacion_participantes.xlsx" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 0.35rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Descargar Plantilla Oficial Excel (.xlsx)
+              </a>
+              <span style="font-size: 0.8rem; color: var(--color-text-muted);">
+                Plantilla oficial con formatos de texto (resguardo de ceros en DNI) y listas desplegables.
+              </span>
+            </div>
 
             <div class="form-group">
               <label for="import-event-select" class="form-label">Evento de Destino *</label>
