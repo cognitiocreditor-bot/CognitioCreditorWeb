@@ -2904,7 +2904,12 @@ p {
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms ease-out;
+}
+
+.dashboard-kpi-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .dashboard-kpi-card::before {
@@ -2915,7 +2920,7 @@ p {
   right: 0;
   height: 3px;
   background: transparent;
-  transition: background-color var(--transition-fast);
+  transition: background-color 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2926,6 +2931,10 @@ p {
   }
 }
 
+.dashboard-kpi-card:active {
+  transform: scale(0.985);
+}
+
 .dashboard-kpi-card.kpi-accent::before { background-color: var(--color-accent); }
 .dashboard-kpi-card.kpi-success::before { background-color: var(--color-success); }
 .dashboard-kpi-card.kpi-purple::before { background-color: #7C3AED; }
@@ -2934,7 +2943,7 @@ p {
 .kpi-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.65rem;
 }
@@ -3256,7 +3265,57 @@ p {
   border: 1px solid var(--color-border);
 }
 
+/* Micro-interacciones de botones en el Dashboard (Emil Kowalski feedback) */
+.dashboard-toolbar .btn,
+.dashboard-panel-actions .btn {
+  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.dashboard-toolbar .btn:active,
+.dashboard-panel-actions .btn:active {
+  transform: scale(0.97);
+}
+
+/* Adaptabilidad para dispositivos móviles estrechos */
+@media (max-width: 640px) {
+  .dashboard-toolbar {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+  .dashboard-toolbar .admin-filter-row {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+  .dashboard-event-select {
+    width: 100%;
+    min-width: 0;
+  }
+  .dashboard-toolbar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .dashboard-last-updated-wrap {
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .dashboard-kpi-card,
+  .distribution-segment,
+  .table-mini-fill,
+  .activity-feed-card,
+  .dashboard-toolbar .btn,
+  .dashboard-panel-actions .btn {
+    transition: none !important;
+    transform: none !important;
+  }
   .dashboard-skeleton-kpi,
   .dashboard-skeleton-block {
     animation: none;

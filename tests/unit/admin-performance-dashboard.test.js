@@ -592,7 +592,7 @@ console.log("\n[Escenario 06] Adaptador Dashboard (Contrato Canónico Anidado):"
   assert(content.includes('77.8% Conciliado'), "Tasa de conciliación canónica 77.8% renderizada con precisión");
   assert(content.includes('70.0% Pagado'), "Distribución porcentual pagada calculada exactamente: 70.0%");
   assert(content.includes('40</b> Pend.') || content.includes('40</strong> Pend.'), "Conteo de pendientes renderizado correctamente");
-  assert(content.includes('<span class="kpi-value">150</span>'), "KPI Participantes Únicos muestra 150");
+  assert(content.includes('<span class="kpi-value">4</span>'), "KPI Eventos Gestionados muestra 4");
   assert(!content.includes('NaN'), "Ninguna métrica produjo NaN");
   assert(!content.includes('undefined'), "Ninguna propiedad resultó undefined");
 }
@@ -621,7 +621,7 @@ console.log("\n[Escenario 07] Adaptador Dashboard (Contrato Plano / Retrocompati
 
   assert(content.includes('<span class="kpi-value">80</span>'), "Tolerancia: totalInscritos plano = 80");
   assert(content.includes('<span class="kpi-value">60</span>'), "Tolerancia: pagados plano = 60");
-  assert(content.includes('<span class="kpi-value">70</span>'), "Tolerancia: participantesUnicos plano = 70");
+  assert(content.includes('<span class="kpi-value">5</span>'), "Tolerancia: totalEventos plano = 5");
   assert(content.includes('75% Conciliado'), "Tolerancia: tasaConciliacion plano = 75%");
   assert(!content.includes('NaN'), "Cero valores NaN en contrato plano");
 }

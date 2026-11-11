@@ -491,6 +491,7 @@ export const Admin = {
    */
   async _buildFallbackDashboardStats(selectedEventId) {
     const activeEvents = this.eventsCache.filter(e => e.Estado === 'Activo');
+    const finishedEvents = this.eventsCache.filter(e => e.Estado === 'Finalizado');
     const totalEventsCount = this.eventsCache.length;
 
     // Obtener los últimos registros de auditoría si es posible
@@ -527,8 +528,8 @@ export const Admin = {
       events: {
         total: totalEventsCount,
         active: activeEvents.length,
-        finished: 0,
-        draft: 0
+        finished: finishedEvents.length,
+        draft: Math.max(0, totalEventsCount - activeEvents.length - finishedEvents.length)
       },
       participants: {
         totalUnique: 0
@@ -631,20 +632,43 @@ export const Admin = {
       this.eventsCache.length
     ) || 0;
 
-    // Tasas porcentuales calculadas
+    const eventosFinalizados = Number(
+      stats.events?.finished ?? 
+      stats.eventosFinalizados ?? 
+      this.eventsCache.filter(e => e.Estado === 'Finalizado').length
+    ) || 0;
+
+    const eventosOtros = Number(
+      stats.events?.draft ?? 
+      stats.eventosOtros ?? 
+      stats.eventosBorrador ?? 
+      Math.max(0, totalEventos - eventosActivos - eventosFinalizados)
+    ) || 0;
+
+    // Inscripciones activas (excluyendo anulados / dados de baja)
+    const inscripcionesActivas = Math.max(0, totalInscritos - anulados);
+    const pctActivas = totalInscritos > 0 ? ((inscripcionesActivas / totalInscritos) * 100).toFixed(1) : '0.0';
+
+    // Tasas porcentuales calculadas para pagos
     const tasaConciliacion = stats.enrollments?.paymentRate !== undefined
       ? Number(stats.enrollments.paymentRate)
       : (stats.tasaConciliacion !== undefined 
           ? Number(stats.tasaConciliacion) 
-          : (totalInscritos > 0 ? Math.round((pagados / totalInscritos) * 100) : 0));
+          : (inscripcionesActivas > 0 ? Math.round((pagados / inscripcionesActivas) * 100) : (totalInscritos > 0 ? Math.round((pagados / totalInscritos) * 100) : 0)));
 
     const pctPagado = totalInscritos > 0 ? ((pagados / totalInscritos) * 100).toFixed(1) : '0.0';
     const pctPendiente = totalInscritos > 0 ? ((pendientes / totalInscritos) * 100).toFixed(1) : '0.0';
     const pctAnulado = totalInscritos > 0 ? Math.max(0, 100 - parseFloat(pctPagado) - parseFloat(pctPendiente)).toFixed(1) : '0.0';
 
+    // Modalidad solicitada de certificados
     const sumModalidad = (virtuales + fisicos);
     const pctVirtual = sumModalidad > 0 ? ((virtuales / sumModalidad) * 100).toFixed(1) : (totalInscritos > 0 ? '100.0' : '0.0');
     const pctFisico = sumModalidad > 0 ? ((fisicos / sumModalidad) * 100).toFixed(1) : '0.0';
+
+    // Distribución porcentual de eventos por estado
+    const pctEventosActivos = totalEventos > 0 ? ((eventosActivos / totalEventos) * 100).toFixed(1) : '0.0';
+    const pctEventosFinalizados = totalEventos > 0 ? ((eventosFinalizados / totalEventos) * 100).toFixed(1) : '0.0';
+    const pctEventosOtros = totalEventos > 0 ? Math.max(0, 100 - parseFloat(pctEventosActivos) - parseFloat(pctEventosFinalizados)).toFixed(1) : '0.0';
 
     // Lista de eventos para tabla de rendimiento (Soporta eventBreakdown del backend y eventosResumen)
     const rawEvents = stats.eventBreakdown || stats.eventos || stats.eventosResumen || stats.eventsSummary || [];
@@ -794,10 +818,10 @@ export const Admin = {
     // Ensamblar la vista completa
     contentArea.innerHTML = `
       <!-- CUADRÍCULA DE MÉTRICAS KPI -->
-      <section class="dashboard-grid" aria-label="Métricas Principales">
+      <section class="dashboard-grid" aria-label="Métricas Principales" data-unique-participants="${participantesUnicos}">
         
         <!-- KPI 1: Inscripciones Totales -->
-        <article class="dashboard-kpi-card kpi-accent">
+        <article class="dashboard-kpi-card kpi-accent" tabindex="0" aria-label="Inscripciones Totales: ${totalInscritos} registros">
           <div class="kpi-top">
             <span class="kpi-label">Inscripciones Totales</span>
             <div class="kpi-icon-wrap bg-accent-soft" aria-hidden="true">
@@ -806,19 +830,27 @@ export const Admin = {
           </div>
           <div class="kpi-value-row">
             <span class="kpi-value">${totalInscritos}</span>
-            <span class="kpi-badge ${tasaConciliacion >= 75 ? 'badge-success' : 'badge-warning'}">
-              ${tasaConciliacion}% Conciliado
-            </span>
+            <span class="kpi-badge badge-primary">${pctActivas}% Activas</span>
+          </div>
+          <div class="distribution-bar-container" aria-label="Distribución de inscripciones activas y anuladas">
+            <div class="distribution-bar" role="progressbar" aria-valuenow="${pctActivas}" aria-valuemin="0" aria-valuemax="100">
+              <div class="distribution-segment segment-paid" style="width: ${pctActivas}%;" title="Activas: ${inscripcionesActivas} (${pctActivas}%)"></div>
+              <div class="distribution-segment segment-canceled" style="width: ${pctAnulado}%;" title="Anuladas: ${anulados} (${pctAnulado}%)"></div>
+            </div>
+            <div class="distribution-legend">
+              <span class="legend-item"><span class="legend-dot dot-paid"></span> <strong class="legend-value">${inscripcionesActivas}</strong> Activas</span>
+              <span class="legend-item"><span class="legend-dot dot-canceled"></span> <strong class="legend-value">${anulados}</strong> Anuladas</span>
+            </div>
           </div>
           <p class="kpi-footer-text">
             ${selectedEventId === 'all' ? 'Alumnos inscritos en el catálogo general.' : `Filtrado por evento: ${Validation.escapeHTML(selectedEventId)}`}
           </p>
         </article>
 
-        <!-- KPI 2: Pagos Conciliados y Distribución Semántica -->
-        <article class="dashboard-kpi-card kpi-success">
+        <!-- KPI 2: Estado de Pagos (Comprobantes Verificados vs Pendientes) -->
+        <article class="dashboard-kpi-card kpi-success" tabindex="0" aria-label="Estado de Pagos: ${pagados} pagados">
           <div class="kpi-top">
-            <span class="kpi-label">Conciliación de Pagos</span>
+            <span class="kpi-label">Estado de Pagos</span>
             <div class="kpi-icon-wrap bg-success-soft" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
             </div>
@@ -826,6 +858,7 @@ export const Admin = {
           <div class="kpi-value-row">
             <span class="kpi-value">${pagados}</span>
             <span class="kpi-badge badge-success">${pctPagado}% Pagado</span>
+            <span class="kpi-badge ${tasaConciliacion >= 75 ? 'badge-success' : 'badge-warning'}">${tasaConciliacion}% Conciliado</span>
           </div>
           <div class="distribution-bar-container" aria-label="Distribución porcentual de pagos">
             <div class="distribution-bar" role="progressbar" aria-valuenow="${tasaConciliacion}" aria-valuemin="0" aria-valuemax="100">
@@ -839,12 +872,15 @@ export const Admin = {
               <span class="legend-item"><span class="legend-dot dot-canceled"></span> <strong class="legend-value">${anulados}</strong> Anul.</span>
             </div>
           </div>
+          <p class="kpi-footer-text">
+            Comprobantes revisados y registrados por administración.
+          </p>
         </article>
 
-        <!-- KPI 3: Modalidad de Certificados -->
-        <article class="dashboard-kpi-card kpi-purple">
+        <!-- KPI 3: Modalidad de Certificados Solicitada -->
+        <article class="dashboard-kpi-card kpi-purple" tabindex="0" aria-label="Modalidad Solicitada: ${virtuales} virtuales, ${fisicos} físicos">
           <div class="kpi-top">
-            <span class="kpi-label">Modalidad Certificados</span>
+            <span class="kpi-label">Modalidad de Certificados</span>
             <div class="kpi-icon-wrap bg-purple-soft" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
             </div>
@@ -854,7 +890,7 @@ export const Admin = {
             <span class="kpi-badge badge-purple">${pctFisico}% Físicos</span>
           </div>
           <div class="distribution-bar-container" aria-label="Distribución de certificados digitales y físicos">
-            <div class="distribution-bar">
+            <div class="distribution-bar" role="progressbar" aria-valuenow="${pctVirtual}" aria-valuemin="0" aria-valuemax="100">
               <div class="distribution-segment segment-virtual" style="width: ${pctVirtual}%;" title="Virtuales: ${virtuales} (${pctVirtual}%)"></div>
               <div class="distribution-segment segment-physical" style="width: ${pctFisico}%;" title="Físicos: ${fisicos} (${pctFisico}%)"></div>
             </div>
@@ -863,22 +899,37 @@ export const Admin = {
               <span class="legend-item"><span class="legend-dot dot-physical"></span> <strong class="legend-value">${fisicos}</strong> Físicos (${pctFisico}%)</span>
             </div>
           </div>
+          <p class="kpi-footer-text">
+            Modalidad elegida en inscripción (no implica emisión previa).
+          </p>
         </article>
 
-        <!-- KPI 4: Participantes Únicos y Cobertura -->
-        <article class="dashboard-kpi-card kpi-info">
+        <!-- KPI 4: Eventos Gestionados -->
+        <article class="dashboard-kpi-card kpi-info" tabindex="0" aria-label="Eventos Gestionados: ${totalEventos} totales">
           <div class="kpi-top">
-            <span class="kpi-label">Participantes y Cobertura</span>
+            <span class="kpi-label">Eventos Gestionados</span>
             <div class="kpi-icon-wrap bg-info-soft" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             </div>
           </div>
           <div class="kpi-value-row">
-            <span class="kpi-value">${participantesUnicos}</span>
-            <span class="kpi-badge badge-info">${eventosActivos} Activos</span>
+            <span class="kpi-value">${totalEventos}</span>
+            <span class="kpi-badge badge-info">${eventosActivos} Activo${eventosActivos === 1 ? '' : 's'}</span>
+          </div>
+          <div class="distribution-bar-container" aria-label="Distribución de eventos por estado">
+            <div class="distribution-bar" role="progressbar" aria-valuenow="${pctEventosActivos}" aria-valuemin="0" aria-valuemax="100">
+              <div class="distribution-segment segment-paid" style="width: ${pctEventosActivos}%;" title="Activos: ${eventosActivos} (${pctEventosActivos}%)"></div>
+              <div class="distribution-segment segment-virtual" style="width: ${pctEventosFinalizados}%;" title="Finalizados: ${eventosFinalizados} (${pctEventosFinalizados}%)"></div>
+              <div class="distribution-segment segment-canceled" style="width: ${pctEventosOtros}%;" title="Otros: ${eventosOtros} (${pctEventosOtros}%)"></div>
+            </div>
+            <div class="distribution-legend">
+              <span class="legend-item"><span class="legend-dot dot-paid"></span> <strong class="legend-value">${eventosActivos}</strong> Activos</span>
+              <span class="legend-item"><span class="legend-dot dot-virtual"></span> <strong class="legend-value">${eventosFinalizados}</strong> Concluidos</span>
+              <span class="legend-item"><span class="legend-dot dot-canceled"></span> <strong class="legend-value">${eventosOtros}</strong> Otros</span>
+            </div>
           </div>
           <p class="kpi-footer-text">
-            ${eventosActivos} eventos en curso de un total de ${totalEventos} gestionados.
+            ${selectedEventId === 'all' ? `${eventosActivos} en convocatoria / curso de un total de ${totalEventos} gestionados.` : `Filtrado por evento: ${Validation.escapeHTML(selectedEventId)}`}
           </p>
         </article>
 
