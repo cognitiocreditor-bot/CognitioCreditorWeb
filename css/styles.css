@@ -2154,6 +2154,8 @@ p {
   box-shadow: var(--shadow-sm);
   margin-bottom: 2rem;
   width: 100%;
+  transform: none !important;
+  will-change: auto !important;
 }
 
 .auth-card {
@@ -2711,8 +2713,7 @@ p {
 .proof-card,
 .social-card,
 .cert-lookup-box,
-.faq-item,
-.admin-card {
+.faq-item {
   transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
               border-color 180ms ease;
@@ -2726,8 +2727,7 @@ p {
   .disciplines-column:hover,
   .proof-card:hover,
   .social-card:hover,
-  .faq-item:hover,
-  .admin-card:hover {
+  .faq-item:hover {
     transform: translateY(-4px) scale(1.01);
     box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.09),
                 0 10px 15px -5px rgba(37, 99, 235, 0.05);
@@ -2740,8 +2740,7 @@ p {
 .disciplines-column:active,
 .proof-card:active,
 .social-card:active,
-.faq-item:active,
-.admin-card:active {
+.faq-item:active {
   transform: scale(0.98);
   transition-duration: 90ms;
 }

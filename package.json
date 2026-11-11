@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Sistema de Emisión, Validación y Gestión de Certificados Académicos - Círculo de Estudios Cognitio Creditor",
   "scripts": {
-    "test": "node tests/unit/business-rules.test.js && node tests/unit/rbac-auth.test.js && node tests/unit/validation.test.js && node tests/unit/payment-transitions.test.js && node tests/unit/individual-registration.test.js && node tests/unit/dashboard-stats.test.js && node tests/unit/admin-performance-dashboard.test.js && node tests/unit/gestionar-pago-optimizations.test.js && node tests/unit/corregir-pago-optimizations.test.js && node tests/unit/confirmar-pago-optimizations.test.js && node tests/unit/integration-phase5.test.js",
+    "test": "node tests/unit/business-rules.test.js && node tests/unit/rbac-auth.test.js && node tests/unit/validation.test.js && node tests/unit/payment-transitions.test.js && node tests/unit/individual-registration.test.js && node tests/unit/dashboard-stats.test.js && node tests/unit/admin-performance-dashboard.test.js && node tests/unit/gestionar-pago-optimizations.test.js && node tests/unit/corregir-pago-optimizations.test.js && node tests/unit/confirmar-pago-optimizations.test.js && node tests/unit/integration-phase5.test.js && node tests/unit/acciones-administrativas-escenarios.test.js",
+    "test:escenarios": "node tests/unit/acciones-administrativas-escenarios.test.js",
     "test:payments": "node tests/unit/payment-transitions.test.js",
     "test:gestionar-pago": "node tests/unit/gestionar-pago-optimizations.test.js",
     "test:corregir-pago": "node tests/unit/corregir-pago-optimizations.test.js",

@@ -332,6 +332,9 @@ export const Admin = {
       const btn = e.target?.closest ? e.target.closest('button[data-action]') : null;
       if (!btn) return;
 
+      // Si el botón ya tiene un handler inline 'onclick' activo, no duplicar la invocación
+      if (btn.onclick && typeof btn.onclick === 'function') return;
+
       const action = btn.dataset.action;
       if (action === 'manage-payment') {
         const id = btn.dataset.enrollmentId;
@@ -343,6 +346,8 @@ export const Admin = {
       } else if (action === 'confirm-payment') {
         const id = btn.dataset.enrollmentId;
         if (id) this.openConfirmPaymentModal(id);
+      } else if (action === 'register-participant') {
+        this.openRegisterParticipantModal();
       }
     });
   },
@@ -1411,7 +1416,14 @@ export const Admin = {
     }
 
     const rows = items.map(ins => {
-      const status = ins.Estado_Pago || 'Pendiente';
+      const insId = String(ins.Inscripcion_ID || '');
+      const partId = String(ins.Participante_ID || '');
+      const dni = String(ins.DNI || '');
+      const name = String(ins.Nombre_Completo || '');
+      const certType = String(ins.Tipo_Certificado || 'Virtual');
+      const voucher = String(ins.Referencia_Comprobante || '');
+      const code = String(ins.Codigo_Consulta || '');
+      const status = String(ins.Estado_Pago || 'Pendiente');
       const isPaid = status === 'Pagado';
       const isPending = status === 'Pendiente';
       const isCancelled = status === 'Anulado';
@@ -1421,26 +1433,26 @@ export const Admin = {
       const icon = this.getPaymentStatusIcon(status);
 
       return `
-        <tr data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}" data-participant-id="${Validation.escapeHTML(ins.Participante_ID)}">
-          <td style="padding: 8px;"><code>${Validation.escapeHTML(ins.Inscripcion_ID)}</code></td>
-          <td style="padding: 8px;" class="col-dni">${Validation.escapeHTML(ins.DNI)}</td>
-          <td style="padding: 8px;" class="col-participant-name">${Validation.escapeHTML(ins.Nombre_Completo)}</td>
-          <td style="padding: 8px;" class="col-cert-type">${Validation.escapeHTML(ins.Tipo_Certificado)}</td>
+        <tr data-enrollment-id="${Validation.escapeHTML(insId)}" data-participant-id="${Validation.escapeHTML(partId)}">
+          <td style="padding: 8px;"><code>${Validation.escapeHTML(insId)}</code></td>
+          <td style="padding: 8px;" class="col-dni">${Validation.escapeHTML(dni)}</td>
+          <td style="padding: 8px;" class="col-participant-name">${Validation.escapeHTML(name)}</td>
+          <td style="padding: 8px;" class="col-cert-type">${Validation.escapeHTML(certType)}</td>
           <td style="padding: 8px;" class="col-payment-status">
             <span class="badge ${badgeClass}">
               ${icon} ${Validation.escapeHTML(status)}
             </span>
-            ${ins.Referencia_Comprobante ? `
+            ${voucher ? `
               <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 3px;" title="Voucher / N° Operación bancaria">
-                Voucher: <code style="background: var(--color-surface); padding: 1px 4px; border-radius: var(--radius-xs); border: 1px solid var(--color-border); font-size: 0.75rem;">${Validation.escapeHTML(ins.Referencia_Comprobante)}</code>
+                Voucher: <code style="background: var(--color-surface); padding: 1px 4px; border-radius: var(--radius-xs); border: 1px solid var(--color-border); font-size: 0.75rem;">${Validation.escapeHTML(voucher)}</code>
               </div>
             ` : ''}
           </td>
-          <td style="padding: 8px;"><code>${Validation.escapeHTML(ins.Codigo_Consulta)}</code></td>
+          <td style="padding: 8px;"><code>${Validation.escapeHTML(code)}</code></td>
           <td style="padding: 8px;" class="col-payment-actions">
             <div class="admin-table-actions">
               ${isPending ? `
-                <button type="button" class="btn btn-success btn-sm" data-action="confirm-payment" data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Confirmar pago verificado">
+                <button type="button" class="btn btn-success btn-sm" data-action="confirm-payment" data-enrollment-id="${Validation.escapeHTML(insId)}" onclick="window.CognitioAdmin.openConfirmPaymentModal('${Validation.escapeHTML(insId)}')" title="Confirmar pago verificado">
                   ✓ Confirmar Pago
                 </button>
               ` : ''}
@@ -1453,10 +1465,10 @@ export const Admin = {
               ${isRefunded ? `
                 <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">↩ Reembolsado</span>
               ` : ''}
-              <button type="button" class="btn btn-secondary btn-sm" data-action="manage-payment" data-enrollment-id="${Validation.escapeHTML(ins.Inscripcion_ID)}" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(ins.Inscripcion_ID)}')" title="Gestionar y cambiar estado de pago">
+              <button type="button" class="btn btn-secondary btn-sm" data-action="manage-payment" data-enrollment-id="${Validation.escapeHTML(insId)}" onclick="window.CognitioAdmin.openPaymentModal('${Validation.escapeHTML(insId)}')" title="Gestionar y cambiar estado de pago">
                 ⚙ Gestionar Pago
               </button>
-              <button type="button" class="btn btn-outline btn-sm" data-action="edit-participant" data-participant-id="${Validation.escapeHTML(ins.Participante_ID)}" data-dni="${Validation.escapeHTML(ins.DNI)}" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(ins.Participante_ID)}', '${Validation.escapeHTML(ins.DNI)}')" title="Corregir datos de participante">
+              <button type="button" class="btn btn-outline btn-sm" data-action="edit-participant" data-participant-id="${Validation.escapeHTML(partId)}" data-dni="${Validation.escapeHTML(dni)}" onclick="window.CognitioAdmin.openEditParticipantModal('${Validation.escapeHTML(partId)}', '${Validation.escapeHTML(dni)}')" title="Corregir datos de participante">
                 ✎ Corregir
               </button>
             </div>

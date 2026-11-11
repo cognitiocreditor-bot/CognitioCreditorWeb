@@ -65,7 +65,10 @@ export const Validation = {
    * @returns {string}
    */
   escapeHTML(str) {
-    if (typeof str !== "string") return "";
+    if (typeof str !== "string") {
+      if (str === null || str === undefined) return "";
+      str = String(str);
+    }
     return str
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")

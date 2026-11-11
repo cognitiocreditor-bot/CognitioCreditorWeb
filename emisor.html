@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=10">
+  <link rel="stylesheet" href="css/styles.css?v=11">
   <link rel="icon" href="assets/images/logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="assets/images/logo.jpg">
 
@@ -154,7 +154,7 @@
                 </p>
               </div>
               <div class="admin-toolbar">
-                <button type="button" class="btn btn-success btn-sm" onclick="window.CognitioAdmin.openRegisterParticipantModal()">+ Registrar Participante Individual</button>
+                <button type="button" class="btn btn-success btn-sm" data-action="register-participant" onclick="window.CognitioAdmin.openRegisterParticipantModal()">+ Registrar Participante Individual</button>
               </div>
             </div>
             
@@ -777,7 +777,7 @@
   </footer>
 
   <script type="module">
-    import { Admin } from './js/admin.js?v=20261110-v2';
+    import { Admin } from './js/admin.js?v=20261111-v3';
 
     // Exposición directa, canónica y completa de Admin en el ámbito global
     window.Admin = Admin;
